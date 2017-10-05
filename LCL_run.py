@@ -9,7 +9,6 @@ from PyQt5 import QtGui
 from utils import screen_shooter,now,comment
 
 class ShowVideo(QtCore.QObject):
- 
 	#initiating the built in camera
 	camera_port = 0
 	camera = cv2.VideoCapture(camera_port)
@@ -62,13 +61,10 @@ class main_window(QMainWindow):
 	def __init__(self):
 		super(main_window, self).__init__()
 
-		# set up the video classes and thread
+		# set up the video classes 
 		self.vid = ShowVideo()
-		# self.vid.moveToThread(self.thread)
-
 		self.image_viewer = ImageViewer()
 		self.vid.VideoSignal.connect(self.image_viewer.setImage)
-
 		self.screen_shooter = screen_shooter()
 		self.vid.screenshot_signal.connect(self.screen_shooter.screenshot_slot)
 
@@ -80,14 +76,16 @@ class main_window(QMainWindow):
 		self.ui.verticalLayout.addWidget(self.image_viewer)
 
 		# Connect up the buttons.
-		# TODO add comment logging from the user
-		# TODO add general screenshot button so user can comment on what is seen
 		self.ui.target_screenshot_button.clicked.connect(self.screen_shooter.save_target_image)			
-		self.ui.non_target_screenshot_button.clicked.connect(self.screen_shooter.save_non_target_image)			
-		
+		self.ui.non_target_screenshot_button.clicked.connect(self.screen_shooter.save_non_target_image)					
+		self.ui.misc_screenshot_button.clicked.connect(self.screen_shooter.save_misc_image)
+		self.ui.user_comment_button.clicked.connect(self.send_user_comment)
 		self.show()
-		comment('finished init')
+		comment('finished init')	
 
+	def send_user_comment(self):
+		comment('user comment:{}'.format(self.ui.comment_box.toPlainText()))
+		self.ui.comment_box.clear()
 
 if __name__ == '__main__':	
 	app = QApplication(sys.argv)
