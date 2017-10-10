@@ -19,8 +19,7 @@ def comment(text):
 class screen_shooter():
 	'''
 	handles the various different types of screenshots
-	'''
-	
+	'''	
 	@QtCore.pyqtSlot('PyQt_PyObject')
 	def screenshot_slot(self,image):
 		self.image = image

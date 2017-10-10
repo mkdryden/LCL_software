@@ -7,10 +7,11 @@ from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from utils import screen_shooter,now,comment
+from stage_controller import stage_controller
 
 class ShowVideo(QtCore.QObject):
 	#initiating the built in camera
-	camera_port = 0
+	camera_port = 1 + cv2.CAP_DSHOW
 	camera = cv2.VideoCapture(camera_port)
 	VideoSignal = QtCore.pyqtSignal(QtGui.QImage)
 	screenshot_signal = QtCore.pyqtSignal('PyQt_PyObject')
@@ -75,11 +76,16 @@ class main_window(QMainWindow):
 		# Make some local modifications.
 		self.ui.verticalLayout.addWidget(self.image_viewer)
 
-		# Connect up the buttons.
+		# Screenshot and comment buttons
 		self.ui.target_screenshot_button.clicked.connect(self.screen_shooter.save_target_image)			
 		self.ui.non_target_screenshot_button.clicked.connect(self.screen_shooter.save_non_target_image)					
 		self.ui.misc_screenshot_button.clicked.connect(self.screen_shooter.save_misc_image)
 		self.ui.user_comment_button.clicked.connect(self.send_user_comment)
+		# Stage movement buttons
+		self.ui.left_button.clicked.connect(stage.move_left)
+		self.ui.right_button.clicked.connect(stage.move_right)
+		self.ui.down_button.clicked.connect(stage.move_down)
+		self.ui.up_button.clicked.connect(stage.move_up)
 		self.show()
 		comment('finished init')	
 
@@ -89,6 +95,7 @@ class main_window(QMainWindow):
 
 if __name__ == '__main__':	
 	app = QApplication(sys.argv)
+	stage = stage_controller()
 	window = main_window()
 	window.vid.startVideo()
 	comment('exit with code: ' + str(app.exec_()))
