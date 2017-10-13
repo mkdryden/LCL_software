@@ -10,7 +10,7 @@ from utils import screen_shooter,now,comment
 from stage_controller import stage_controller
 
 class ShowVideo(QtCore.QObject):
-	camera_port = 1 + cv2.CAP_DSHOW
+	camera_port = 1 
 	# camera_port = 0 + cv2.CAP_DSHOW
 	camera = cv2.VideoCapture(camera_port)
 	VideoSignal = QtCore.pyqtSignal(QtGui.QImage)
@@ -23,14 +23,21 @@ class ShowVideo(QtCore.QObject):
 	@QtCore.pyqtSlot()
 	def startVideo(self):		
 		comment('video properties:')
-		self.camera.set(12,128) 
-		self.camera.set(17,3000) 
+		self.camera.set(3,2048) 
+		self.camera.set(4,1644) 
+		self.camera.set(15,52.131)
 		for i in range(19):
 			comment('property {}, value: {}'.format(i,
 				self.camera.get(i)))
 		while self.run_video:
 			ret, image = self.camera.read()
-			self.screenshot_signal.emit(image)
+			image = cv2.cvtColor(image,cv2.COLOR_RGB2BGR)
+			self.screenshot_signal.emit(image)			
+			radius = 100
+			y = int(image.shape[0]/2)
+			x = int(image.shape[1]/2)
+			cv2.line(image,(x-radius,y),(x+radius,y),(255,0,0),5)
+			cv2.line(image,(x,y+radius),(x,y-radius),(255,0,0),5)
 			color_swapped_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) 			
 			height, width, _ = color_swapped_image.shape 
 			qt_image = QtGui.QImage(color_swapped_image.data,
@@ -66,7 +73,9 @@ class ImageViewer(QtWidgets.QWidget):
 		return image.scaled(window.ui.verticalLayoutWidget.size())
 
 	def mousePressEvent(self, QMouseEvent):
-		print(QMouseEvent.pos())
+		window_height,window_width = self.geometry().height(),self.geometry().width()
+		click_x,click_y = QMouseEvent.pos().x(),QMouseEvent.pos().y()
+		stage.click_move(window_width,window_height,click_x,click_y)
 
 class main_window(QMainWindow):
 	def __init__(self):
@@ -98,18 +107,35 @@ class main_window(QMainWindow):
 		self.ui.up_button.clicked.connect(stage.move_up)
 		self.ui.get_position_button.clicked.connect(stage.get_position)
 		self.ui.home_stage_button.clicked.connect(stage.home_stage)		
+		self.ui.step_size_doublespin_box.valueChanged.connect(stage.set_step_size)
+
+		self.setup_combobox()
+
+
+
 		self.show()
 		comment('finished init')	
+
+	def setup_combobox(self):
+		magnifications = [
+		'4x',
+		'20x',
+		'40x',
+		'60x',
+		'100x']
+		self.ui.magnification_combobox.addItems(magnifications)	
+		self.ui.magnification_combobox.currentIndexChanged.connect(stage.change_magnification)
 
 	def send_user_comment(self):
 		comment('user comment:{}'.format(self.ui.comment_box.toPlainText()))
 		self.ui.comment_box.clear()
 
 	def keyPressEvent(self,event):
+		# print(event.key())
 		stage.handle_keypress(event.key())
 
 	def closeEvent(self, event):
-		self.vid.run_video = False
+		self.vid.run_video = False	
 
 if __name__ == '__main__':	
 	app = QApplication(sys.argv)
