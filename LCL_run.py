@@ -10,8 +10,8 @@ from utils import screen_shooter,now,comment
 from stage_controller import stage_controller
 
 class ShowVideo(QtCore.QObject):
-	#initiating the built in camera
 	camera_port = 1 + cv2.CAP_DSHOW
+	# camera_port = 0 + cv2.CAP_DSHOW
 	camera = cv2.VideoCapture(camera_port)
 	VideoSignal = QtCore.pyqtSignal(QtGui.QImage)
 	screenshot_signal = QtCore.pyqtSignal('PyQt_PyObject')
@@ -19,10 +19,15 @@ class ShowVideo(QtCore.QObject):
 	def __init__(self, parent = None):
 		super(ShowVideo, self).__init__(parent)
 		self.run_video = True
-
+		
 	@QtCore.pyqtSlot()
 	def startVideo(self):		
-		comment('starting video')
+		comment('video properties:')
+		self.camera.set(12,128) 
+		self.camera.set(17,3000) 
+		for i in range(19):
+			comment('property {}, value: {}'.format(i,
+				self.camera.get(i)))
 		while self.run_video:
 			ret, image = self.camera.read()
 			self.screenshot_signal.emit(image)
@@ -35,6 +40,8 @@ class ShowVideo(QtCore.QObject):
 									QtGui.QImage.Format_RGB888) 
 			self.VideoSignal.emit(qt_image)			
 			QApplication.processEvents()
+		self.camera.release()
+		comment('ending video')
 
 
 class ImageViewer(QtWidgets.QWidget):
@@ -57,6 +64,9 @@ class ImageViewer(QtWidgets.QWidget):
 	
 	def resize_dynamically(self,image):
 		return image.scaled(window.ui.verticalLayoutWidget.size())
+
+	def mousePressEvent(self, QMouseEvent):
+		print(QMouseEvent.pos())
 
 class main_window(QMainWindow):
 	def __init__(self):
@@ -86,12 +96,20 @@ class main_window(QMainWindow):
 		self.ui.right_button.clicked.connect(stage.move_right)
 		self.ui.down_button.clicked.connect(stage.move_down)
 		self.ui.up_button.clicked.connect(stage.move_up)
+		self.ui.get_position_button.clicked.connect(stage.get_position)
+		self.ui.home_stage_button.clicked.connect(stage.home_stage)		
 		self.show()
 		comment('finished init')	
 
 	def send_user_comment(self):
 		comment('user comment:{}'.format(self.ui.comment_box.toPlainText()))
 		self.ui.comment_box.clear()
+
+	def keyPressEvent(self,event):
+		stage.handle_keypress(event.key())
+
+	def closeEvent(self, event):
+		self.vid.run_video = False
 
 if __name__ == '__main__':	
 	app = QApplication(sys.argv)
