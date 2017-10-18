@@ -57,23 +57,12 @@ class image_based_movement_controller():
 	image
 	'''
 	def __init__(self):
+		self.dialog = file_dialog()
+		self.img = image_window()
 		self.stage_calibration_point1 = np.zeros(2)
 		self.stage_calibration_point2 = np.zeros(2)
 		self.image_calibration_point1 = np.zeros(2)
 		self.image_calibration_point2 = np.zeros(2)
-
-	def calibrate_point1(self):
-		pass
-
-	def calibrate_point2(self):
-		pass
-
-class picture_manager():
-
-	def __init__(self):
-		self.dialog = file_dialog()
-		self.img = image_window()
-		self.controller = image_based_movement_controller()
 
 	def show_file_dialog(self):
 		self.dialog.image_loc_signal.connect(self.file_image_slot)
@@ -83,6 +72,12 @@ class picture_manager():
 	def file_image_slot(self,image):
 		print(image)
 		self.img.show_ui(image)
+
+	def calibrate_point1(self):
+		pass
+
+	def calibrate_point2(self):
+		pass
 
 
 

@@ -8,7 +8,7 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from utils import screen_shooter,now,comment
 from stage_controller import stage_controller
-from picture_handler import picture_manager
+from image_movement_controller import image_based_movement_controller
 
 class ShowVideo(QtCore.QObject):
 	camera_port = 1 
@@ -114,7 +114,7 @@ class main_window(QMainWindow):
 		self.ui.bottom_right_calibration_button.clicked.connect(stage.calibrate_bottom_right)
 		self.setup_combobox()
 
-		self.ui.load_image_pushbutton.clicked.connect(pic_manager.show_file_dialog)
+		self.ui.load_image_pushbutton.clicked.connect(image_move_controller.show_file_dialog)
 
 
 		self.show()
@@ -144,7 +144,7 @@ class main_window(QMainWindow):
 if __name__ == '__main__':	
 	app = QApplication(sys.argv)
 	stage = stage_controller()
-	pic_manager = picture_manager()
+	image_move_controller = image_based_movement_controller()
 	window = main_window()
 	window.vid.startVideo()
 	comment('exit with code: ' + str(app.exec_()))
