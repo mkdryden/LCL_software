@@ -2,6 +2,7 @@ import serial
 import numpy as np
 from utils import comment
 from PyQt5 import QtCore
+import matplotlib.pyplot as plt
 
 class stage_controller():
 	def __init__(self):
@@ -18,6 +19,7 @@ class stage_controller():
 		self.magnification = 4
 		self.microns_per_pixel = 50/14.5
 		self.calibration_factor = 1.45*4
+		self.calibration = calibration_manager()
 		self.key_control_dict = {
 		87:self.move_up,
 		65:self.move_left,
@@ -35,7 +37,24 @@ class stage_controller():
 		4:100
 		}
 		comment('magnification changed to: {}'.format(map_dict[index]))
-		self.magnification = map_dict[index]
+		self.compensate_for_objective_offsets(self.magnification,map_dict[index])
+
+	def compensate_for_objective_offsets(self,present_mag,future_mag):
+		compensation_dict ={
+		4:np.zeros(2),
+		20:np.array([-67,-115]),
+		40:np.array([-78,-124]),
+		60:np.array([-74,-132]),
+		100:np.array([-79,-139])
+		}
+		# get back to 4 first
+		move = -1*compensation_dict[present_mag]
+		# now compensate for offsets from 4
+		move = move + compensation_dict[future_mag]
+		comment('objective offset correction: {}'.format(move))
+		self.move_relative(move)
+		self.magnification = future_mag
+
 
 	def set_step_size(self,step_size):
 		comment('step size changed to: {}'.format(step_size))
@@ -75,7 +94,11 @@ class stage_controller():
 
 	@QtCore.pyqtSlot()
 	def get_position(self):
-		return self.send_receive('P')
+		response = str(self.send_receive('P'))
+		x = int(response.split(',')[0].split('\'')[1])
+		y = int(response.split(',')[1].split(',')[0])
+		position = np.array([x,y])
+		return position
 
 	def go_to_position(self,x,y):
 		return self.send_receive('G,{},{}'.format(x,y))
@@ -115,6 +138,41 @@ class stage_controller():
 	def handle_keypress(self,key):
 		if key in self.key_control_dict.keys():
 			self.key_control_dict[key]()
+
+	@QtCore.pyqtSlot()
+	def calibrate_bottom_left(self):
+		position = self.get_position()
+		self.calibration.set_datum('bottom left',position)
+
+
+	@QtCore.pyqtSlot()
+	def calibrate_upper_left(self):
+		self.calibration.set_datum('upper left',self.get_position())
+
+	@QtCore.pyqtSlot()
+	def calibrate_bottom_right(self):
+		self.calibration.set_datum('bottom right',self.get_position())
+
+class calibration_manager():
+	
+	def __init__(self):		
+		self.datum = {
+		'upper left':np.array([-1,-1]),
+		'bottom left':np.array([-1,-1]),
+		'bottom right':np.array([-1,-1])}
+
+	def set_datum(self,datum,position):
+		self.datum[datum] = position
+		for value in self.datum.values():
+			if  -1 in value: return
+		if self.check_calibration:
+			comment('fully calibrated {}'.format(self.datum)) 
+		else:
+			comment('calibration error.  need to re-calibrate')
+
+	def check_calibration(self):
+		# TODO implement this...
+		return True
 
 if __name__ == '__main__':
 	stage = stage_controller()

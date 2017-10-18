@@ -8,6 +8,7 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from utils import screen_shooter,now,comment
 from stage_controller import stage_controller
+from picture_handler import picture_manager
 
 class ShowVideo(QtCore.QObject):
 	camera_port = 1 
@@ -36,8 +37,8 @@ class ShowVideo(QtCore.QObject):
 			radius = 100
 			y = int(image.shape[0]/2)
 			x = int(image.shape[1]/2)
-			cv2.line(image,(x-radius,y),(x+radius,y),(255,0,0),5)
-			cv2.line(image,(x,y+radius),(x,y-radius),(255,0,0),5)
+			cv2.line(image,(x-radius,y),(x+radius,y),(255,0,0),2)
+			cv2.line(image,(x,y+radius),(x,y-radius),(255,0,0),2)
 			color_swapped_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) 			
 			height, width, _ = color_swapped_image.shape 
 			qt_image = QtGui.QImage(color_swapped_image.data,
@@ -108,9 +109,12 @@ class main_window(QMainWindow):
 		self.ui.get_position_button.clicked.connect(stage.get_position)
 		self.ui.home_stage_button.clicked.connect(stage.home_stage)		
 		self.ui.step_size_doublespin_box.valueChanged.connect(stage.set_step_size)
-
+		self.ui.upper_left_calibration_button.clicked.connect(stage.calibrate_upper_left)
+		self.ui.bottom_left_calibration_button.clicked.connect(stage.calibrate_bottom_left)
+		self.ui.bottom_right_calibration_button.clicked.connect(stage.calibrate_bottom_right)
 		self.setup_combobox()
 
+		self.ui.load_image_pushbutton.clicked.connect(pic_manager.show_file_dialog)
 
 
 		self.show()
@@ -140,6 +144,7 @@ class main_window(QMainWindow):
 if __name__ == '__main__':	
 	app = QApplication(sys.argv)
 	stage = stage_controller()
+	pic_manager = picture_manager()
 	window = main_window()
 	window.vid.startVideo()
 	comment('exit with code: ' + str(app.exec_()))

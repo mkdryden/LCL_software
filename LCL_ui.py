@@ -94,6 +94,21 @@ class Ui_MainWindow(object):
         self.magnification_label = QtWidgets.QLabel(self.centralwidget)
         self.magnification_label.setGeometry(QtCore.QRect(10, 210, 71, 16))
         self.magnification_label.setObjectName("magnification_label")
+        self.calibration_groupbox = QtWidgets.QGroupBox(self.centralwidget)
+        self.calibration_groupbox.setGeometry(QtCore.QRect(130, 500, 161, 71))
+        self.calibration_groupbox.setObjectName("calibration_groupbox")
+        self.upper_left_calibration_button = QtWidgets.QPushButton(self.calibration_groupbox)
+        self.upper_left_calibration_button.setGeometry(QtCore.QRect(8, 20, 75, 23))
+        self.upper_left_calibration_button.setObjectName("upper_left_calibration_button")
+        self.bottom_left_calibration_button = QtWidgets.QPushButton(self.calibration_groupbox)
+        self.bottom_left_calibration_button.setGeometry(QtCore.QRect(8, 40, 75, 23))
+        self.bottom_left_calibration_button.setObjectName("bottom_left_calibration_button")
+        self.bottom_right_calibration_button = QtWidgets.QPushButton(self.calibration_groupbox)
+        self.bottom_right_calibration_button.setGeometry(QtCore.QRect(80, 40, 75, 23))
+        self.bottom_right_calibration_button.setObjectName("bottom_right_calibration_button")
+        self.load_image_pushbutton = QtWidgets.QPushButton(self.centralwidget)
+        self.load_image_pushbutton.setGeometry(QtCore.QRect(10, 270, 75, 23))
+        self.load_image_pushbutton.setObjectName("load_image_pushbutton")
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -120,6 +135,11 @@ class Ui_MainWindow(object):
         self.comment_box_label.setText(_translate("MainWindow", "Comment box"))
         self.user_comment_button.setText(_translate("MainWindow", "Add comment to log"))
         self.magnification_label.setText(_translate("MainWindow", "Magnification"))
+        self.calibration_groupbox.setTitle(_translate("MainWindow", "Substrate Calibration"))
+        self.upper_left_calibration_button.setText(_translate("MainWindow", "Upper Left"))
+        self.bottom_left_calibration_button.setText(_translate("MainWindow", "Bottom Left"))
+        self.bottom_right_calibration_button.setText(_translate("MainWindow", "Bottom Right"))
+        self.load_image_pushbutton.setText(_translate("MainWindow", "Load Image"))
 
 
 if __name__ == "__main__":
