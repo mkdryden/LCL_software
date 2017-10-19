@@ -9,6 +9,7 @@ from PyQt5 import QtGui
 from utils import screen_shooter,now,comment
 from stage_controller import stage_controller
 from image_movement_controller import image_based_movement_controller
+from laser_controller import laser_controller, attenuator_controller
 
 class ShowVideo(QtCore.QObject):
 	camera_port = 1 
@@ -24,8 +25,8 @@ class ShowVideo(QtCore.QObject):
 	@QtCore.pyqtSlot()
 	def startVideo(self):		
 		comment('video properties:')
-		self.camera.set(3,2048) 
-		self.camera.set(4,1644) 
+		self.camera.set(3,1024) 
+		self.camera.set(4,822) 
 		self.camera.set(15,52.131)
 		for i in range(19):
 			comment('property {}, value: {}'.format(i,
@@ -34,7 +35,7 @@ class ShowVideo(QtCore.QObject):
 			ret, image = self.camera.read()
 			image = cv2.cvtColor(image,cv2.COLOR_RGB2BGR)
 			self.screenshot_signal.emit(image)			
-			radius = 100
+			radius = 50
 			y = int(image.shape[0]/2)
 			x = int(image.shape[1]/2)
 			cv2.line(image,(x-radius,y),(x+radius,y),(255,0,0),2)
@@ -116,6 +117,10 @@ class main_window(QMainWindow):
 
 		self.ui.load_image_pushbutton.clicked.connect(image_move_controller.show_file_dialog)
 
+		self.ui.start_flashlamp_pushbutton.clicked.connect(laser.fire_auto)
+		self.ui.stop_flashlamp_pushbutton.clicked.connect(laser.simmer)
+		self.ui.fire_qswitch_pushbutton.clicked.connect(laser.fire_qswitch)
+
 
 		self.show()
 		comment('finished init')	
@@ -145,6 +150,8 @@ if __name__ == '__main__':
 	app = QApplication(sys.argv)
 	stage = stage_controller()
 	image_move_controller = image_based_movement_controller()
+	attenuator = attenuator_controller()
+	laser = laser_controller()
 	window = main_window()
 	window.vid.startVideo()
 	comment('exit with code: ' + str(app.exec_()))

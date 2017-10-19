@@ -9,7 +9,7 @@ class stage_controller():
 		'''
 		open the serial port and check the status of the stage 
 		'''
-		com = 'COM4'
+		com = 'COM6'
 		baud = 9600
 		parity = serial.PARITY_NONE
 		self.ser = serial.Serial(com, baud, timeout=.25,
@@ -18,7 +18,7 @@ class stage_controller():
 		self.last_move_vector = np.zeros(2)
 		self.magnification = 4
 		self.microns_per_pixel = 50/14.5
-		self.calibration_factor = 1.45*4
+		self.calibration_factor = 1.25*4
 		self.calibration = calibration_manager()
 		self.key_control_dict = {
 		87:self.move_up,
@@ -137,6 +137,7 @@ class stage_controller():
 
 	def handle_keypress(self,key):
 		if key in self.key_control_dict.keys():
+			# TODO: probably better to move this to the main file...
 			self.key_control_dict[key]()
 
 	@QtCore.pyqtSlot()
