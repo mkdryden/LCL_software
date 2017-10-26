@@ -120,10 +120,12 @@ class main_window(QMainWindow):
 		self.ui.start_flashlamp_pushbutton.clicked.connect(laser.fire_auto)
 		self.ui.stop_flashlamp_pushbutton.clicked.connect(laser.simmer)
 		self.ui.fire_qswitch_pushbutton.clicked.connect(laser.fire_qswitch)
-
-
+		# connect the fire qswitch button to the 'take shot screenshot'
+		self.ui.fire_qswitch_pushbutton.clicked.connect(self.qswitch_screenshot_manager)
+		self.ui.qswitch_delay_doublespin_box.valueChanged.connect(laser.set_delay)
+		self.ui.attenuator_doublespin_box.valueChanged.connect(attenuator.set_attenuation)
 		self.show()
-		comment('finished init')	
+		comment('finished gui init')	
 
 	def setup_combobox(self):
 		magnifications = [
@@ -139,9 +141,34 @@ class main_window(QMainWindow):
 		comment('user comment:{}'.format(self.ui.comment_box.toPlainText()))
 		self.ui.comment_box.clear()
 
+	def qswitch_screenshot_manager(self):
+		# we want to ensure that a screenshot is taken before and after each laser shot
+		self.screen_shooter.save_before_qswitch_fire()		
+		laser.fire_qswitch()
+		self.screen_shooter.save_after_qswitch_fire()
+
+
 	def keyPressEvent(self,event):
 		# print(event.key())
-		stage.handle_keypress(event.key())
+		key_control_dict = {
+		87:stage.move_up,
+		65:stage.move_left,
+		83:stage.move_down,
+		68:stage.move_right,
+		66:stage.move_last,
+		16777249:laser.fire_auto,
+		70:self.qswitch_screenshot_manager
+		}
+		if event.key() in key_control_dict.keys():
+			key_control_dict[event.key()]()
+
+	def keyReleaseEvent(self,event):
+		# print('key released: {}'.format(event.key()))
+		key_control_dict = {
+		16777249:laser.stop_flash
+		}
+		if event.key() in key_control_dict.keys():
+			key_control_dict[event.key()]()
 
 	def closeEvent(self, event):
 		self.vid.run_video = False	

@@ -9,7 +9,7 @@ class stage_controller():
 		'''
 		open the serial port and check the status of the stage 
 		'''
-		com = 'COM6'
+		com = 'COM9'
 		baud = 9600
 		parity = serial.PARITY_NONE
 		self.ser = serial.Serial(com, baud, timeout=.25,
@@ -20,12 +20,7 @@ class stage_controller():
 		self.microns_per_pixel = 50/14.5
 		self.calibration_factor = 1.25*4
 		self.calibration = calibration_manager()
-		self.key_control_dict = {
-		87:self.move_up,
-		65:self.move_left,
-		83:self.move_down,
-		68:self.move_right,
-		66:self.move_last}
+
 
 	def change_magnification(self,index):
 		# TODO fix this stupid conversion
@@ -134,11 +129,6 @@ class stage_controller():
 		step_move_vector = step_move_vector.astype(int)
 		comment('click move vector: {}'.format(step_move_vector))
 		return self.move_relative(step_move_vector)
-
-	def handle_keypress(self,key):
-		if key in self.key_control_dict.keys():
-			# TODO: probably better to move this to the main file...
-			self.key_control_dict[key]()
 
 	@QtCore.pyqtSlot()
 	def calibrate_bottom_left(self):

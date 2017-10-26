@@ -6,7 +6,7 @@ from PyQt5 import QtCore
 class laser_controller():
 
 	def __init__(self):
-		com = 'COM7'
+		com = 'COM10'
 		baud = 9600
 		parity = serial.PARITY_NONE
 		self.ser = serial.Serial(com, baud, timeout=.25,
@@ -17,6 +17,7 @@ class laser_controller():
 		self.ser.readline()
 		self.simmer()
 		self.set_delay(200)
+		self.ready_to_fire = False
 
 	def issue_command(self,command):
 		command_string = '{}\r\n'.format(command)
@@ -33,21 +34,24 @@ class laser_controller():
 		return self.send_receive('M')
 
 	def stop_flash(self):
+		self.ready_to_fire = False
 		return self.send_receive('S')
 
 	def fire_auto(self):
+		self.ready_to_fire = True
 		return self.send_receive('A')
 
 	def fire_qswitch(self):
-		return self.send_receive('OP')
+		if self.ready_to_fire: return self.send_receive('OP')
 
 	def set_delay(self,delay):
-		self.send_receive('W {}'.format(delay))
+		if str(delay) != '':
+			self.send_receive('W {}'.format(delay))
 
 class attenuator_controller():
 
 	def __init__(self):
-		com = 'COM5'
+		com = 'COM8'
 		baud = 19200
 		parity = serial.PARITY_NONE
 		self.ser = serial.Serial(com, baud, timeout=.25,
@@ -55,7 +59,7 @@ class attenuator_controller():
 		self.ser.flushInput()
 		self.ser.flushOutput()
 		# we always want the attenuator to be at 0.6
-		self.send_receive('TF 0.6')
+		self.set_attenuation(0.6)
 
 	def issue_command(self,command):
 		command_string = ';AT:{}\n'.format(command)
@@ -65,12 +69,17 @@ class attenuator_controller():
 	def send_receive(self,command):
 		self.issue_command(command)
 		response = self.ser.readline()
-		comment('response received from attenuator:{}'.format(response))
+		comment('response received from attenuator:{}'.format(response))		
 		return response		
 
+	def set_attenuation(self,attenuation):
+		if str(attenuation) != '':
+			self.send_receive('TF {}'.format(attenuation))
+
 if __name__ == '__main__':
-	laser = laser_controller()
-	laser.simmer()
-	laser.send_receive('')
-	# attenuator = attenuator_controller()
-	# attenuator.send_receive('TF?')
+	# laser = laser_controller()
+	# laser.simmer()
+	# laser.send_receive('')
+	attenuator = attenuator_controller()
+	attenuator.send_receive('TF?')
+# 

@@ -95,7 +95,7 @@
     <property name="geometry">
      <rect>
       <x>7</x>
-      <y>330</y>
+      <y>292</y>
       <width>131</width>
       <height>191</height>
      </rect>
@@ -306,7 +306,7 @@
     <property name="geometry">
      <rect>
       <x>7</x>
-      <y>230</y>
+      <y>196</y>
       <width>131</width>
       <height>91</height>
      </rect>
@@ -357,9 +357,9 @@
    <widget class="QPushButton" name="load_image_pushbutton">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>200</y>
-      <width>75</width>
+      <x>73</x>
+      <y>169</y>
+      <width>71</width>
       <height>23</height>
      </rect>
     </property>
@@ -382,9 +382,9 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>520</y>
+      <y>480</y>
       <width>120</width>
-      <height>151</height>
+      <height>201</height>
      </rect>
     </property>
     <property name="title">
@@ -427,6 +427,88 @@
      </property>
      <property name="text">
       <string>Fire Q-Switch</string>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="qswitch_delay_doublespin_box">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>127</y>
+       <width>101</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::ClickFocus</enum>
+     </property>
+     <property name="decimals">
+      <number>0</number>
+     </property>
+     <property name="minimum">
+      <double>50.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>10000.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>5.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>200.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QLabel" name="Qswitch_delay_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>108</y>
+       <width>101</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Q Switch Delay [us]</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="attenuator_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>150</y>
+       <width>101</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Attenuator</string>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="attenuator_doublespin_box">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>170</y>
+       <width>101</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::ClickFocus</enum>
+     </property>
+     <property name="decimals">
+      <number>2</number>
+     </property>
+     <property name="minimum">
+      <double>0.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>100.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.100000000000000</double>
+     </property>
+     <property name="value">
+      <double>0.600000000000000</double>
      </property>
     </widget>
    </widget>

@@ -42,6 +42,18 @@ class screen_shooter():
 		cv2.imwrite(os.path.join(experiment_folder_location,
 			'miscellaneous___{}.jpg'.format(now())),self.image)
 
+	@QtCore.pyqtSlot()
+	def save_before_qswitch_fire(self):
+		comment('taking before qswitch fire picture')
+		cv2.imwrite(os.path.join(experiment_folder_location,
+			'before_qswitch_fire___{}.jpg'.format(now())),self.image)
+	
+	@QtCore.pyqtSlot()
+	def save_after_qswitch_fire(self):
+		comment('taking after qswitch fire picture')
+		cv2.imwrite(os.path.join(experiment_folder_location,
+			'after_qswitch_fire___{}.jpg'.format(now())),self.image)
+
 experiment_name = 'experiment_{}'.format(now())
 experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)),'Experiments',experiment_name) 
 os.makedirs(experiment_folder_location)
