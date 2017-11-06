@@ -149,7 +149,7 @@ class main_window(QMainWindow):
 
 
 	def keyPressEvent(self,event):
-		# print(event.key())
+		print('key pressed {}'.format(event.key()))
 		key_control_dict = {
 		87:stage.move_up,
 		65:stage.move_left,
@@ -157,13 +157,14 @@ class main_window(QMainWindow):
 		68:stage.move_right,
 		66:stage.move_last,
 		16777249:laser.fire_auto,
-		70:self.qswitch_screenshot_manager
+		70:self.qswitch_screenshot_manager,
+		81:laser.qswitch_auto
 		}
 		if event.key() in key_control_dict.keys():
 			key_control_dict[event.key()]()
 
 	def keyReleaseEvent(self,event):
-		# print('key released: {}'.format(event.key()))
+		print('key released: {}'.format(event.key()))
 		key_control_dict = {
 		16777249:laser.stop_flash
 		}

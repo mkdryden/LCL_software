@@ -48,6 +48,10 @@ class laser_controller():
 		if str(delay) != '':
 			self.send_receive('W {}'.format(delay))
 
+	def qswitch_auto(self):
+		if self.ready_to_fire: return self.send_receive('CC')
+
+
 class attenuator_controller():
 
 	def __init__(self):
