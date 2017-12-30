@@ -95,7 +95,7 @@
     <property name="geometry">
      <rect>
       <x>7</x>
-      <y>292</y>
+      <y>202</y>
       <width>131</width>
       <height>191</height>
      </rect>
@@ -302,71 +302,6 @@
      <string>Magnification</string>
     </property>
    </widget>
-   <widget class="QGroupBox" name="calibration_groupbox">
-    <property name="geometry">
-     <rect>
-      <x>7</x>
-      <y>196</y>
-      <width>131</width>
-      <height>91</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Substrate Calibration</string>
-    </property>
-    <widget class="QPushButton" name="upper_left_calibration_button">
-     <property name="geometry">
-      <rect>
-       <x>27</x>
-       <y>20</y>
-       <width>70</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Upper Left</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="bottom_left_calibration_button">
-     <property name="geometry">
-      <rect>
-       <x>27</x>
-       <y>40</y>
-       <width>70</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Bottom Left</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="bottom_right_calibration_button">
-     <property name="geometry">
-      <rect>
-       <x>27</x>
-       <y>60</y>
-       <width>70</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Bottom Right</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QPushButton" name="load_image_pushbutton">
-    <property name="geometry">
-     <rect>
-      <x>73</x>
-      <y>169</y>
-      <width>71</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Load Image</string>
-    </property>
-   </widget>
    <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
@@ -382,7 +317,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>480</y>
+      <y>390</y>
       <width>120</width>
       <height>201</height>
      </rect>

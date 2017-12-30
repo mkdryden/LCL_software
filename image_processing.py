@@ -5,7 +5,7 @@ from sklearn import preprocessing
 import cProfile, pstats, io
 pr = cProfile.Profile()
 pr.enable()
-image_loc = r'C:\Users\hedwa\OneDrive\the_experiment\miscellaneous___18_10_2017___16.18.10.465411.jpg'
+image_loc = r'C:\Users\hedwa\OneDrive\LCL_software\Experiments\experiment_07_11_2017___14.47.43.909354\before_qswitch_fire___07_11_2017___15.02.40.994823.jpg'
 
 image = cv2.imread(image_loc,cv2.IMREAD_GRAYSCALE)
 print('shape of image: {}'.format(image.shape))
@@ -13,21 +13,21 @@ print('shape of image: {}'.format(image.shape))
 # image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
 # blur kernel size should relate to cell wall thickness
-image = cv2.medianBlur(image,11)
+image = cv2.medianBlur(image,5)
 #### PREPROCESSING #####
 min_max_scaler = preprocessing.MinMaxScaler(feature_range=(0, 255))
 image = image.astype(float).flatten()
 image = min_max_scaler.fit_transform(image)
-image = image.reshape(1644,2048)
+image = image.reshape(822,1024)
 image = image.astype(np.uint8)
 #### END PREPROCESSING #####
 # probably want to erode about half of the cell wall thickness
-kernel  = np.ones((15,15))
+kernel  = np.ones((5,5))
 image = cv2.erode(image,kernel)
 # min and max radii will depend on the cell radii
 # dp size: very sensitive to this. should relate cell diameter to size of image
-circles = cv2.HoughCircles(image, cv2.HOUGH_GRADIENT, 3,200,minRadius = 100,
-	maxRadius = 200)
+circles = cv2.HoughCircles(image, cv2.HOUGH_GRADIENT, 3,200,minRadius = 50,
+	maxRadius = 100)
 final_image = image
 print('Cells detected: {}'.format(len(circles[0])))
 fig,ax = plt.subplots(1,2)

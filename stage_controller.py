@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 class stage_controller():
 	def __init__(self):
 		'''
-		open the serial port and check the status of the stage 
+		open the serial port and check the status of the stage  
 		'''
 		com = 'COM9'
 		baud = 9600
@@ -15,10 +15,11 @@ class stage_controller():
 		self.ser = serial.Serial(com, baud, timeout=.25,
 			parity=parity)
 		self.step_size = 1000
-		self.last_move_vector = np.zeros(2)
+		self.reverse_move_vector = np.zeros(2)
 		self.magnification = 4
 		self.microns_per_pixel = 50/14.5
 		self.calibration_factor = 1.25*4
+		self.send_receive('SAS 50')
 		self.calibration = calibration_manager()
 
 
@@ -115,11 +116,11 @@ class stage_controller():
 		return self.send_receive('GR,-{},0'.format(self.step_size))
 
 	def move_relative(self,move_vector):
-		self.last_move_vector = -1*move_vector
+		self.reverse_move_vector = -1*move_vector
 		return self.send_receive('GR,{},{}'.format(move_vector[0],move_vector[1]))
 
 	def move_last(self):
-		return self.move_relative(self.last_move_vector)
+		return self.move_relative(self.reverse_move_vector)
 
 	def click_move(self,window_width,window_height,click_x,click_y):
 		window_center = np.array([window_width/2,window_height/2])
