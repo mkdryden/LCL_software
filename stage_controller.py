@@ -91,10 +91,11 @@ class stage_controller():
 	@QtCore.pyqtSlot()
 	def get_position(self):
 		response = str(self.send_receive('P'))
+		# only necessary if an array is desired
 		x = int(response.split(',')[0].split('\'')[1])
 		y = int(response.split(',')[1].split(',')[0])
 		position = np.array([x,y])
-		return position
+		return response
 
 	def go_to_position(self,x,y):
 		return self.send_receive('G,{},{}'.format(x,y))

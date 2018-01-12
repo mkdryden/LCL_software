@@ -14,11 +14,15 @@ def comment(text):
 	'''
 	prints to screen and logs simultaneously
 	'''
+	splits = text.split()
+	text = ''
+	for split in splits:
+		text = text + split + ' ' 
 	now_time = now()
 	logging.info('{0}{1}{2}'.format(text,
 		'.'*(80-(len(text)+len(now_time))),
 		now_time))
-	print(text)
+	print(text,threading.current_thread())	
 
 class screen_shooter(QtCore.QObject):
 	'''
@@ -36,7 +40,7 @@ class screen_shooter(QtCore.QObject):
 		self.image_count += 1
 		if self.requested_frames > 0:			
 			cv2.imwrite(os.path.join(experiment_folder_location,
-				'{}___{}.jpg'.format(self.image_title,now())),self.image)
+				'{}___{}.tif'.format(self.image_title,now())),self.image)
 			self.requested_frames -= 1			
 			print('writing frame {} to disk'.format(self.image_count))
 
@@ -59,6 +63,12 @@ class screen_shooter(QtCore.QObject):
 		self.requested_frames += 1		
 
 	@QtCore.pyqtSlot()
+	def save_lysed_screenshot(self):
+		comment('taking lysed picture')
+		self.image_title = 'lysed'
+		self.requested_frames += 1
+
+	@QtCore.pyqtSlot()
 	def save_qswitch_fire_slot(self):
 		'''
 		takes an initial screenshot of the current frame (before firing)
@@ -67,12 +77,14 @@ class screen_shooter(QtCore.QObject):
 		comment('taking qswitch fire pictures')
 		print('writing frame {} to disk'.format(self.image_count))
 		cv2.imwrite(os.path.join(experiment_folder_location,
-				'before_qswitch___{}.jpg'.format(now())),self.image)
+				'before_qswitch___{}.tif'.format(now())),self.image)
 		self.image_title = 'during_qswitch_fire'
-		self.requested_frames += 4	
-		
-experiment_name = 'experiment_{}'.format(now())
-experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)),'Experiments',experiment_name) 
+		self.requested_frames += 10
+
+
+experiment_name = 'experiment_{}'.format(now())	
+experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)),'Experiments',experiment_name) 		
+log = logging.getLogger(__name__)
 os.makedirs(experiment_folder_location)
-logging.basicConfig(filename=os.path.join(experiment_folder_location,
-	'{}.log'.format(experiment_name)), level=logging.INFO)
+fn = os.path.join(experiment_folder_location,'{}.log'.format(experiment_name))
+logging.basicConfig(filename=fn, level=logging.INFO)	
