@@ -13,9 +13,8 @@ from laser_controller import laser_controller, attenuator_controller
 import time
 import threading
 from PyQt5.QtWidgets import QInputDialog, QLineEdit
-
-
-
+from autofocus import autofocuser
+import pyglet
 
 class ShowVideo(QtCore.QObject):
 		
@@ -200,18 +199,23 @@ class main_window(QMainWindow):
 		66:stage.move_last,
 		16777249:laser.fire_auto,
 		70:self.qswitch_screenshot_manager,
-		81:laser.qswitch_auto
+		81:laser.qswitch_auto,
+		73:autofocuser.roll_forward,
+		75:autofocuser.roll_backward
 		}
 		if event.key() in key_control_dict.keys():
 			key_control_dict[event.key()]()
 
 	def keyReleaseEvent(self,event):
-		# print('key released: {}'.format(event.key()))
-		key_control_dict = {
-		16777249:laser.stop_flash
-		}
-		if event.key() in key_control_dict.keys():
-			key_control_dict[event.key()]()
+		if not event.isAutoRepeat():
+			print('key released: {}'.format(event.key()))
+			key_control_dict = {
+			16777249:laser.stop_flash,
+			73:autofocuser.stop_roll,
+			75:autofocuser.stop_roll
+			}
+			if event.key() in key_control_dict.keys():
+				key_control_dict[event.key()]()
 
 	def closeEvent(self, event):
 		self.vid.run_video = False	
@@ -224,6 +228,7 @@ if __name__ == '__main__':
 	stage = stage_controller()
 	attenuator = attenuator_controller()
 	laser = laser_controller()
+	autofocuser = autofocuser()
 	window = main_window(args.test_run)	
 	comment('exit with code: ' + str(app.exec_()))
 	

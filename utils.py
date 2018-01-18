@@ -79,7 +79,7 @@ class screen_shooter(QtCore.QObject):
 		cv2.imwrite(os.path.join(experiment_folder_location,
 				'before_qswitch___{}.tif'.format(now())),self.image)
 		self.image_title = 'during_qswitch_fire'
-		self.requested_frames += 10
+		self.requested_frames += 6
 
 
 experiment_name = 'experiment_{}'.format(now())	
