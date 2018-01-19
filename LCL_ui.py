@@ -41,7 +41,7 @@ class Ui_MainWindow(object):
         self.user_comment_button.setFocusPolicy(QtCore.Qt.NoFocus)
         self.user_comment_button.setObjectName("user_comment_button")
         self.magnification_combobox = QtWidgets.QComboBox(self.centralwidget)
-        self.magnification_combobox.setGeometry(QtCore.QRect(10, 170, 71, 22))
+        self.magnification_combobox.setGeometry(QtCore.QRect(10, 170, 51, 22))
         self.magnification_combobox.setFocusPolicy(QtCore.Qt.NoFocus)
         self.magnification_combobox.setEditable(False)
         self.magnification_combobox.setCurrentText("")
@@ -107,6 +107,9 @@ class Ui_MainWindow(object):
         self.step_size_label = QtWidgets.QLabel(self.centralwidget)
         self.step_size_label.setGeometry(QtCore.QRect(10, 200, 81, 16))
         self.step_size_label.setObjectName("step_size_label")
+        self.noise_filter_checkbox = QtWidgets.QCheckBox(self.centralwidget)
+        self.noise_filter_checkbox.setGeometry(QtCore.QRect(70, 170, 71, 17))
+        self.noise_filter_checkbox.setObjectName("noise_filter_checkbox")
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -134,6 +137,7 @@ class Ui_MainWindow(object):
         self.lysed_screenshot_button.setText(_translate("MainWindow", "Lysed \n"
 " Screenshot"))
         self.step_size_label.setText(_translate("MainWindow", "Stage Step Size"))
+        self.noise_filter_checkbox.setText(_translate("MainWindow", "Filter Noise"))
 
 
 if __name__ == "__main__":

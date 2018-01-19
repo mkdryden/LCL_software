@@ -19,12 +19,13 @@ import pyglet
 class ShowVideo(QtCore.QObject):
 		
 	VideoSignal = QtCore.pyqtSignal(QtGui.QImage)
-	screenshot_signal = QtCore.pyqtSignal('PyQt_PyObject')
+	vid_process_signal = QtCore.pyqtSignal('PyQt_PyObject')
 
 	def __init__(self, window_size, parent = None):
 		super(ShowVideo, self).__init__(parent)
 		self.run_video = True				
 		self.window_size = window_size
+		self.noise_removal = False
 
 	def draw_reticle(self,image):
 		radius = 5
@@ -51,8 +52,11 @@ class ShowVideo(QtCore.QObject):
 		while self.run_video:			
 			ret, image = self.camera.read()
 			# image = cv2.cvtColor(image,cv2.COLOR_RGB2BGR)
-			self.screenshot_signal.emit(image.copy())			
-			self.draw_reticle(image)			
+			self.vid_process_signal.emit(image.copy())			
+			# print(cv2.Laplacian(image, cv2.CV_64F).var())
+			self.draw_reticle(image)				
+			if self.noise_removal == True:
+				image = cv2.fastNlMeansDenoisingColored(image,None,3,7,7)
 			color_swapped_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) 			
 			height, width, _ = color_swapped_image.shape 
 			qt_image = QtGui.QImage(color_swapped_image.data,
@@ -94,6 +98,7 @@ class ImageViewer(QtWidgets.QWidget):
 class main_window(QMainWindow):
 	start_video_signal = QtCore.pyqtSignal()
 	qswitch_screenshot_signal = QtCore.pyqtSignal()
+	start_focus_signal = QtCore.pyqtSignal()
 	
 	def get_text(self,text_prompt):
 		text, okPressed = QInputDialog.getText(self, "Experiment Input",text_prompt, QLineEdit.Normal, "")
@@ -124,30 +129,36 @@ class main_window(QMainWindow):
 		self.vid = ShowVideo(self.ui.verticalLayoutWidget.size())
 		self.screen_shooter = screen_shooter()
 		self.image_viewer = ImageViewer()
+		self.autofocuser = autofocuser()
 
 		# create the extra thread and move the screenshooter to it
 		self.screenshooter_thread = QThread()
 		self.screenshooter_thread.start()
 		self.screen_shooter.moveToThread(self.screenshooter_thread)		
 
+		self.autofocuser_thread = QThread()
+		self.autofocuser_thread.start()
+		self.autofocuser.moveToThread(self.autofocuser_thread)		
+
 		# connect the outputs to our signals
 		self.vid.VideoSignal.connect(self.image_viewer.setImage)		
-		self.vid.screenshot_signal.connect(self.screen_shooter.screenshot_slot)		
+		self.vid.vid_process_signal.connect(self.screen_shooter.screenshot_slot)		
+		self.vid.vid_process_signal.connect(self.autofocuser.vid_process_slot)
 		self.qswitch_screenshot_signal.connect(self.screen_shooter.save_qswitch_fire_slot)
-
+		self.start_focus_signal.connect(self.autofocuser.autofocus)
 
 		# create the extra thread and move the video input to it
 		self.video_input_thread = QThread()
 		self.video_input_thread.start()
 		self.vid.moveToThread(self.video_input_thread)		
 		
-
 		# connect to the video thread and start the video
 		self.start_video_signal.connect(self.vid.startVideo)
 		self.start_video_signal.emit()		
 
 		# Make some local modifications.
 		self.ui.verticalLayout.addWidget(self.image_viewer)
+		self.ui.noise_filter_checkbox.stateChanged.connect(self.noise_filter_check_changed)
 
 		# Screenshot and comment buttons
 		self.ui.target_screenshot_button.clicked.connect(self.screen_shooter.save_target_image)			
@@ -170,6 +181,18 @@ class main_window(QMainWindow):
 		self.show()		
 		comment('finished gui init')	
 
+	def start_autofocus(self):
+		self.start_focus_signal.emit()
+
+
+	def noise_filter_check_changed(self,int):
+		if self.ui.noise_filter_checkbox.isChecked():
+			print('checked!')
+			self.vid.noise_removal = True
+		else:
+			print('unchecked!')
+			self.vid.noise_removal = True
+
 	def setup_combobox(self):
 		magnifications = [
 		'4x',
@@ -190,35 +213,40 @@ class main_window(QMainWindow):
 		laser.fire_qswitch()		
 
 	def keyPressEvent(self,event):
-		# print('key pressed {}'.format(event.key()))
-		key_control_dict = {
-		87:stage.move_up,
-		65:stage.move_left,
-		83:stage.move_down,
-		68:stage.move_right,
-		66:stage.move_last,
-		16777249:laser.fire_auto,
-		70:self.qswitch_screenshot_manager,
-		81:laser.qswitch_auto,
-		73:autofocuser.roll_forward,
-		75:autofocuser.roll_backward
-		}
-		if event.key() in key_control_dict.keys():
-			key_control_dict[event.key()]()
+		if not event.isAutoRepeat():
+			# print('key pressed {}'.format(event.key()))
+			key_control_dict = {
+			87:stage.move_up,
+			65:stage.move_left,
+			83:stage.move_down,
+			68:stage.move_right,
+			66:stage.move_last,
+			16777249:laser.fire_auto,
+			70:self.qswitch_screenshot_manager,
+			81:laser.qswitch_auto,
+			73:self.autofocuser.roll_forward,
+			75:self.autofocuser.roll_backward,
+			79:self.start_autofocus,
+			}
+			if event.key() in key_control_dict.keys():
+				key_control_dict[event.key()]()
 
 	def keyReleaseEvent(self,event):
 		if not event.isAutoRepeat():
-			print('key released: {}'.format(event.key()))
+			# print('key released: {}'.format(event.key()))
 			key_control_dict = {
 			16777249:laser.stop_flash,
-			73:autofocuser.stop_roll,
-			75:autofocuser.stop_roll
+			73:self.autofocuser.stop_roll,
+			75:self.autofocuser.stop_roll
 			}
 			if event.key() in key_control_dict.keys():
 				key_control_dict[event.key()]()
 
 	def closeEvent(self, event):
 		self.vid.run_video = False	
+
+	# def on_key_press(symbol, modifiers):
+	# 	print('test')
 
 if __name__ == '__main__':	
 	parser = argparse.ArgumentParser()
@@ -227,8 +255,7 @@ if __name__ == '__main__':
 	app = QApplication(sys.argv)
 	stage = stage_controller()
 	attenuator = attenuator_controller()
-	laser = laser_controller()
-	autofocuser = autofocuser()
+	laser = laser_controller()	
 	window = main_window(args.test_run)	
 	comment('exit with code: ' + str(app.exec_()))
 	
