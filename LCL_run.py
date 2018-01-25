@@ -15,6 +15,7 @@ import threading
 from PyQt5.QtWidgets import QInputDialog, QLineEdit
 from autofocus import autofocuser
 import pyglet
+import matplotlib.pyplot as plt
 
 class ShowVideo(QtCore.QObject):
 		
@@ -146,7 +147,7 @@ class main_window(QMainWindow):
 		self.vid.vid_process_signal.connect(self.autofocuser.vid_process_slot)
 		self.qswitch_screenshot_signal.connect(self.screen_shooter.save_qswitch_fire_slot)
 		self.start_focus_signal.connect(self.autofocuser.autofocus)
-
+		self.autofocuser.position_and_variance_signal.connect(self.plot_variance_and_position)
 		# create the extra thread and move the video input to it
 		self.video_input_thread = QThread()
 		self.video_input_thread.start()
@@ -202,6 +203,7 @@ class main_window(QMainWindow):
 		'100x']
 		self.ui.magnification_combobox.addItems(magnifications)	
 		self.ui.magnification_combobox.currentIndexChanged.connect(stage.change_magnification)
+		# self.ui.magnification_combobox.currentIndexChanged.connect(self.autofocuser.change_magnification)
 
 	def send_user_comment(self):
 		comment('user comment:{}'.format(self.ui.comment_box.toPlainText()))
@@ -244,6 +246,13 @@ class main_window(QMainWindow):
 
 	def closeEvent(self, event):
 		self.vid.run_video = False	
+
+	@QtCore.pyqtSlot('PyQt_PyObject')
+	def plot_variance_and_position(self,ituple):
+		positions = ituple[0]
+		variances = ituple[1]
+		plt.plot(variances)
+		plt.show()
 
 	# def on_key_press(symbol, modifiers):
 	# 	print('test')
