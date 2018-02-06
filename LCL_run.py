@@ -57,7 +57,11 @@ class ShowVideo(QtCore.QObject):
 			# print(cv2.Laplacian(image, cv2.CV_64F).var())
 			self.draw_reticle(image)				
 			if self.noise_removal == True:
+				print('denoising...')
+				self.camera.set(3,1024) 
+				self.camera.set(4,822) 
 				image = cv2.fastNlMeansDenoisingColored(image,None,3,7,7)
+				print('done denoising')
 			color_swapped_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) 			
 			height, width, _ = color_swapped_image.shape 
 			qt_image = QtGui.QImage(color_swapped_image.data,
@@ -192,7 +196,7 @@ class main_window(QMainWindow):
 			self.vid.noise_removal = True
 		else:
 			print('unchecked!')
-			self.vid.noise_removal = True
+			self.vid.noise_removal = False
 
 	def setup_combobox(self):
 		magnifications = [
@@ -252,6 +256,8 @@ class main_window(QMainWindow):
 		positions = ituple[0]
 		variances = ituple[1]
 		plt.plot(variances)
+		plt.xlabel('position')
+		plt.ylabel('variance of laplacian')
 		plt.show()
 
 	# def on_key_press(symbol, modifiers):
