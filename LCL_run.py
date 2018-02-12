@@ -14,7 +14,6 @@ import time
 import threading
 from PyQt5.QtWidgets import QInputDialog, QLineEdit
 from autofocus import autofocuser
-import pyglet
 import matplotlib.pyplot as plt
 
 class ShowVideo(QtCore.QObject):
@@ -36,7 +35,6 @@ class ShowVideo(QtCore.QObject):
 		x,y = 920,890
 		cv2.circle(image,(x,y),5 ,(0,255,255),-1)		
 		cv2.circle(image,(x1,y2),5 ,(255,0,0),-1)
-		# print(x1,y1)		# cv2.line(image,(x-radius,y),(x+radius,y),(255,0,0),2)
 
 	@QtCore.pyqtSlot()
 	def startVideo(self):		
@@ -97,7 +95,7 @@ class ImageViewer(QtWidgets.QWidget):
 	def mousePressEvent(self, QMouseEvent):
 		window_height,window_width = self.geometry().height(),self.geometry().width()
 		click_x,click_y = QMouseEvent.pos().x(),QMouseEvent.pos().y()
-		print('clicked: {} {}'.format(QMouseEvent.pos().x(),QMouseEvent.pos().y()))
+		# print('clicked: {} {}'.format(QMouseEvent.pos().x(),QMouseEvent.pos().y()))
 		stage.click_move(window_width,window_height,click_x,click_y)
 
 class main_window(QMainWindow):
@@ -192,10 +190,10 @@ class main_window(QMainWindow):
 
 	def noise_filter_check_changed(self,int):
 		if self.ui.noise_filter_checkbox.isChecked():
-			print('checked!')
+			# print('checked!')
 			self.vid.noise_removal = True
 		else:
-			print('unchecked!')
+			# print('unchecked!')
 			self.vid.noise_removal = False
 
 	def setup_combobox(self):
@@ -207,7 +205,6 @@ class main_window(QMainWindow):
 		'100x']
 		self.ui.magnification_combobox.addItems(magnifications)	
 		self.ui.magnification_combobox.currentIndexChanged.connect(stage.change_magnification)
-		# self.ui.magnification_combobox.currentIndexChanged.connect(self.autofocuser.change_magnification)
 
 	def send_user_comment(self):
 		comment('user comment:{}'.format(self.ui.comment_box.toPlainText()))
@@ -233,6 +230,7 @@ class main_window(QMainWindow):
 			73:self.autofocuser.roll_forward,
 			75:self.autofocuser.roll_backward,
 			79:self.start_autofocus,
+			71:stage.toggle_between_dmf_and_lysis
 			}
 			if event.key() in key_control_dict.keys():
 				key_control_dict[event.key()]()
@@ -259,9 +257,6 @@ class main_window(QMainWindow):
 		plt.xlabel('position')
 		plt.ylabel('variance of laplacian')
 		plt.show()
-
-	# def on_key_press(symbol, modifiers):
-	# 	print('test')
 
 if __name__ == '__main__':	
 	parser = argparse.ArgumentParser()

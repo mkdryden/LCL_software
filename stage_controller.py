@@ -14,17 +14,18 @@ class stage_controller():
 		parity = serial.PARITY_NONE
 		self.ser = serial.Serial(com, baud, timeout=.25,
 			parity=parity)
-		self.step_size = 1000
+		self.step_size = 20
 		self.reverse_move_vector = np.zeros(2)
+		self.return_from_dmf_vector = np.zeros(2)
 		self.magnification = 4
 		self.microns_per_pixel = 50/14.5
 		self.calibration_factor = 1.25*4
 		self.send_receive('SAS 50')
-		self.calibration = calibration_manager()
-
+		self.lysing_loc = self.get_position()
+		self.lysing = True
+		self.dmf_position = np.array([115175,14228])
 
 	def change_magnification(self,index):
-		# TODO fix this stupid conversion
 		map_dict = {
 		0:4,
 		1:20,
@@ -73,10 +74,18 @@ class stage_controller():
 		comment('response received from stage:{}'.format(response))
 		return response
 
+	def get_response(self):
+		response = ''
+		while '\r' not in response:
+			piece = self.ser.read()
+			if piece != b'':
+				response += piece.decode('utf-8')
+		comment('response received from stage:{}'.format(response))
+		return response
+
 	def send_receive(self,command):
 		self.issue_command(command)
-		response = self.ser.readline()
-		comment('response received from stage:{}'.format(response))
+		response = self.get_response()		
 		return response
 
 	def get_status(self):	
@@ -91,13 +100,14 @@ class stage_controller():
 	@QtCore.pyqtSlot()
 	def get_position(self):
 		response = str(self.send_receive('P'))
-		# only necessary if an array is desired
-		x = int(response.split(',')[0].split('\'')[1])
+		x = int(response.split(',')[0])			
 		y = int(response.split(',')[1].split(',')[0])
 		position = np.array([x,y])
-		return response
+		return position
 
-	def go_to_position(self,x,y):
+	def go_to_position(self,position_vector):
+		x = position_vector[0]
+		y = position_vector[1]
 		return self.send_receive('G,{},{}'.format(x,y))
 
 	@QtCore.pyqtSlot()
@@ -132,43 +142,22 @@ class stage_controller():
 		comment('click move vector: {}'.format(step_move_vector))
 		return self.move_relative(step_move_vector)
 
-	@QtCore.pyqtSlot()
-	def calibrate_bottom_left(self):
-		position = self.get_position()
-		self.calibration.set_datum('bottom left',position)
+	def go_to_dmf_location(self):
+		self.lysing_loc = self.get_position()
+		self.go_to_position(self.dmf_position)
+		self.lysing = False
 
+	def go_to_lysing_loc(self):
+		self.go_to_position(self.lysing_loc)
+		self.lysing = True
 
-	@QtCore.pyqtSlot()
-	def calibrate_upper_left(self):
-		self.calibration.set_datum('upper left',self.get_position())
-
-	@QtCore.pyqtSlot()
-	def calibrate_bottom_right(self):
-		self.calibration.set_datum('bottom right',self.get_position())
-
-class calibration_manager():
-	
-	def __init__(self):		
-		self.datum = {
-		'upper left':np.array([-1,-1]),
-		'bottom left':np.array([-1,-1]),
-		'bottom right':np.array([-1,-1])}
-
-	def set_datum(self,datum,position):
-		self.datum[datum] = position
-		for value in self.datum.values():
-			if  -1 in value: return
-		if self.check_calibration:
-			comment('fully calibrated {}'.format(self.datum)) 
-		else:
-			comment('calibration error.  need to re-calibrate')
-
-	def check_calibration(self):
-		# TODO implement this...
-		return True
+	def toggle_between_dmf_and_lysis(self):
+		if self.lysing == True: 
+			self.go_to_dmf_location()
+		elif self.lysing == False:
+			self.go_to_lysing_loc()
 
 if __name__ == '__main__':
 	stage = stage_controller()
-	stage_controller.home_stage(stage)
-
+	print(stage.get_position())
 
