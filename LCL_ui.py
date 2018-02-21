@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'LCL.ui'
+# Form implementation generated from reading ui file 'Desktop\LCL_software\LCL.ui'
 #
 # Created by: PyQt5 UI code generator 5.6
 #
@@ -102,7 +102,7 @@ class Ui_MainWindow(object):
         self.step_size_doublespin_box.setMinimum(5.0)
         self.step_size_doublespin_box.setMaximum(10000.0)
         self.step_size_doublespin_box.setSingleStep(5.0)
-        self.step_size_doublespin_box.setProperty("value", 1000.0)
+        self.step_size_doublespin_box.setProperty("value", 5.0)
         self.step_size_doublespin_box.setObjectName("step_size_doublespin_box")
         self.step_size_label = QtWidgets.QLabel(self.centralwidget)
         self.step_size_label.setGeometry(QtCore.QRect(10, 200, 81, 16))
@@ -137,7 +137,7 @@ class Ui_MainWindow(object):
         self.lysed_screenshot_button.setText(_translate("MainWindow", "Lysed \n"
 " Screenshot"))
         self.step_size_label.setText(_translate("MainWindow", "Stage Step Size"))
-        self.noise_filter_checkbox.setText(_translate("MainWindow", "Filter Noise"))
+        self.noise_filter_checkbox.setText(_translate("MainWindow", "CLAHE"))
 
 
 if __name__ == "__main__":

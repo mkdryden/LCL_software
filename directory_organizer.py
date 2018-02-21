@@ -4,12 +4,13 @@ experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file
 
 # first lets delete all experiments with no pictures in them
 for name in os.listdir(experiment_folder_location):
-	files = ''.join(os.listdir(os.path.join(experiment_folder_location,name)))
-	if '.tif' not in files:		
-		response = input('WARNING directory {} found not to have files. Type Y to Delete\n'.format(name))
-		if response == 'Y':
-			shutil.rmtree(os.path.join(experiment_folder_location,name))
-			print('deleting:',name)
+	if 'sd' not in name:
+		files = ''.join(os.listdir(os.path.join(experiment_folder_location,name)))
+		if '.tif' not in files:		
+			response = input('WARNING directory {} found not to have files. Type Y to Delete\n'.format(name))
+			if response == 'Y':
+				shutil.rmtree(os.path.join(experiment_folder_location,name))
+				print('deleting:',name)
 
 def get_480mb_worth_of_files(directory):
 	paths_out = []
@@ -28,6 +29,7 @@ def get_480mb_worth_of_files(directory):
 
 # next lets sort the pictures into groups of < 500mb so they can be uploaded to owncloud
 directories = os.listdir(experiment_folder_location)
+directories = [name for name in directories if 'sd' not in name]
 directoryies_out = [os.path.join(experiment_folder_location,'sd_' + name) for name in directories]
 for name in directoryies_out:
 	os.makedirs(name)
@@ -45,3 +47,4 @@ for i,directory in enumerate(directories):
 			file_name = path.split('\\')[-1]
 			shutil.move(path,os.path.join(new_dir,file_name))
 		subdirectory_int += 1
+print('done')

@@ -24,10 +24,18 @@ class laser_controller():
 		comment('sending command to laser:{}'.format(command_string.split('\r')[0]))
 		self.ser.write(command_string.encode('utf-8'))
 	
+	def get_response(self):
+		response = ''
+		while '\r\n' not in response:
+			piece = self.ser.read()
+			if piece != b'':
+				response += piece.decode('utf-8')
+		comment('response received from laser:{}'.format(response))
+		return response
+
 	def send_receive(self,command):
 		self.issue_command(command)
-		response = self.ser.readline()
-		comment('response received from laser:{}'.format(response))
+		response = self.get_response()
 		return response		
 
 	def simmer(self):
@@ -69,11 +77,19 @@ class attenuator_controller():
 		command_string = ';AT:{}\n'.format(command)
 		comment('sending command to attenuator:{}'.format(command_string.split('\n')[0]))
 		self.ser.write(command_string.encode('utf-8'))
+	
+	def get_response(self):
+		response = ''
+		while '\r' not in response:
+			piece = self.ser.read()
+			if piece != b'':
+				response += piece.decode('utf-8')
+		comment('response received from attenuator:{}'.format(response))
+		return response
 
 	def send_receive(self,command):
 		self.issue_command(command)
-		response = self.ser.readline()
-		comment('response received from attenuator:{}'.format(response))		
+		response = self.get_response()		
 		return response		
 
 	def set_attenuation(self,attenuation):

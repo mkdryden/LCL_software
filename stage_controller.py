@@ -14,7 +14,7 @@ class stage_controller():
 		parity = serial.PARITY_NONE
 		self.ser = serial.Serial(com, baud, timeout=.25,
 			parity=parity)
-		self.step_size = 20
+		self.step_size = 5
 		self.reverse_move_vector = np.zeros(2)
 		self.return_from_dmf_vector = np.zeros(2)
 		self.magnification = 4
@@ -24,6 +24,7 @@ class stage_controller():
 		self.lysing_loc = self.get_position()
 		self.lysing = True
 		self.dmf_position = np.array([115175,14228])
+		self.send_receive('BLSH 0')
 
 	def change_magnification(self,index):
 		map_dict = {
@@ -133,7 +134,8 @@ class stage_controller():
 	def move_last(self):
 		return self.move_relative(self.reverse_move_vector)
 
-	def click_move(self,window_width,window_height,click_x,click_y):
+	@QtCore.pyqtSlot('PyQt_PyObject','PyQt_PyObject','PyQt_PyObject','PyQt_PyObject')	
+	def click_move_slot(self,window_width,window_height,click_x,click_y):
 		window_center = np.array([window_width/2,window_height/2])
 		mouse_click_location = np.array([click_x,click_y])
 		pixel_move_vector = mouse_click_location - window_center

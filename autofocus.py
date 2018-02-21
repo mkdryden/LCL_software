@@ -9,6 +9,8 @@ import threading,cv2,time
 from PyQt5.QtWidgets import QApplication
 from multiprocessing.pool import ThreadPool
 import numpy as np
+import os
+from utils import now
 
 
 class autofocuser(QtCore.QObject):
@@ -50,6 +52,7 @@ class autofocuser(QtCore.QObject):
 				comment('{}: {}'.format(k,v()))	
 		self.ch.setOnVelocityChangeHandler(self.velocity_change_handler)
 		self.ch.setOnPositionChangeHandler(self.position_change_handler)
+		self.image_title = 0
 		# self.step_to_position(self.full_scale)
 		# self.autofocus()
 
@@ -64,6 +67,7 @@ class autofocuser(QtCore.QObject):
 	@QtCore.pyqtSlot('PyQt_PyObject')
 	def vid_process_slot(self,image):
 		self.image = image
+		# print(image.shape)
 		self.image_count += 1
 		# print('image received in autofocus')
 
@@ -82,19 +86,19 @@ class autofocuser(QtCore.QObject):
 
 	def roll_forward(self):
 		self.ch.setControlMode(1)
-		self.ch.setAcceleration(1500)
-		self.ch.setVelocityLimit(-5000)		
+		self.ch.setAcceleration(15000)
+		self.ch.setVelocityLimit(-2000)		
 
 	def roll_backward(self):
 		self.ch.setControlMode(1)
-		self.ch.setAcceleration(1500)
-		self.ch.setVelocityLimit(5000)
+		self.ch.setAcceleration(15000)
+		self.ch.setVelocityLimit(2000)
 
 	def stop_roll(self):
 		self.ch.setVelocityLimit(0)
 		self.ch.setControlMode(0)
 		self.ch.setAcceleration(10000)
-		comment('focus at {} steps'.format(self.get_position()))
+		# comment('focus at {} steps'.format(self.get_position()))
 
 	def swing_range(self):
 		self.ch.setVelocityLimit(2000)
@@ -103,7 +107,7 @@ class autofocuser(QtCore.QObject):
 
 	@QtCore.pyqtSlot()
 	def autofocus(self):
-		range = 4000
+		range = 2000
 		variance1, location1, variances1 = self.focus_over_range(range)
 		self.step_to_relative_position(-range)
 		variance2, location2, variances2 = self.focus_over_range(-range)
@@ -122,17 +126,26 @@ class autofocuser(QtCore.QObject):
 		variances = []
 		positions = []
 		old_position = 0
+		self.image_title += 1
+		self.ch.setAcceleration(15000)
+		self.ch.setVelocityLimit(2000)
 		while self.ch.getIsMoving() == True:
 			QApplication.processEvents() 
 			new_position = self.position
 			if old_position != new_position: positions.append(self.position)
 			old_position = new_position
-			img = self.image[512:1536,411:1233]
+			# we want to focus on what's towards the center of our image
+			h,w = self.image.shape[0],self.image.shape[1]
+			img = self.image[int(.25*h):int(.75*h),int(.25*w):int(.75*w)]
 			variance = cv2.Laplacian(img, cv2.CV_64F).var()
-			variances.append(variance)			
+			variances.append(variance)		
+			# print(os.path.join(experiment_folder_location,
+			# 	'{}___{}.tif'.format(self.image_title,now())))
+			# cv2.imwrite(os.path.join(experiment_folder_location,
+			# 	'{}___{}.tif'.format(self.image_title,now())),self.image)	
 		unit_scaled_location_of_highest_variance = variances.index(max(variances))/len(variances)
 		print('location of highest variance: {}'.format(unit_scaled_location_of_highest_variance))
-		closest_position = int(np.rint(len(positions)*unit_scaled_location_of_highest_variance))
+		closest_position = int(np.rint(len(positions)*unit_scaled_location_of_highest_variance))-1
 		print('closest_position',closest_position)
 		print('max variance of {} occurred at location {}'.format(
 			max(variances),positions[closest_position]))
@@ -144,6 +157,8 @@ class autofocuser(QtCore.QObject):
 
 		return max(variances),positions[closest_position],variances
 
+experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)),'Autofocus_data')
+print(experiment_folder_location)
 if __name__ == '__main__':
 	a = autofocuser()
 	a.autofocus()

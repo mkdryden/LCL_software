@@ -339,7 +339,7 @@
      <double>5.000000000000000</double>
     </property>
     <property name="value">
-     <double>1000.000000000000000</double>
+     <double>5.000000000000000</double>
     </property>
    </widget>
    <widget class="QLabel" name="step_size_label">
@@ -365,7 +365,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Filter Noise</string>
+     <string>CLAHE</string>
     </property>
    </widget>
   </widget>

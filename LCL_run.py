@@ -28,11 +28,11 @@ class ShowVideo(QtCore.QObject):
 		self.noise_removal = False
 
 	def draw_reticle(self,image):
-		radius = 5
+		radius = 2
 		y1 = 117
 		x1 = int(image.shape[1]/2)
 		y2 = int(image.shape[0]/2)
-		x,y = 920,890
+		x,y = int(x1+30),int(y2+75)
 		cv2.circle(image,(x,y),5 ,(0,255,255),-1)		
 		cv2.circle(image,(x1,y2),5 ,(255,0,0),-1)
 
@@ -41,8 +41,8 @@ class ShowVideo(QtCore.QObject):
 		# camera_port = 1 
 		camera_port = 1 + cv2.CAP_DSHOW
 		self.camera = cv2.VideoCapture(camera_port)
-		self.camera.set(3,1024*2) 
-		self.camera.set(4,822*2) 
+		self.camera.set(3,1024)#*2) 
+		self.camera.set(4,822)#*2) 
 		# self.camera.set(15,52.131)
 		comment('video properties:')		
 		for i in range(19):
@@ -55,11 +55,17 @@ class ShowVideo(QtCore.QObject):
 			# print(cv2.Laplacian(image, cv2.CV_64F).var())
 			self.draw_reticle(image)				
 			if self.noise_removal == True:
-				print('denoising...')
-				self.camera.set(3,1024) 
-				self.camera.set(4,822) 
-				image = cv2.fastNlMeansDenoisingColored(image,None,3,7,7)
-				print('done denoising')
+				# print('denoising...')
+				# self.camera.set(3,1024) 
+				# self.camera.set(4,822) 
+				# image = cv2.fastNlMeansDenoisingColored(image,None,3,7,7)
+				lab= cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+				l, a, b = cv2.split(lab)
+				clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
+				cl = clahe.apply(l)
+				limg = cv2.merge((cl,a,b))
+				image = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
+				# print('done denoising')
 			color_swapped_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) 			
 			height, width, _ = color_swapped_image.shape 
 			qt_image = QtGui.QImage(color_swapped_image.data,
@@ -75,6 +81,8 @@ class ShowVideo(QtCore.QObject):
 		comment('ending video')
 
 class ImageViewer(QtWidgets.QWidget):
+	click_move_signal = QtCore.pyqtSignal('PyQt_PyObject','PyQt_PyObject','PyQt_PyObject','PyQt_PyObject')
+
 	def __init__(self, parent = None):
 		super(ImageViewer, self).__init__(parent)
 		self.image = QtGui.QImage()
@@ -96,7 +104,7 @@ class ImageViewer(QtWidgets.QWidget):
 		window_height,window_width = self.geometry().height(),self.geometry().width()
 		click_x,click_y = QMouseEvent.pos().x(),QMouseEvent.pos().y()
 		# print('clicked: {} {}'.format(QMouseEvent.pos().x(),QMouseEvent.pos().y()))
-		stage.click_move(window_width,window_height,click_x,click_y)
+		self.click_move_signal.emit(window_width,window_height,click_x,click_y)
 
 class main_window(QMainWindow):
 	start_video_signal = QtCore.pyqtSignal()
@@ -133,6 +141,7 @@ class main_window(QMainWindow):
 		self.screen_shooter = screen_shooter()
 		self.image_viewer = ImageViewer()
 		self.autofocuser = autofocuser()
+		self.image_viewer.click_move_signal.connect(stage.click_move_slot)
 
 		# create the extra thread and move the screenshooter to it
 		self.screenshooter_thread = QThread()
