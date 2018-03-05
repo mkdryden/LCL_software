@@ -28,12 +28,12 @@ class ShowVideo(QtCore.QObject):
 		self.noise_removal = False
 
 	def draw_reticle(self,image):
-		radius = 2
+		radius = 1
 		y1 = 117
 		x1 = int(image.shape[1]/2)
 		y2 = int(image.shape[0]/2)
-		x,y = int(x1+30),int(y2+75)
-		cv2.circle(image,(x,y),5 ,(0,255,255),-1)		
+		x,y = int(x1+35),int(y2+85)
+		cv2.circle(image,(x,y),5 ,(0,0,0),-1)		
 		cv2.circle(image,(x1,y2),5 ,(255,0,0),-1)
 
 	@QtCore.pyqtSlot()
@@ -111,23 +111,9 @@ class main_window(QMainWindow):
 	qswitch_screenshot_signal = QtCore.pyqtSignal()
 	start_focus_signal = QtCore.pyqtSignal()
 	
-	def get_text(self,text_prompt):
-		text, okPressed = QInputDialog.getText(self, "Experiment Input",text_prompt, QLineEdit.Normal, "")
-		if okPressed and text != None:
-			return text
-
-	def get_experiment_variables(self):
-		var_dict = {'stain(s) used:':'Enter the stain(s) used',
-		'cell line:':'Enter the cell line',
-		'sample id:': 'Enter the sample ID'}
-		for key, value in var_dict.items():
-			user_input = self.get_text(var_dict[key])
-			comment('{} {}'.format(key,user_input))
-
-
 	def __init__(self,test_run):
 		super(main_window, self).__init__()
-
+		self.lysing = True
 		# get our experiment variables
 		if test_run != 'True':
 			self.get_experiment_variables()
@@ -193,9 +179,28 @@ class main_window(QMainWindow):
 		self.show()		
 		comment('finished gui init')	
 
+	def get_text(self,text_prompt):
+		text, okPressed = QInputDialog.getText(self, "Experiment Input",text_prompt, QLineEdit.Normal, "")
+		if okPressed and text != None:
+			return text
+
+	def get_experiment_variables(self):
+		var_dict = {'stain(s) used:':'Enter the stain(s) used',
+		'cell line:':'Enter the cell line',
+		'sample id:': 'Enter the sample ID'}
+		nums = range(10)
+		checks = ['a','e','i','o','u'] + [str(num) for num in nums]
+		for key, value in var_dict.items():
+			good_entry = False
+			while good_entry != True:				
+				user_input = self.get_text(var_dict[key])
+				val = user_input.lower()
+				if any(vowel in val for vowel in checks):
+					comment('{} {}'.format(key,user_input))
+					good_entry = True
+
 	def start_autofocus(self):
 		self.start_focus_signal.emit()
-
 
 	def noise_filter_check_changed(self,int):
 		if self.ui.noise_filter_checkbox.isChecked():
@@ -224,6 +229,17 @@ class main_window(QMainWindow):
 		comment('stage position during qswitch: {}'.format(stage.get_position()))
 		laser.fire_qswitch()		
 
+	def toggle_dmf_or_lysis(self):
+		# we want to get our objective out of the way first
+		if self.lysing == True: 
+			ret = self.autofocuser.retract_objective()			
+			if ret == True:
+				stage.go_to_dmf_location()
+		elif self.lysing == False:
+			stage.go_to_lysing_loc()
+			self.autofocuser.return_objective_to_focus()	
+		self.lysing = not self.lysing		
+
 	def keyPressEvent(self,event):
 		if not event.isAutoRepeat():
 			# print('key pressed {}'.format(event.key()))
@@ -239,7 +255,9 @@ class main_window(QMainWindow):
 			73:self.autofocuser.roll_forward,
 			75:self.autofocuser.roll_backward,
 			79:self.start_autofocus,
-			71:stage.toggle_between_dmf_and_lysis
+			71:self.toggle_dmf_or_lysis,
+			84:stage.move_left_one_well,
+			89:stage.move_right_one_well
 			}
 			if event.key() in key_control_dict.keys():
 				key_control_dict[event.key()]()

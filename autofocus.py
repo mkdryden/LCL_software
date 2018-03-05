@@ -34,6 +34,7 @@ class autofocuser(QtCore.QObject):
 		self.velocity = 0
 		self.ch.setDataInterval(100)
 		self.position = 0
+		self.focused_position = 0
 		self.status_dict = {'current limit':self.ch.getCurrentLimit,
 				'control mode': self.ch.getControlMode,
 				# 'setting min position: ': self.ch.setMinPosition(0),
@@ -73,16 +74,15 @@ class autofocuser(QtCore.QObject):
 
 	def get_position(self):
 		self.position = self.ch.getPosition()
+		comment('stepper position: {}'.format(self.position))
 		return self.position
 
 	def step_to_relative_position(self,position):
-		self.ch.setAcceleration(2000)
-		self.ch.setVelocityLimit(2000)	
+		self.ch.setAcceleration(10000)
+		self.ch.setVelocityLimit(10000)	
 		# TODO check if the given position will make us exceed the range		
 		self.ch.setTargetPosition(self.position + position)
-		# while self.ch.getIsMoving() == True:
-		# 	time.sleep(.1)
-		# print(self.ch.getTargetPosition())
+		self.position += position
 
 	def roll_forward(self):
 		self.ch.setControlMode(1)
@@ -104,6 +104,14 @@ class autofocuser(QtCore.QObject):
 		self.ch.setVelocityLimit(2000)
 		self.ch.setTargetPosition(-self.full_scale+2500)
 
+	def retract_objective(self):
+		self.focused_position = self.get_position()
+		self.step_to_relative_position(-70000)
+		while self.ch.getIsMoving() == True: time.sleep(.1)
+		return True
+
+	def return_objective_to_focus(self):
+		self.ch.setTargetPosition(self.focused_position)
 
 	@QtCore.pyqtSlot()
 	def autofocus(self):

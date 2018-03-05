@@ -25,6 +25,7 @@ class stage_controller():
 		self.lysing = True
 		self.dmf_position = np.array([115175,14228])
 		self.send_receive('BLSH 0')
+		self.steps_between_wells = 4400
 
 	def change_magnification(self,index):
 		map_dict = {
@@ -158,6 +159,12 @@ class stage_controller():
 			self.go_to_dmf_location()
 		elif self.lysing == False:
 			self.go_to_lysing_loc()
+
+	def move_right_one_well(self):
+		self.move_relative(np.array([self.steps_between_wells,0]))
+	
+	def move_left_one_well(self):
+		self.move_relative(np.array([-self.steps_between_wells,0]))		
 
 if __name__ == '__main__':
 	stage = stage_controller()
