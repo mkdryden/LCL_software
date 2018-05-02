@@ -14,6 +14,7 @@ import time
 import threading
 from PyQt5.QtWidgets import QInputDialog, QLineEdit
 from autofocus import autofocuser
+from localizer import Localizer
 import matplotlib.pyplot as plt
 
 class ShowVideo(QtCore.QObject):
@@ -110,7 +111,8 @@ class main_window(QMainWindow):
 	start_video_signal = QtCore.pyqtSignal()
 	qswitch_screenshot_signal = QtCore.pyqtSignal()
 	start_focus_signal = QtCore.pyqtSignal()
-	
+	start_localization_signal = QtCore.pyqtSignal()
+
 	def __init__(self,test_run):
 		super(main_window, self).__init__()
 		self.lysing = True
@@ -127,9 +129,12 @@ class main_window(QMainWindow):
 		self.screen_shooter = screen_shooter()
 		self.image_viewer = ImageViewer()
 		self.autofocuser = autofocuser()
-		self.image_viewer.click_move_signal.connect(stage.click_move_slot)
+		self.localizer = Localizer()		
 
-		# create the extra thread and move the screenshooter to it
+		# add the viewer to our ui
+		self.ui.verticalLayout.addWidget(self.image_viewer)
+
+		# create our extra threads
 		self.screenshooter_thread = QThread()
 		self.screenshooter_thread.start()
 		self.screen_shooter.moveToThread(self.screenshooter_thread)		
@@ -138,33 +143,37 @@ class main_window(QMainWindow):
 		self.autofocuser_thread.start()
 		self.autofocuser.moveToThread(self.autofocuser_thread)		
 
+		self.localizer_thread = QThread()
+		self.localizer_thread.start()
+		self.localizer.moveToThread(self.localizer_thread)
+
+		self.video_input_thread = QThread()
+		self.video_input_thread.start()
+		self.vid.moveToThread(self.video_input_thread)
+
 		# connect the outputs to our signals
 		self.vid.VideoSignal.connect(self.image_viewer.setImage)		
 		self.vid.vid_process_signal.connect(self.screen_shooter.screenshot_slot)		
 		self.vid.vid_process_signal.connect(self.autofocuser.vid_process_slot)
+		self.vid.vid_process_signal.connect(self.localizer.vid_process_slot)
 		self.qswitch_screenshot_signal.connect(self.screen_shooter.save_qswitch_fire_slot)
 		self.start_focus_signal.connect(self.autofocuser.autofocus)
+		self.start_localization_signal.connect(self.localizer.localize)
 		self.autofocuser.position_and_variance_signal.connect(self.plot_variance_and_position)
-		# create the extra thread and move the video input to it
-		self.video_input_thread = QThread()
-		self.video_input_thread.start()
-		self.vid.moveToThread(self.video_input_thread)		
-		
+		self.image_viewer.click_move_signal.connect(stage.click_move_slot)
+				
 		# connect to the video thread and start the video
 		self.start_video_signal.connect(self.vid.startVideo)
 		self.start_video_signal.emit()		
-
-		# Make some local modifications.
-		self.ui.verticalLayout.addWidget(self.image_viewer)
-		self.ui.noise_filter_checkbox.stateChanged.connect(self.noise_filter_check_changed)
-
+		
 		# Screenshot and comment buttons
 		self.ui.target_screenshot_button.clicked.connect(self.screen_shooter.save_target_image)			
 		self.ui.non_target_screenshot_button.clicked.connect(self.screen_shooter.save_non_target_image)					
 		self.ui.misc_screenshot_button.clicked.connect(self.screen_shooter.save_misc_image)
 		self.ui.lysed_screenshot_button.clicked.connect(self.screen_shooter.save_lysed_screenshot)
 		self.ui.user_comment_button.clicked.connect(self.send_user_comment)
-		
+		self.ui.noise_filter_checkbox.stateChanged.connect(self.noise_filter_check_changed)
+
 		# Stage movement buttons
 		self.ui.step_size_doublespin_box.valueChanged.connect(stage.set_step_size)
 		self.setup_combobox()
@@ -202,12 +211,13 @@ class main_window(QMainWindow):
 	def start_autofocus(self):
 		self.start_focus_signal.emit()
 
+	def start_localization(self):
+		self.start_localization_signal.emit()
+
 	def noise_filter_check_changed(self,int):
 		if self.ui.noise_filter_checkbox.isChecked():
-			# print('checked!')
 			self.vid.noise_removal = True
 		else:
-			# print('unchecked!')
 			self.vid.noise_removal = False
 
 	def setup_combobox(self):
@@ -242,7 +252,7 @@ class main_window(QMainWindow):
 
 	def keyPressEvent(self,event):
 		if not event.isAutoRepeat():
-			# print('key pressed {}'.format(event.key()))
+			print('key pressed {}'.format(event.key()))
 			key_control_dict = {
 			87:stage.move_up,
 			65:stage.move_left,
@@ -257,7 +267,8 @@ class main_window(QMainWindow):
 			79:self.start_autofocus,
 			71:self.toggle_dmf_or_lysis,
 			84:stage.move_left_one_well,
-			89:stage.move_right_one_well
+			89:stage.move_right_one_well,
+			80:self.start_localization
 			}
 			if event.key() in key_control_dict.keys():
 				key_control_dict[event.key()]()
@@ -280,9 +291,11 @@ class main_window(QMainWindow):
 	def plot_variance_and_position(self,ituple):
 		positions = ituple[0]
 		variances = ituple[1]
+		plt.plot(positions)
 		plt.plot(variances)
-		plt.xlabel('position')
-		plt.ylabel('variance of laplacian')
+		plt.legend(['Variance of Laplacian','AF Network Output'])
+		plt.xlabel('Position')
+		plt.ylabel('Focus Metric Comparison')
 		plt.show()
 
 if __name__ == '__main__':	

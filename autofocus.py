@@ -11,7 +11,11 @@ from multiprocessing.pool import ThreadPool
 import numpy as np
 import os
 from utils import now
-
+from keras.models import load_model
+import tensorflow as tf
+global graph
+graph = tf.get_default_graph()
+from sklearn.preprocessing import normalize
 
 class autofocuser(QtCore.QObject):
 	'''
@@ -54,6 +58,9 @@ class autofocuser(QtCore.QObject):
 		self.ch.setOnVelocityChangeHandler(self.velocity_change_handler)
 		self.ch.setOnPositionChangeHandler(self.position_change_handler)
 		self.image_title = 0
+		self.focus_model = load_model(os.path.join(experiment_folder_location,'VGG_model.hdf5'))
+		self.focus_model._make_predict_function()
+		self.belt_slip_offset = 120
 		# self.step_to_position(self.full_scale)
 		# self.autofocus()
 
@@ -113,21 +120,90 @@ class autofocuser(QtCore.QObject):
 	def return_objective_to_focus(self):
 		self.ch.setTargetPosition(self.focused_position)
 
+	def get_network_output(self,img):
+		img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+		img = cv2.resize(img, (100, 100))
+		img = np.expand_dims(img,axis = 4) 
+		img = np.expand_dims(img,axis = 0) 
+		with graph.as_default():
+			prediction = self.focus_model.predict(img,batch_size = 1)[0][0]
+			print('focus metric:',prediction)
+		return prediction
+
 	@QtCore.pyqtSlot()
 	def autofocus(self):
-		range = 2000
-		variance1, location1, variances1 = self.focus_over_range(range)
-		self.step_to_relative_position(-range)
-		variance2, location2, variances2 = self.focus_over_range(-range)
-		variances2.reverse()
-		total_variances = variances2 + variances1
-		self.position_and_variance_signal.emit(([],total_variances))
-		if variance1 > variance2:
-			self.ch.setTargetPosition(location1)
-		elif variance2 > variance1:
-			self.ch.setTargetPosition(location2)
-		while self.ch.getIsMoving() == True:
-			time.sleep(.1)		
+		positions_to_check = 40
+		steps_between_positions = 100
+		threshold = .75
+		num_good_scores = 0
+		for i in range(positions_to_check):
+			QApplication.processEvents() 
+			self.step_to_relative_position(steps_between_positions)
+			score = self.get_network_output(self.image)
+			if score > threshold: num_good_scores += 1
+			if num_good_scores > 2: break			
+		self.step_to_relative_position(-2*steps_between_positions-self.belt_slip_offset)
+		# now verify that it is focused
+		QApplication.processEvents() 
+		# time.sleep(1)
+		# QApplication.processEvents() 
+		# print('checking focus...')
+		# score = self.get_network_output(self.image)
+		# i = 0
+		# while score < threshold:
+		# 	i += 1
+		# 	self.step_to_relative_position(-steps_between_positions)
+		# 	QApplication.processEvents() 
+		# 	score = self.get_network_output(self.image)
+		# 	if i > 4: break
+
+
+
+
+	def autofocus_old(self):		
+		# we want to slowly roll through some range and get a bunch of outputs
+		# from the network
+		focus_metrics = []
+		variances = []
+		focus_metrics.append(self.get_network_output(self.image))
+		variances.append(cv2.Laplacian(self.image, cv2.CV_64F).var())
+		positions_to_check = 40
+		steps_between_positions = 100
+		for i in range(positions_to_check):
+			QApplication.processEvents() 
+			self.step_to_relative_position(steps_between_positions)
+			# time.sleep(.1)
+			focus_metrics.append(self.get_network_output(self.image))
+			variances.append(cv2.Laplacian(self.image, cv2.CV_64F).var())
+		print(focus_metrics)
+		variances = [var/max(variances) for var in variances]
+		# now we want to find where we have several high-scoring positions together		
+		num_highscores = 0
+		threshold = .75
+		for i in range(positions_to_check):
+			if focus_metrics[i] > threshold:
+				num_highscores += 1
+			if num_highscores > 3:
+				focused_position = i-2
+				print(focused_position)
+				num_highscores = 0
+		steps_to_go_back = (positions_to_check - focused_position)*steps_between_positions
+		self.position_and_variance_signal.emit((variances,focus_metrics))
+		self.step_to_relative_position(-steps_to_go_back-self.belt_slip_offset)
+		
+		# range = 2000
+		# variance1, location1, variances1 = self.focus_over_range(range)
+		# self.step_to_relative_position(-range)
+		# variance2, location2, variances2 = self.focus_over_range(-range)
+		# variances2.reverse()
+		# total_variances = variances2 + variances1
+		# self.position_and_variance_signal.emit(([],total_variances))
+		# if variance1 > variance2:
+		# 	self.ch.setTargetPosition(location1)
+		# elif variance2 > variance1:
+		# 	self.ch.setTargetPosition(location2)
+		# while self.ch.getIsMoving() == True:
+		# 	time.sleep(.1)		
 
 	def focus_over_range(self,range):
 		self.pool.apply_async(self.step_to_relative_position(range))		
@@ -146,6 +222,7 @@ class autofocuser(QtCore.QObject):
 			h,w = self.image.shape[0],self.image.shape[1]
 			img = self.image[int(.25*h):int(.75*h),int(.25*w):int(.75*w)]
 			variance = cv2.Laplacian(img, cv2.CV_64F).var()
+
 			variances.append(variance)		
 			# print(os.path.join(experiment_folder_location,
 			# 	'{}___{}.tif'.format(self.image_title,now())))
@@ -165,9 +242,10 @@ class autofocuser(QtCore.QObject):
 
 		return max(variances),positions[closest_position],variances
 
-experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)),'Autofocus_data')
+experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)),'models')
 print(experiment_folder_location)
+
 if __name__ == '__main__':
 	a = autofocuser()
-	a.autofocus()
+	# a.autofocus()
 
