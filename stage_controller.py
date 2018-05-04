@@ -18,8 +18,8 @@ class stage_controller():
 		self.reverse_move_vector = np.zeros(2)
 		self.return_from_dmf_vector = np.zeros(2)
 		self.magnification = 4
-		self.microns_per_pixel = 50/14.5
-		self.calibration_factor = 1.25*4
+		self.microns_per_pixel = 100/34
+		self.calibration_factor = 1.20*4
 		self.send_receive('SAS 50')
 		self.lysing_loc = self.get_position()
 		self.lysing = True
@@ -135,15 +135,38 @@ class stage_controller():
 	def move_last(self):
 		return self.move_relative(self.reverse_move_vector)
 
-	@QtCore.pyqtSlot('PyQt_PyObject','PyQt_PyObject','PyQt_PyObject','PyQt_PyObject')	
-	def click_move_slot(self,window_width,window_height,click_x,click_y):
-		window_center = np.array([window_width/2,window_height/2])
+	def remove_calibrated_error(self,x,y):
+		# an attempt to calibrate out some error...
+		if self.magnification == 4:			
+			x_error = -.036*x + 5.5586
+			x += x_error
+			y_error = -.0573*y - 5.1509
+			y += y_error
+		# elif sel
+
+		return np.array([int(x),int(y)])
+
+	def scale_move_vector(self,vector):
+		return vector/self.magnification * self.microns_per_pixel * self.calibration_factor				
+
+	@QtCore.pyqtSlot('PyQt_PyObject','PyQt_PyObject')	
+	def click_move_slot(self,click_x,click_y):
+		print('click loc:',click_x,click_y)
+		window_center = np.array([851/2,681/2])
 		mouse_click_location = np.array([click_x,click_y])
+		print('mouse click loc:',mouse_click_location)
+		print('window center',window_center)
 		pixel_move_vector = mouse_click_location - window_center
-		step_move_vector = pixel_move_vector/self.magnification * self.microns_per_pixel * self.calibration_factor
-		step_move_vector = step_move_vector.astype(int)
+		print('pixel move vector',pixel_move_vector)
+		step_move_vector = self.scale_move_vector(pixel_move_vector)
+		step_move_vector = self.remove_calibrated_error(step_move_vector[0],step_move_vector[1])
 		comment('click move vector: {}'.format(step_move_vector))
 		return self.move_relative(step_move_vector)
+
+	@QtCore.pyqtSlot('PyQt_PyObject')	
+	def vector_move_slot(self,move_vector):
+		move_vector = self.scale_move_vector(move_vector)
+		self.move_relative(move_vector)
 
 	def go_to_dmf_location(self):
 		self.lysing_loc = self.get_position()

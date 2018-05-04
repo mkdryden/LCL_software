@@ -1,3 +1,4 @@
+import time
 from utils import comment
 from keras.models import load_model
 import os
@@ -11,6 +12,7 @@ graph = tf.get_default_graph()
 experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)),'models')
 
 class Localizer(QtCore.QObject):
+	vector_move_signal = QtCore.pyqtSignal('PyQt_PyObject')
 
 	def __init__(self, parent = None):
 		super(Localizer, self).__init__(parent)
@@ -44,12 +46,28 @@ class Localizer(QtCore.QObject):
 			if cv2.contourArea(contour) > 3000:
 				(x,y),radius = cv2.minEnclosingCircle(contour)
 				center = (int(x),int(y))
-				cell_contours.append(contour)
-				cell_centers.append(center)
+				cell_contours.append(contour)				
 				cv2.circle(cell_image,center,2 ,(255,0,0),-1)
-		cv2.drawContours(cell_image, cell_contours, -1, (255,255,255), 3)
+				center = np.array(center)
+				cell_centers.append(center)
+		# cv2.drawContours(cell_image, cell_contours, -1, (255,255,255), 3)
+		# cv2.imshow('Cell Outlines and Centers',cell_image)
+		window_center = np.array([250,250])
+		old_center = cell_centers[0]
+		self.hit_target(old_center-window_center)
+		time.sleep(.5)
+		if len(cell_centers) > 1:
+			for i in range(1,len(cell_centers)):
+				self.hit_target(-old_center + cell_centers[i])
+				old_center = cell_centers[i]
+				time.sleep(.5)
 
-				
-			
-		cv2.imshow('Cell Outlines and Centers',cell_image)
+
+	def hit_target(self,center):
+		# we need to scale our centers up to the proper resolution and then 
+		# send it to the stage
+		x = center[0]*851/500
+		y = center[1]*681/500		
+		self.vector_move_signal.emit(np.array([x,y]))
+
 

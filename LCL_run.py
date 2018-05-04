@@ -82,7 +82,7 @@ class ShowVideo(QtCore.QObject):
 		comment('ending video')
 
 class ImageViewer(QtWidgets.QWidget):
-	click_move_signal = QtCore.pyqtSignal('PyQt_PyObject','PyQt_PyObject','PyQt_PyObject','PyQt_PyObject')
+	click_move_signal = QtCore.pyqtSignal('PyQt_PyObject','PyQt_PyObject')
 
 	def __init__(self, parent = None):
 		super(ImageViewer, self).__init__(parent)
@@ -103,9 +103,11 @@ class ImageViewer(QtWidgets.QWidget):
 
 	def mousePressEvent(self, QMouseEvent):
 		window_height,window_width = self.geometry().height(),self.geometry().width()
+		print(window_height,window_width)
 		click_x,click_y = QMouseEvent.pos().x(),QMouseEvent.pos().y()
 		# print('clicked: {} {}'.format(QMouseEvent.pos().x(),QMouseEvent.pos().y()))
-		self.click_move_signal.emit(window_width,window_height,click_x,click_y)
+		print(window_width,window_height)
+		self.click_move_signal.emit(click_x,click_y)
 
 class main_window(QMainWindow):
 	start_video_signal = QtCore.pyqtSignal()
@@ -161,6 +163,7 @@ class main_window(QMainWindow):
 		self.start_localization_signal.connect(self.localizer.localize)
 		self.autofocuser.position_and_variance_signal.connect(self.plot_variance_and_position)
 		self.image_viewer.click_move_signal.connect(stage.click_move_slot)
+		self.localizer.vector_move_signal.connect(stage.vector_move_slot)
 				
 		# connect to the video thread and start the video
 		self.start_video_signal.connect(self.vid.startVideo)
