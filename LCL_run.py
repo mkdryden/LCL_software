@@ -21,29 +21,31 @@ class ShowVideo(QtCore.QObject):
 		
 	VideoSignal = QtCore.pyqtSignal(QtGui.QImage)
 	vid_process_signal = QtCore.pyqtSignal('PyQt_PyObject')
+	reticle_and_center_signal = QtCore.pyqtSignal('PyQt_PyObject','PyQt_PyObject','PyQt_PyObject','PyQt_PyObject')
 
 	def __init__(self, window_size, parent = None):
 		super(ShowVideo, self).__init__(parent)
 		self.run_video = True				
 		self.window_size = window_size
 		self.noise_removal = False
+		camera_port = 2 + cv2.CAP_DSHOW
+		self.camera = cv2.VideoCapture(camera_port)
+		self.camera.set(3,1024)#*2) 
+		self.camera.set(4,822)
+		self.center_x = int(1024/2)
+		self.center_y = int(822/2)
+		self.reticle_x = int(self.center_x+28)
+		self.reticle_y = int(self.center_y+118)
 
-	def draw_reticle(self,image):
-		radius = 1
-		y1 = 117
-		x1 = int(image.shape[1]/2)
-		y2 = int(image.shape[0]/2)
-		x,y = int(x1+35),int(y2+85)
-		cv2.circle(image,(x,y),5 ,(0,0,0),-1)		
-		cv2.circle(image,(x1,y2),5 ,(255,0,0),-1)
+	def draw_reticle(self,image):		
+		cv2.circle(image,(self.reticle_x,self.reticle_y),
+			5 ,(0,0,0),-1)		
+		cv2.circle(image,(self.center_x,self.center_y),5 ,(0,0,0),-1)
 
 	@QtCore.pyqtSlot()
 	def startVideo(self):		
 		# camera_port = 1 
-		camera_port = 1 + cv2.CAP_DSHOW
-		self.camera = cv2.VideoCapture(camera_port)
-		self.camera.set(3,1024)#*2) 
-		self.camera.set(4,822)#*2) 
+		#*2) 
 		# self.camera.set(15,52.131)
 		comment('video properties:')		
 		for i in range(19):
@@ -76,8 +78,6 @@ class ShowVideo(QtCore.QObject):
 									QtGui.QImage.Format_RGB888) 
 			qt_image = qt_image.scaled(self.window_size)
 			self.VideoSignal.emit(qt_image)		
-			# print('window thread running on: {}'.format(
-			# 	threading.current_thread()))	
 		self.camera.release()
 		comment('ending video')
 
@@ -103,10 +103,9 @@ class ImageViewer(QtWidgets.QWidget):
 
 	def mousePressEvent(self, QMouseEvent):
 		window_height,window_width = self.geometry().height(),self.geometry().width()
-		print(window_height,window_width)
+		# print(window_height,window_width)
 		click_x,click_y = QMouseEvent.pos().x(),QMouseEvent.pos().y()
 		# print('clicked: {} {}'.format(QMouseEvent.pos().x(),QMouseEvent.pos().y()))
-		print(window_width,window_height)
 		self.click_move_signal.emit(click_x,click_y)
 
 class main_window(QMainWindow):
@@ -130,7 +129,7 @@ class main_window(QMainWindow):
 		self.vid = ShowVideo(self.ui.verticalLayoutWidget.size())
 		self.screen_shooter = screen_shooter()
 		self.image_viewer = ImageViewer()
-		self.autofocuser = autofocuser()
+		# self.autofocuser = autofocuser()
 		self.localizer = Localizer()		
 
 		# add the viewer to our ui
@@ -141,9 +140,9 @@ class main_window(QMainWindow):
 		self.screenshooter_thread.start()
 		self.screen_shooter.moveToThread(self.screenshooter_thread)		
 
-		self.autofocuser_thread = QThread()
-		self.autofocuser_thread.start()
-		self.autofocuser.moveToThread(self.autofocuser_thread)		
+		# self.autofocuser_thread = QThread()
+		# self.autofocuser_thread.start()
+		# self.autofocuser.moveToThread(self.autofocuser_thread)		
 
 		self.localizer_thread = QThread()
 		self.localizer_thread.start()
@@ -156,15 +155,19 @@ class main_window(QMainWindow):
 		# connect the outputs to our signals
 		self.vid.VideoSignal.connect(self.image_viewer.setImage)		
 		self.vid.vid_process_signal.connect(self.screen_shooter.screenshot_slot)		
-		self.vid.vid_process_signal.connect(self.autofocuser.vid_process_slot)
+		# self.vid.vid_process_signal.connect(self.autofocuser.vid_process_slot)
 		self.vid.vid_process_signal.connect(self.localizer.vid_process_slot)
 		self.qswitch_screenshot_signal.connect(self.screen_shooter.save_qswitch_fire_slot)
-		self.start_focus_signal.connect(self.autofocuser.autofocus)
+		# self.start_focus_signal.connect(self.autofocuser.autofocus)
 		self.start_localization_signal.connect(self.localizer.localize)
-		self.autofocuser.position_and_variance_signal.connect(self.plot_variance_and_position)
+		# self.autofocuser.position_and_variance_signal.connect(self.plot_variance_and_position)
 		self.image_viewer.click_move_signal.connect(stage.click_move_slot)
 		self.localizer.vector_move_signal.connect(stage.vector_move_slot)
-				
+		self.localizer.ai_fire_qswitch_signal.connect(self.ai_fire_qswitch_slot)
+		self.localizer.stop_laser_flash_signal.connect(self.stop_laser_flash_slot)
+		self.vid.reticle_and_center_signal.connect(stage.reticle_and_center_slot)
+		self.vid.reticle_and_center_signal.emit(self.vid.center_x,self.vid.center_y,self.vid.reticle_x,self.vid.reticle_y)
+
 		# connect to the video thread and start the video
 		self.start_video_signal.connect(self.vid.startVideo)
 		self.start_video_signal.emit()		
@@ -187,7 +190,7 @@ class main_window(QMainWindow):
 		self.ui.qswitch_delay_doublespin_box.valueChanged.connect(laser.set_delay)
 		self.ui.attenuator_doublespin_box.valueChanged.connect(attenuator.set_attenuation)
 		self.ui.fire_qswitch_pushbutton.clicked.connect(laser.fire_qswitch)
-		self.ui.fire_qswitch_pushbutton.clicked.connect(self.qswitch_screenshot_manager)
+		self.ui.fire_qswitch_pushbutton.clicked.connect(self.qswitch_screenshot_slot)
 		self.show()		
 		comment('finished gui init')	
 
@@ -237,21 +240,37 @@ class main_window(QMainWindow):
 		comment('user comment:{}'.format(self.ui.comment_box.toPlainText()))
 		self.ui.comment_box.clear()
 
-	def qswitch_screenshot_manager(self):
+	# TODO: MAKE THIS WAYY SAFER
+	@QtCore.pyqtSlot()
+	def qswitch_screenshot_slot(self):
 		self.qswitch_screenshot_signal.emit()
 		comment('stage position during qswitch: {}'.format(stage.get_position()))
 		laser.fire_qswitch()		
+	
+	@QtCore.pyqtSlot('PyQt_PyObject')
+	def ai_fire_qswitch_slot(self,num_shots):	
+		laser.fire_auto()
+		# self.qswitch_screenshot_signal.emit()
+		# self.qswitch_screenshot_signal.emit()
+		comment('automated firing from localizer!')
+		comment('stage position during qswitch: {}'.format(stage.get_position()))
+		for i in range(num_shots):
+			laser.fire_qswitch()
+		
 
-	def toggle_dmf_or_lysis(self):
-		# we want to get our objective out of the way first
-		if self.lysing == True: 
-			ret = self.autofocuser.retract_objective()			
-			if ret == True:
-				stage.go_to_dmf_location()
-		elif self.lysing == False:
-			stage.go_to_lysing_loc()
-			self.autofocuser.return_objective_to_focus()	
-		self.lysing = not self.lysing		
+	@QtCore.pyqtSlot()
+	def stop_laser_flash_slot(self):
+		laser.stop_flash()
+	# def toggle_dmf_or_lysis(self):
+	# 	# we want to get our objective out of the way first
+	# 	if self.lysing == True: 
+	# 		ret = self.autofocuser.retract_objective()			
+	# 		if ret == True:
+	# 			stage.go_to_dmf_location()
+	# 	elif self.lysing == False:
+	# 		stage.go_to_lysing_loc()
+	# 		self.autofocuser.return_objective_to_focus()	
+	# 	self.lysing = not self.lysing		
 
 	def keyPressEvent(self,event):
 		if not event.isAutoRepeat():
@@ -263,15 +282,16 @@ class main_window(QMainWindow):
 			68:stage.move_right,
 			66:stage.move_last,
 			16777249:laser.fire_auto,
-			70:self.qswitch_screenshot_manager,
+			70:self.qswitch_screenshot_slot,
 			81:laser.qswitch_auto,
-			73:self.autofocuser.roll_forward,
-			75:self.autofocuser.roll_backward,
+			# 73:self.autofocuser.roll_forward,
+			# 75:self.autofocuser.roll_backward,
 			79:self.start_autofocus,
-			71:self.toggle_dmf_or_lysis,
+			# 71:self.toggle_dmf_or_lysis,
 			84:stage.move_left_one_well,
 			89:stage.move_right_one_well,
-			80:self.start_localization
+			80:self.start_localization,
+			96:self.screen_shooter.save_target_image
 			}
 			if event.key() in key_control_dict.keys():
 				key_control_dict[event.key()]()
@@ -281,8 +301,8 @@ class main_window(QMainWindow):
 			# print('key released: {}'.format(event.key()))
 			key_control_dict = {
 			16777249:laser.stop_flash,
-			73:self.autofocuser.stop_roll,
-			75:self.autofocuser.stop_roll
+			# 73:self.autofocuser.stop_roll,
+			# 75:self.autofocuser.stop_roll
 			}
 			if event.key() in key_control_dict.keys():
 				key_control_dict[event.key()]()

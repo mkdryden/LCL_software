@@ -27,6 +27,14 @@ class stage_controller():
 		self.send_receive('BLSH 0')
 		self.steps_between_wells = 4400
 
+	@QtCore.pyqtSlot('PyQt_PyObject','PyQt_PyObject','PyQt_PyObject','PyQt_PyObject')	
+	def reticle_and_center_slot(self,center_x,center_y,reticle_x,reticle_y):
+		self.center_x = center_x
+		self.center_y = center_y
+		self.reticle_x = reticle_x		
+		self.reticle_y = reticle_y
+		print('RETICLE RECEIVED!')
+
 	def change_magnification(self,index):
 		map_dict = {
 		0:4,
@@ -151,20 +159,24 @@ class stage_controller():
 
 	@QtCore.pyqtSlot('PyQt_PyObject','PyQt_PyObject')	
 	def click_move_slot(self,click_x,click_y):
-		print('click loc:',click_x,click_y)
-		window_center = np.array([851/2,681/2])
+		# center movement:
+		# window_center = np.array([851/2,681/2])
+		# reticle movement:
+		window_center = np.array([self.reticle_x*851/1024,self.reticle_y*681/822])
 		mouse_click_location = np.array([click_x,click_y])
-		print('mouse click loc:',mouse_click_location)
-		print('window center',window_center)
 		pixel_move_vector = mouse_click_location - window_center
-		print('pixel move vector',pixel_move_vector)
 		step_move_vector = self.scale_move_vector(pixel_move_vector)
 		step_move_vector = self.remove_calibrated_error(step_move_vector[0],step_move_vector[1])
 		comment('click move vector: {}'.format(step_move_vector))
 		return self.move_relative(step_move_vector)
 
-	@QtCore.pyqtSlot('PyQt_PyObject')	
-	def vector_move_slot(self,move_vector):
+	@QtCore.pyqtSlot('PyQt_PyObject','PyQt_PyObject')	
+	def vector_move_slot(self,move_vector,goto_reticle):
+		if goto_reticle == True:
+			center = np.array([self.center_x,self.center_y])
+			reticle = np.array([self.reticle_x,self.reticle_y]) 
+			center_to_reticle = center - reticle
+			move_vector += center_to_reticle
 		move_vector = self.scale_move_vector(move_vector)
 		self.move_relative(move_vector)
 

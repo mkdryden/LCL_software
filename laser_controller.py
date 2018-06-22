@@ -50,7 +50,8 @@ class laser_controller():
 		return self.send_receive('A')
 
 	def fire_qswitch(self):
-		if self.ready_to_fire: return self.send_receive('OP')
+		if self.ready_to_fire: 
+			return self.send_receive('OP')
 
 	def set_delay(self,delay):
 		if str(delay) != '':

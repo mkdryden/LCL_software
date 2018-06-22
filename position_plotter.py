@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-f = r'C:\Users\MR-BOX1\Desktop\LCL_software\Experiments\experiment_15_01_2018___13.59.30.887589\experiment_15_01_2018___13.59.30.887589.log'
+f = r'C:\Users\Wheeler\Desktop\LCL_software\Experiments\experiment_16_05_2018___10.09.18.351281\experiment_16_05_2018___10.09.18.351281.log'
 
 with open(f,'rb') as f:
 	lines = f.readlines()
