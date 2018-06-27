@@ -4,11 +4,14 @@ from utils import comment
 from PyQt5 import QtCore
 import matplotlib.pyplot as plt
 
-class stage_controller():
-	def __init__(self):
+class stage_controller(QtCore.QObject):
+	position_return_signal = QtCore.pyqtSignal('PyQt_PyObject')
+
+	def __init__(self,parent = None):
 		'''
 		open the serial port and check the status of the stage  
 		'''
+		super(stage_controller, self).__init__(parent)
 		com = 'COM9'
 		baud = 9600
 		parity = serial.PARITY_NONE
@@ -21,7 +24,7 @@ class stage_controller():
 		self.microns_per_pixel = 100/34
 		self.calibration_factor = 1.20*4
 		self.send_receive('SAS 50')
-		self.lysing_loc = self.get_position()
+		# self.lysing_loc = self.get_position_slot()
 		self.lysing = True
 		self.dmf_position = np.array([115175,14228])
 		self.send_receive('BLSH 0')
@@ -102,17 +105,17 @@ class stage_controller():
 		self.issue_command('?')	
 		return self.get_long_response()
 
-	@QtCore.pyqtSlot()
 	def home_stage(self):
 		# hits the limit switches and then returns to last known location
 		return self.send_receive('RIS')
 
 	@QtCore.pyqtSlot()
-	def get_position(self):
+	def get_position_slot(self):
 		response = str(self.send_receive('P'))
 		x = int(response.split(',')[0])			
 		y = int(response.split(',')[1].split(',')[0])
 		position = np.array([x,y])
+		self.position_return_signal.emit(position)
 		return position
 
 	def go_to_position(self,position_vector):
@@ -120,19 +123,15 @@ class stage_controller():
 		y = position_vector[1]
 		return self.send_receive('G,{},{}'.format(x,y))
 
-	@QtCore.pyqtSlot()
 	def move_up(self):
 		return self.send_receive('GR,0,-{}'.format(self.step_size))
 
-	@QtCore.pyqtSlot()
 	def move_down(self):
 		return self.send_receive('GR,0,{}'.format(self.step_size))
 
-	@QtCore.pyqtSlot()
 	def move_right(self):
 		return self.send_receive('GR,{},0'.format(self.step_size))
 
-	@QtCore.pyqtSlot()
 	def move_left(self):
 		return self.send_receive('GR,-{},0'.format(self.step_size))
 
@@ -157,7 +156,7 @@ class stage_controller():
 	def scale_move_vector(self,vector):
 		return vector/self.magnification * self.microns_per_pixel * self.calibration_factor				
 
-	@QtCore.pyqtSlot('PyQt_PyObject','PyQt_PyObject')	
+
 	def click_move_slot(self,click_x,click_y):
 		# center movement:
 		# window_center = np.array([851/2,681/2])
@@ -170,18 +169,25 @@ class stage_controller():
 		comment('click move vector: {}'.format(step_move_vector))
 		return self.move_relative(step_move_vector)
 
-	@QtCore.pyqtSlot('PyQt_PyObject','PyQt_PyObject')	
-	def vector_move_slot(self,move_vector,goto_reticle):
-		if goto_reticle == True:
-			center = np.array([self.center_x,self.center_y])
-			reticle = np.array([self.reticle_x,self.reticle_y]) 
-			center_to_reticle = center - reticle
-			move_vector += center_to_reticle
-		move_vector = self.scale_move_vector(move_vector)
-		self.move_relative(move_vector)
+	@QtCore.pyqtSlot('PyQt_PyObject','PyQt_PyObject','PyQt_PyObject','PyQt_PyObject')	
+	def localizer_move_slot(self, move_vector, goto_reticle = False,move_relative = True,scale_vector = True):
+		if move_relative == True and scale_vector == True:
+			if goto_reticle == True:
+				center = np.array([self.center_x,self.center_y])
+				reticle = np.array([self.reticle_x,self.reticle_y]) 
+				center_to_reticle = center - reticle
+				move_vector += center_to_reticle
+			move_vector = self.scale_move_vector(move_vector)
+			self.move_relative(move_vector)
+		elif move_relative == False and scale_vector == False:
+			print(move_vector)			
+			self.go_to_position(move_vector)	
+		elif move_relative == True and scale_vector == False:
+			self.move_relative(move_vector)
+
 
 	def go_to_dmf_location(self):
-		self.lysing_loc = self.get_position()
+		self.lysing_loc = self.get_position_slot()
 		self.go_to_position(self.dmf_position)
 		self.lysing = False
 
@@ -195,13 +201,13 @@ class stage_controller():
 		elif self.lysing == False:
 			self.go_to_lysing_loc()
 
-	def move_right_one_well(self):
+	def move_right_one_well_slot(self):
 		self.move_relative(np.array([self.steps_between_wells,0]))
 	
-	def move_left_one_well(self):
+	def move_left_one_well_slot(self):
 		self.move_relative(np.array([-self.steps_between_wells,0]))		
 
 if __name__ == '__main__':
 	stage = stage_controller()
-	print(stage.get_position())
+	print(stage.get_position_slot())
 

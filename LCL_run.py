@@ -162,8 +162,9 @@ class main_window(QMainWindow):
 		self.start_localization_signal.connect(self.localizer.localize)
 		# self.autofocuser.position_and_variance_signal.connect(self.plot_variance_and_position)
 		self.image_viewer.click_move_signal.connect(stage.click_move_slot)
-		self.localizer.vector_move_signal.connect(stage.vector_move_slot)
+		self.localizer.localizer_move_signal.connect(stage.localizer_move_slot)
 		self.localizer.ai_fire_qswitch_signal.connect(self.ai_fire_qswitch_slot)
+		self.localizer.start_laser_flash_signal.connect(self.start_laser_flash_slot)
 		self.localizer.stop_laser_flash_signal.connect(self.stop_laser_flash_slot)
 		self.vid.reticle_and_center_signal.connect(stage.reticle_and_center_slot)
 		self.vid.reticle_and_center_signal.emit(self.vid.center_x,self.vid.center_y,self.vid.reticle_x,self.vid.reticle_y)
@@ -183,6 +184,8 @@ class main_window(QMainWindow):
 		# Stage movement buttons
 		self.ui.step_size_doublespin_box.valueChanged.connect(stage.set_step_size)
 		self.setup_combobox()
+		self.localizer.get_position_signal.connect(stage.get_position_slot)
+		stage.position_return_signal.connect(self.localizer.position_return_slot)
 
 		# Laser control buttons
 		self.ui.start_flashlamp_pushbutton.clicked.connect(laser.fire_auto)
@@ -247,16 +250,15 @@ class main_window(QMainWindow):
 		comment('stage position during qswitch: {}'.format(stage.get_position()))
 		laser.fire_qswitch()		
 	
-	@QtCore.pyqtSlot('PyQt_PyObject')
-	def ai_fire_qswitch_slot(self,num_shots):	
-		laser.fire_auto()
-		# self.qswitch_screenshot_signal.emit()
-		# self.qswitch_screenshot_signal.emit()
+	@QtCore.pyqtSlot()
+	def ai_fire_qswitch_slot(self):	
+		self.qswitch_screenshot_signal.emit()
 		comment('automated firing from localizer!')
-		comment('stage position during qswitch: {}'.format(stage.get_position()))
-		for i in range(num_shots):
-			laser.fire_qswitch()
-		
+		laser.fire_qswitch()
+	
+	@QtCore.pyqtSlot()		
+	def start_laser_flash_slot(self):
+		laser.fire_auto()
 
 	@QtCore.pyqtSlot()
 	def stop_laser_flash_slot(self):
@@ -288,8 +290,8 @@ class main_window(QMainWindow):
 			# 75:self.autofocuser.roll_backward,
 			79:self.start_autofocus,
 			# 71:self.toggle_dmf_or_lysis,
-			84:stage.move_left_one_well,
-			89:stage.move_right_one_well,
+			84:stage.move_left_one_well_slot,
+			89:stage.move_right_one_well_slot,
 			80:self.start_localization,
 			96:self.screen_shooter.save_target_image
 			}

@@ -1,0 +1,438 @@
+INFO:root:sending command to stage:SAS 50 ....................27_06_2018___12.13.17.314775
+INFO:root:response received from stage:0 .....................27_06_2018___12.13.17.328241
+INFO:root:sending command to stage:BLSH 0 ....................27_06_2018___12.13.17.329090
+INFO:root:response received from stage:0 .....................27_06_2018___12.13.17.342783
+INFO:root:sending command to attenuator:;AT:TF 0.6 ...........27_06_2018___12.13.17.567204
+INFO:root:sending command to laser:M .........................27_06_2018___12.13.18.004452
+INFO:root:sending command to laser:W 200 .....................27_06_2018___12.13.18.005272
+WARNING:tensorflow:Variable *= will be deprecated. Use variable.assign_mul if you want assignment to the variable value or 'x = x * y' if you want a new python Tensor object.
+INFO:root:video properties: ..................................27_06_2018___12.13.24.851858
+INFO:root:finished gui init ..................................27_06_2018___12.13.24.852354
+INFO:root:property 0, value: -1.0 ............................27_06_2018___12.13.24.852354
+INFO:root:property 1, value: -1.0 ............................27_06_2018___12.13.24.852849
+INFO:root:property 2, value: -1.0 ............................27_06_2018___12.13.24.852849
+INFO:root:property 3, value: 1024.0 ..........................27_06_2018___12.13.24.853345
+INFO:root:property 4, value: 822.0 ...........................27_06_2018___12.13.24.853345
+INFO:root:property 5, value: 0.0 .............................27_06_2018___12.13.24.853841
+INFO:root:property 6, value: -466162819.0 ....................27_06_2018___12.13.24.853841
+INFO:root:property 7, value: -1.0 ............................27_06_2018___12.13.24.854339
+INFO:root:property 8, value: -1.0 ............................27_06_2018___12.13.24.854339
+INFO:root:property 9, value: -1.0 ............................27_06_2018___12.13.24.854833
+INFO:root:property 10, value: 0.0 ............................27_06_2018___12.13.24.899826
+INFO:root:property 11, value: 0.0 ............................27_06_2018___12.13.24.946307
+INFO:root:property 12, value: 128.0 ..........................27_06_2018___12.13.24.995169
+INFO:root:property 13, value: 0.0 ............................27_06_2018___12.13.25.047896
+INFO:root:property 14, value: 100.0 ..........................27_06_2018___12.13.25.101642
+INFO:root:property 15, value: -1.0 ...........................27_06_2018___12.13.25.143282
+INFO:root:property 16, value: -1.0 ...........................27_06_2018___12.13.25.143777
+INFO:root:property 17, value: 6503.0 .........................27_06_2018___12.13.25.183803
+INFO:root:property 18, value: -1.0 ...........................27_06_2018___12.13.25.184317
+INFO:root:click move vector: [ 40 -99] .......................27_06_2018___12.13.52.125994
+INFO:root:sending command to stage:GR,40,-99 .................27_06_2018___12.13.52.126485
+INFO:root:response received from stage:R .....................27_06_2018___12.13.52.253902
+INFO:root:magnification changed to: 100 ......................27_06_2018___12.14.21.107310
+INFO:root:objective offset correction: [ -79. -139.] .........27_06_2018___12.14.21.108303
+INFO:root:sending command to stage:GR,-79.0,-139.0 ...........27_06_2018___12.14.21.109295
+INFO:root:response received from stage:R .....................27_06_2018___12.14.21.243973
+INFO:root:click move vector: [-34 -5] ........................27_06_2018___12.14.22.436236
+INFO:root:sending command to stage:GR,-34,-5 .................27_06_2018___12.14.22.436730
+INFO:root:response received from stage:R .....................27_06_2018___12.14.22.532673
+INFO:root:click move vector: [-26 -6] ........................27_06_2018___12.14.23.124873
+INFO:root:sending command to stage:GR,-26,-6 .................27_06_2018___12.14.23.125398
+INFO:root:response received from stage:R .....................27_06_2018___12.14.23.198030
+INFO:root:click move vector: [ -5 -18] .......................27_06_2018___12.14.23.588604
+INFO:root:sending command to stage:GR,-5,-18 .................27_06_2018___12.14.23.589102
+INFO:root:response received from stage:R .....................27_06_2018___12.14.23.656350
+INFO:root:click move vector: [22 -1] .........................27_06_2018___12.14.24.269828
+INFO:root:sending command to stage:GR,22,-1 ..................27_06_2018___12.14.24.270820
+INFO:root:response received from stage:R .....................27_06_2018___12.14.24.352837
+INFO:root:click move vector: [22 -1] .........................27_06_2018___12.14.24.881415
+INFO:root:sending command to stage:GR,22,-1 ..................27_06_2018___12.14.24.882070
+INFO:root:response received from stage:R .....................27_06_2018___12.14.24.949596
+INFO:root:click move vector: [-15 -19] .......................27_06_2018___12.14.25.443985
+INFO:root:sending command to stage:GR,-15,-19 ................27_06_2018___12.14.25.444477
+INFO:root:response received from stage:R .....................27_06_2018___12.14.25.511759
+INFO:root:click move vector: [-14 -4] ........................27_06_2018___12.14.27.045108
+INFO:root:sending command to stage:GR,-14,-4 .................27_06_2018___12.14.27.045422
+INFO:root:response received from stage:R .....................27_06_2018___12.14.27.107032
+INFO:root:click move vector: [1 6] ...........................27_06_2018___12.14.28.103608
+INFO:root:sending command to stage:GR,1,6 ....................27_06_2018___12.14.28.104066
+INFO:root:response received from stage:R .....................27_06_2018___12.14.28.155465
+INFO:root:click move vector: [ 8 12] .........................27_06_2018___12.14.28.527240
+INFO:root:sending command to stage:GR,8,12 ...................27_06_2018___12.14.28.528060
+INFO:root:response received from stage:R .....................27_06_2018___12.14.28.583907
+INFO:root:click move vector: [ 8 12] .........................27_06_2018___12.14.28.956142
+INFO:root:sending command to stage:GR,8,12 ...................27_06_2018___12.14.28.956673
+INFO:root:response received from stage:R .....................27_06_2018___12.14.29.013909
+INFO:root:click move vector: [-4 -7] .........................27_06_2018___12.15.14.223982
+INFO:root:sending command to stage:GR,-4,-7 ..................27_06_2018___12.15.14.224946
+INFO:root:response received from stage:R .....................27_06_2018___12.15.14.278074
+INFO:root:click move vector: [-4 -7] .........................27_06_2018___12.15.14.659518
+INFO:root:sending command to stage:GR,-4,-7 ..................27_06_2018___12.15.14.659867
+INFO:root:response received from stage:R .....................27_06_2018___12.15.14.711119
+INFO:root:click move vector: [-7 -5] .........................27_06_2018___12.15.14.893244
+INFO:root:sending command to stage:GR,-7,-5 ..................27_06_2018___12.15.14.893752
+INFO:root:response received from stage:R .....................27_06_2018___12.15.14.943971
+INFO:root:click move vector: [-16 0] .........................27_06_2018___12.15.20.586843
+INFO:root:sending command to stage:GR,-16,0 ..................27_06_2018___12.15.20.586843
+INFO:root:response received from stage:R .....................27_06_2018___12.15.20.647356
+INFO:root:click move vector: [-24 -21] .......................27_06_2018___12.15.25.526555
+INFO:root:sending command to stage:GR,-24,-21 ................27_06_2018___12.15.25.527006
+INFO:root:response received from stage:R .....................27_06_2018___12.15.25.599497
+INFO:root:click move vector: [-10 -29] .......................27_06_2018___12.15.26.240201
+INFO:root:sending command to stage:GR,-10,-29 ................27_06_2018___12.15.26.240201
+INFO:root:response received from stage:R .....................27_06_2018___12.15.26.318740
+INFO:root:click move vector: [ -7 -31] .......................27_06_2018___12.15.26.578290
+INFO:root:sending command to stage:GR,-7,-31 .................27_06_2018___12.15.26.578780
+INFO:root:response received from stage:R .....................27_06_2018___12.15.26.659339
+INFO:root:click move vector: [ 2 -24] ........................27_06_2018___12.15.27.005714
+INFO:root:sending command to stage:GR,2,-24 ..................27_06_2018___12.15.27.006210
+INFO:root:response received from stage:R .....................27_06_2018___12.15.27.085595
+INFO:root:click move vector: [-24 -20] .......................27_06_2018___12.15.27.573010
+INFO:root:sending command to stage:GR,-24,-20 ................27_06_2018___12.15.27.573541
+INFO:root:response received from stage:R .....................27_06_2018___12.15.27.646869
+INFO:root:click move vector: [-35 -8] ........................27_06_2018___12.15.28.028584
+INFO:root:sending command to stage:GR,-35,-8 .................27_06_2018___12.15.28.029167
+INFO:root:response received from stage:R .....................27_06_2018___12.15.28.113508
+INFO:root:click move vector: [-32 0] .........................27_06_2018___12.15.28.543788
+INFO:root:sending command to stage:GR,-32,0 ..................27_06_2018___12.15.28.544278
+INFO:root:response received from stage:R .....................27_06_2018___12.15.28.619112
+INFO:root:click move vector: [9 6] ...........................27_06_2018___12.15.29.610143
+INFO:root:sending command to stage:GR,9,6 ....................27_06_2018___12.15.29.610667
+INFO:root:response received from stage:R .....................27_06_2018___12.15.29.663260
+INFO:root:click move vector: [24 0] ..........................27_06_2018___12.15.30.829451
+INFO:root:sending command to stage:GR,24,0 ...................27_06_2018___12.15.30.829948
+INFO:root:response received from stage:R .....................27_06_2018___12.15.30.895556
+INFO:root:click move vector: [24 0] ..........................27_06_2018___12.15.31.133589
+INFO:root:sending command to stage:GR,24,0 ...................27_06_2018___12.15.31.134083
+INFO:root:response received from stage:R .....................27_06_2018___12.15.31.200910
+INFO:root:click move vector: [24 0] ..........................27_06_2018___12.15.31.404435
+INFO:root:sending command to stage:GR,24,0 ...................27_06_2018___12.15.31.405426
+INFO:root:response received from stage:R .....................27_06_2018___12.15.31.470292
+INFO:root:click move vector: [24 0] ..........................27_06_2018___12.15.31.598350
+INFO:root:sending command to stage:GR,24,0 ...................27_06_2018___12.15.31.599066
+INFO:root:response received from stage:R .....................27_06_2018___12.15.31.673272
+INFO:root:click move vector: [24 0] ..........................27_06_2018___12.15.31.783945
+INFO:root:sending command to stage:GR,24,0 ...................27_06_2018___12.15.31.783945
+INFO:root:response received from stage:R .....................27_06_2018___12.15.31.849298
+INFO:root:click move vector: [24 0] ..........................27_06_2018___12.15.32.025523
+INFO:root:sending command to stage:GR,24,0 ...................27_06_2018___12.15.32.025942
+INFO:root:response received from stage:R .....................27_06_2018___12.15.32.098577
+INFO:root:click move vector: [24 0] ..........................27_06_2018___12.15.32.325782
+INFO:root:sending command to stage:GR,24,0 ...................27_06_2018___12.15.32.326310
+INFO:root:response received from stage:R .....................27_06_2018___12.15.32.392057
+INFO:root:click move vector: [-13 -31] .......................27_06_2018___12.15.33.355223
+INFO:root:sending command to stage:GR,-13,-31 ................27_06_2018___12.15.33.355717
+INFO:root:response received from stage:R .....................27_06_2018___12.15.33.434239
+INFO:root:click move vector: [-13 -31] .......................27_06_2018___12.15.33.636161
+INFO:root:sending command to stage:GR,-13,-31 ................27_06_2018___12.15.33.636703
+INFO:root:response received from stage:R .....................27_06_2018___12.15.33.718043
+INFO:root:click move vector: [ 8 -28] ........................27_06_2018___12.15.34.432100
+INFO:root:sending command to stage:GR,8,-28 ..................27_06_2018___12.15.34.432812
+INFO:root:response received from stage:R .....................27_06_2018___12.15.34.505257
+INFO:root:click move vector: [33 -8] .........................27_06_2018___12.15.35.246545
+INFO:root:sending command to stage:GR,33,-8 ..................27_06_2018___12.15.35.247107
+INFO:root:response received from stage:R .....................27_06_2018___12.15.35.330270
+INFO:root:click move vector: [-22 -23] .......................27_06_2018___12.15.38.157588
+INFO:root:sending command to stage:GR,-22,-23 ................27_06_2018___12.15.38.158307
+INFO:root:response received from stage:R .....................27_06_2018___12.15.38.230960
+INFO:root:click move vector: [-27 1] .........................27_06_2018___12.15.38.962912
+INFO:root:sending command to stage:GR,-27,1 ..................27_06_2018___12.15.38.963439
+INFO:root:response received from stage:R .....................27_06_2018___12.15.39.034735
+INFO:root:click move vector: [ -5 -44] .......................27_06_2018___12.15.39.757539
+INFO:root:sending command to stage:GR,-5,-44 .................27_06_2018___12.15.39.758244
+INFO:root:response received from stage:R .....................27_06_2018___12.15.39.852293
+INFO:root:click move vector: [ -5 -44] .......................27_06_2018___12.15.40.068521
+INFO:root:sending command to stage:GR,-5,-44 .................27_06_2018___12.15.40.068521
+INFO:root:response received from stage:R .....................27_06_2018___12.15.40.163965
+INFO:root:click move vector: [-15 4] .........................27_06_2018___12.15.40.815541
+INFO:root:sending command to stage:GR,-15,4 ..................27_06_2018___12.15.40.816132
+INFO:root:response received from stage:R .....................27_06_2018___12.15.40.877317
+INFO:root:click move vector: [21 7] ..........................27_06_2018___12.15.41.669952
+INFO:root:sending command to stage:GR,21,7 ...................27_06_2018___12.15.41.670489
+INFO:root:response received from stage:R .....................27_06_2018___12.15.41.737052
+INFO:root:click move vector: [21 7] ..........................27_06_2018___12.15.41.922200
+INFO:root:sending command to stage:GR,21,7 ...................27_06_2018___12.15.41.922682
+INFO:root:response received from stage:R .....................27_06_2018___12.15.41.988822
+INFO:root:click move vector: [21 7] ..........................27_06_2018___12.15.42.145492
+INFO:root:sending command to stage:GR,21,7 ...................27_06_2018___12.15.42.146484
+INFO:root:response received from stage:R .....................27_06_2018___12.15.42.214561
+INFO:root:click move vector: [21 7] ..........................27_06_2018___12.15.42.406919
+INFO:root:sending command to stage:GR,21,7 ...................27_06_2018___12.15.42.407613
+INFO:root:response received from stage:R .....................27_06_2018___12.15.42.474596
+INFO:root:click move vector: [21 7] ..........................27_06_2018___12.15.42.679658
+INFO:root:sending command to stage:GR,21,7 ...................27_06_2018___12.15.42.680399
+INFO:root:response received from stage:R .....................27_06_2018___12.15.42.747563
+INFO:root:click move vector: [21 7] ..........................27_06_2018___12.15.42.881423
+INFO:root:sending command to stage:GR,21,7 ...................27_06_2018___12.15.42.881917
+INFO:root:response received from stage:R .....................27_06_2018___12.15.42.961291
+INFO:root:click move vector: [21 7] ..........................27_06_2018___12.15.42.969210
+INFO:root:sending command to stage:GR,21,7 ...................27_06_2018___12.15.42.970200
+INFO:root:response received from stage:R .....................27_06_2018___12.15.43.036722
+INFO:root:click move vector: [21 7] ..........................27_06_2018___12.15.43.124696
+INFO:root:sending command to stage:GR,21,7 ...................27_06_2018___12.15.43.125225
+INFO:root:response received from stage:R .....................27_06_2018___12.15.43.192274
+INFO:root:click move vector: [21 7] ..........................27_06_2018___12.15.43.322553
+INFO:root:sending command to stage:GR,21,7 ...................27_06_2018___12.15.43.323249
+INFO:root:response received from stage:R .....................27_06_2018___12.15.43.388127
+INFO:root:click move vector: [18 10] .........................27_06_2018___12.15.43.872039
+INFO:root:sending command to stage:GR,18,10 ..................27_06_2018___12.15.43.872570
+INFO:root:response received from stage:R .....................27_06_2018___12.15.43.936957
+INFO:root:click move vector: [18 10] .........................27_06_2018___12.15.44.124491
+INFO:root:sending command to stage:GR,18,10 ..................27_06_2018___12.15.44.124999
+INFO:root:response received from stage:R .....................27_06_2018___12.15.44.189190
+INFO:root:click move vector: [18 10] .........................27_06_2018___12.15.44.356327
+INFO:root:sending command to stage:GR,18,10 ..................27_06_2018___12.15.44.356327
+INFO:root:response received from stage:R .....................27_06_2018___12.15.44.422413
+INFO:root:click move vector: [18 10] .........................27_06_2018___12.15.44.521918
+INFO:root:sending command to stage:GR,18,10 ..................27_06_2018___12.15.44.522607
+INFO:root:response received from stage:R .....................27_06_2018___12.15.44.597884
+INFO:root:click move vector: [18 10] .........................27_06_2018___12.15.44.754065
+INFO:root:sending command to stage:GR,18,10 ..................27_06_2018___12.15.44.754558
+INFO:root:response received from stage:R .....................27_06_2018___12.15.44.819108
+INFO:root:click move vector: [18 10] .........................27_06_2018___12.15.45.036426
+INFO:root:sending command to stage:GR,18,10 ..................27_06_2018___12.15.45.036426
+INFO:root:response received from stage:R .....................27_06_2018___12.15.45.106284
+INFO:root:click move vector: [18 10] .........................27_06_2018___12.15.45.278347
+INFO:root:sending command to stage:GR,18,10 ..................27_06_2018___12.15.45.278842
+INFO:root:response received from stage:R .....................27_06_2018___12.15.45.342742
+INFO:root:click move vector: [32 9] ..........................27_06_2018___12.15.45.621527
+INFO:root:sending command to stage:GR,32,9 ...................27_06_2018___12.15.45.621883
+INFO:root:response received from stage:R .....................27_06_2018___12.15.45.698881
+INFO:root:click move vector: [-13 15] ........................27_06_2018___12.15.46.326169
+INFO:root:sending command to stage:GR,-13,15 .................27_06_2018___12.15.46.326836
+INFO:root:response received from stage:R .....................27_06_2018___12.15.46.389244
+INFO:root:click move vector: [-13 15] ........................27_06_2018___12.15.46.685520
+INFO:root:sending command to stage:GR,-13,15 .................27_06_2018___12.15.46.686133
+INFO:root:response received from stage:R .....................27_06_2018___12.15.46.747979
+INFO:root:click move vector: [ 17 -16] .......................27_06_2018___12.15.55.077651
+INFO:root:sending command to stage:GR,17,-16 .................27_06_2018___12.15.55.078375
+INFO:root:response received from stage:R .....................27_06_2018___12.15.55.144214
+INFO:root:click move vector: [ 19 -11] .......................27_06_2018___12.15.55.552071
+INFO:root:sending command to stage:GR,19,-11 .................27_06_2018___12.15.55.553066
+INFO:root:response received from stage:R .....................27_06_2018___12.15.55.619435
+INFO:root:click move vector: [ 19 -11] .......................27_06_2018___12.15.55.776498
+INFO:root:sending command to stage:GR,19,-11 .................27_06_2018___12.15.55.777049
+INFO:root:response received from stage:R .....................27_06_2018___12.15.55.844548
+INFO:root:click move vector: [ 15 -18] .......................27_06_2018___12.15.56.193778
+INFO:root:sending command to stage:GR,15,-18 .................27_06_2018___12.15.56.194110
+INFO:root:response received from stage:R .....................27_06_2018___12.15.56.258650
+INFO:root:click move vector: [21 -1] .........................27_06_2018___12.15.56.688280
+INFO:root:sending command to stage:GR,21,-1 ..................27_06_2018___12.15.56.688280
+INFO:root:response received from stage:R .....................27_06_2018___12.15.56.754034
+INFO:root:click move vector: [21 -1] .........................27_06_2018___12.15.56.959935
+INFO:root:sending command to stage:GR,21,-1 ..................27_06_2018___12.15.56.960232
+INFO:root:response received from stage:R .....................27_06_2018___12.15.57.026133
+INFO:root:click move vector: [21 -1] .........................27_06_2018___12.15.57.192760
+INFO:root:sending command to stage:GR,21,-1 ..................27_06_2018___12.15.57.193525
+INFO:root:response received from stage:R .....................27_06_2018___12.15.57.263991
+INFO:root:click move vector: [ 5 13] .........................27_06_2018___12.15.57.589754
+INFO:root:sending command to stage:GR,5,13 ...................27_06_2018___12.15.57.590251
+INFO:root:response received from stage:R .....................27_06_2018___12.15.57.647522
+INFO:root:click move vector: [ 5 13] .........................27_06_2018___12.15.57.958899
+INFO:root:sending command to stage:GR,5,13 ...................27_06_2018___12.15.57.959440
+INFO:root:response received from stage:R .....................27_06_2018___12.15.58.026696
+INFO:root:click move vector: [ 5 13] .........................27_06_2018___12.15.58.143731
+INFO:root:sending command to stage:GR,5,13 ...................27_06_2018___12.15.58.143731
+INFO:root:response received from stage:R .....................27_06_2018___12.15.58.200430
+INFO:root:click move vector: [ 5 13] .........................27_06_2018___12.15.58.337437
+INFO:root:sending command to stage:GR,5,13 ...................27_06_2018___12.15.58.337437
+INFO:root:response received from stage:R .....................27_06_2018___12.15.58.394084
+INFO:root:click move vector: [ 5 13] .........................27_06_2018___12.15.58.512228
+INFO:root:sending command to stage:GR,5,13 ...................27_06_2018___12.15.58.512681
+INFO:root:response received from stage:R .....................27_06_2018___12.15.58.569777
+INFO:root:click move vector: [ 5 13] .........................27_06_2018___12.15.58.712363
+INFO:root:sending command to stage:GR,5,13 ...................27_06_2018___12.15.58.712363
+INFO:root:response received from stage:R .....................27_06_2018___12.15.58.769342
+INFO:root:click move vector: [ 5 13] .........................27_06_2018___12.15.58.910287
+INFO:root:sending command to stage:GR,5,13 ...................27_06_2018___12.15.58.910287
+INFO:root:response received from stage:R .....................27_06_2018___12.15.58.966805
+INFO:root:click move vector: [ 5 13] .........................27_06_2018___12.15.59.142933
+INFO:root:sending command to stage:GR,5,13 ...................27_06_2018___12.15.59.143593
+INFO:root:response received from stage:R .....................27_06_2018___12.15.59.199125
+INFO:root:click move vector: [ 5 13] .........................27_06_2018___12.15.59.452295
+INFO:root:sending command to stage:GR,5,13 ...................27_06_2018___12.15.59.452792
+INFO:root:response received from stage:R .....................27_06_2018___12.15.59.510495
+INFO:root:click move vector: [ 5 13] .........................27_06_2018___12.15.59.667153
+INFO:root:sending command to stage:GR,5,13 ...................27_06_2018___12.15.59.667685
+INFO:root:response received from stage:R .....................27_06_2018___12.15.59.725477
+INFO:root:click move vector: [ 5 13] .........................27_06_2018___12.15.59.792279
+INFO:root:sending command to stage:GR,5,13 ...................27_06_2018___12.15.59.792772
+INFO:root:response received from stage:R .....................27_06_2018___12.15.59.849450
+INFO:root:click move vector: [ 5 13] .........................27_06_2018___12.15.59.948248
+INFO:root:sending command to stage:GR,5,13 ...................27_06_2018___12.15.59.948752
+INFO:root:response received from stage:R .....................27_06_2018___12.16.00.005324
+INFO:root:click move vector: [ 5 13] .........................27_06_2018___12.16.00.122577
+INFO:root:sending command to stage:GR,5,13 ...................27_06_2018___12.16.00.123067
+INFO:root:response received from stage:R .....................27_06_2018___12.16.00.178990
+INFO:root:click move vector: [-7 14] .........................27_06_2018___12.16.00.540382
+INFO:root:sending command to stage:GR,-7,14 ..................27_06_2018___12.16.00.540382
+INFO:root:response received from stage:R .....................27_06_2018___12.16.00.600809
+INFO:root:click move vector: [-7 14] .........................27_06_2018___12.16.00.849541
+INFO:root:sending command to stage:GR,-7,14 ..................27_06_2018___12.16.00.850070
+INFO:root:response received from stage:R .....................27_06_2018___12.16.00.919941
+INFO:root:click move vector: [-7 14] .........................27_06_2018___12.16.01.034024
+INFO:root:sending command to stage:GR,-7,14 ..................27_06_2018___12.16.01.034555
+INFO:root:response received from stage:R .....................27_06_2018___12.16.01.093421
+INFO:root:click move vector: [-7 14] .........................27_06_2018___12.16.01.219168
+INFO:root:sending command to stage:GR,-7,14 ..................27_06_2018___12.16.01.219663
+INFO:root:response received from stage:R .....................27_06_2018___12.16.01.278478
+INFO:root:click move vector: [-7 14] .........................27_06_2018___12.16.01.411715
+INFO:root:sending command to stage:GR,-7,14 ..................27_06_2018___12.16.01.412214
+INFO:root:response received from stage:R .....................27_06_2018___12.16.01.472783
+INFO:root:click move vector: [-7 14] .........................27_06_2018___12.16.01.635148
+INFO:root:sending command to stage:GR,-7,14 ..................27_06_2018___12.16.01.635680
+INFO:root:response received from stage:R .....................27_06_2018___12.16.01.695452
+INFO:root:click move vector: [-7 14] .........................27_06_2018___12.16.01.878687
+INFO:root:sending command to stage:GR,-7,14 ..................27_06_2018___12.16.01.878982
+INFO:root:response received from stage:R .....................27_06_2018___12.16.01.938792
+INFO:root:click move vector: [10 10] .........................27_06_2018___12.16.03.149143
+INFO:root:sending command to stage:GR,10,10 ..................27_06_2018___12.16.03.149676
+INFO:root:response received from stage:R .....................27_06_2018___12.16.03.208786
+INFO:root:click move vector: [10 10] .........................27_06_2018___12.16.03.352786
+INFO:root:sending command to stage:GR,10,10 ..................27_06_2018___12.16.03.353311
+INFO:root:response received from stage:R .....................27_06_2018___12.16.03.408225
+INFO:root:click move vector: [13 10] .........................27_06_2018___12.16.03.672812
+INFO:root:sending command to stage:GR,13,10 ..................27_06_2018___12.16.03.673810
+INFO:root:response received from stage:R .....................27_06_2018___12.16.03.732439
+INFO:root:click move vector: [13 10] .........................27_06_2018___12.16.03.924931
+INFO:root:sending command to stage:GR,13,10 ..................27_06_2018___12.16.03.925462
+INFO:root:response received from stage:R .....................27_06_2018___12.16.03.985029
+INFO:root:click move vector: [19 12] .........................27_06_2018___12.16.06.267689
+INFO:root:sending command to stage:GR,19,12 ..................27_06_2018___12.16.06.268189
+INFO:root:response received from stage:R .....................27_06_2018___12.16.06.335217
+INFO:root:click move vector: [19 12] .........................27_06_2018___12.16.06.621852
+INFO:root:sending command to stage:GR,19,12 ..................27_06_2018___12.16.06.622388
+INFO:root:response received from stage:R .....................27_06_2018___12.16.06.695529
+INFO:root:click move vector: [-10 13] ........................27_06_2018___12.16.07.805148
+INFO:root:sending command to stage:GR,-10,13 .................27_06_2018___12.16.07.805644
+INFO:root:response received from stage:R .....................27_06_2018___12.16.07.864367
+INFO:root:taking target picture ..............................27_06_2018___12.16.46.077286
+INFO:root:sending command to stage:GR,4400,0 .................27_06_2018___12.17.19.503316
+INFO:root:response received from stage:R .....................27_06_2018___12.17.20.096747
+INFO:root:sending command to stage:GR,-4400,0 ................27_06_2018___12.17.21.463224
+INFO:root:response received from stage:R .....................27_06_2018___12.17.22.057779
+INFO:root:sending command to stage:GR,4400,0 .................27_06_2018___12.17.22.694540
+INFO:root:response received from stage:R .....................27_06_2018___12.17.23.289180
+INFO:root:click move vector: [33 -1] .........................27_06_2018___12.17.33.432366
+INFO:root:sending command to stage:GR,33,-1 ..................27_06_2018___12.17.33.432986
+INFO:root:response received from stage:R .....................27_06_2018___12.17.33.509512
+INFO:root:click move vector: [33 -1] .........................27_06_2018___12.17.34.004869
+INFO:root:sending command to stage:GR,33,-1 ..................27_06_2018___12.17.34.005375
+INFO:root:response received from stage:R .....................27_06_2018___12.17.34.082207
+INFO:root:sending command to stage:GR,-4400,0 ................27_06_2018___12.17.44.688376
+INFO:root:response received from stage:R .....................27_06_2018___12.17.45.284596
+INFO:root:click move vector: [ -4 -27] .......................27_06_2018___12.17.47.607100
+INFO:root:sending command to stage:GR,-4,-27 .................27_06_2018___12.17.47.607100
+INFO:root:response received from stage:R .....................27_06_2018___12.17.47.696062
+INFO:root:click move vector: [-16 0] .........................27_06_2018___12.17.48.101767
+INFO:root:sending command to stage:GR,-16,0 ..................27_06_2018___12.17.48.102230
+INFO:root:response received from stage:R .....................27_06_2018___12.17.48.162147
+INFO:root:click move vector: [-18 1] .........................27_06_2018___12.17.48.480650
+INFO:root:sending command to stage:GR,-18,1 ..................27_06_2018___12.17.48.481146
+INFO:root:response received from stage:R .....................27_06_2018___12.17.48.544964
+INFO:root:click move vector: [-5 4] ..........................27_06_2018___12.17.48.985200
+INFO:root:sending command to stage:GR,-5,4 ...................27_06_2018___12.17.48.985692
+INFO:root:response received from stage:R .....................27_06_2018___12.17.49.035709
+INFO:root:click move vector: [ 0 11] .........................27_06_2018___12.17.49.266307
+INFO:root:sending command to stage:GR,0,11 ...................27_06_2018___12.17.49.266770
+INFO:root:response received from stage:R .....................27_06_2018___12.17.49.319538
+INFO:root:click move vector: [ 0 11] .........................27_06_2018___12.17.49.546216
+INFO:root:sending command to stage:GR,0,11 ...................27_06_2018___12.17.49.546754
+INFO:root:response received from stage:R .....................27_06_2018___12.17.49.599577
+INFO:root:click move vector: [23 12] .........................27_06_2018___12.18.10.389330
+INFO:root:sending command to stage:GR,23,12 ..................27_06_2018___12.18.10.389827
+INFO:root:response received from stage:R .....................27_06_2018___12.18.10.458793
+INFO:root:click move vector: [28 15] .........................27_06_2018___12.18.10.802497
+INFO:root:sending command to stage:GR,28,15 ..................27_06_2018___12.18.10.802994
+INFO:root:response received from stage:R .....................27_06_2018___12.18.10.879377
+INFO:root:click move vector: [-20 0] .........................27_06_2018___12.18.12.310623
+INFO:root:sending command to stage:GR,-20,0 ..................27_06_2018___12.18.12.311118
+INFO:root:response received from stage:R .....................27_06_2018___12.18.12.375889
+INFO:root:sending command to stage:GR,-5,0 ...................27_06_2018___12.18.14.014688
+INFO:root:response received from stage:R .....................27_06_2018___12.18.14.059306
+INFO:root:sending command to stage:GR,-5,0 ...................27_06_2018___12.18.14.178246
+INFO:root:response received from stage:R .....................27_06_2018___12.18.14.222777
+INFO:root:sending command to stage:GR,-5,0 ...................27_06_2018___12.18.14.550432
+INFO:root:response received from stage:R .....................27_06_2018___12.18.14.593492
+INFO:root:sending command to stage:GR,-5,0 ...................27_06_2018___12.18.14.738313
+INFO:root:response received from stage:R .....................27_06_2018___12.18.14.793171
+INFO:root:sending command to stage:GR,-5,0 ...................27_06_2018___12.18.14.966127
+INFO:root:response received from stage:R .....................27_06_2018___12.18.15.008759
+INFO:root:sending command to stage:GR,-5,0 ...................27_06_2018___12.18.15.107169
+INFO:root:response received from stage:R .....................27_06_2018___12.18.15.151402
+INFO:root:sending command to stage:GR,-5,0 ...................27_06_2018___12.18.15.267470
+INFO:root:response received from stage:R .....................27_06_2018___12.18.15.315016
+INFO:root:sending command to stage:GR,-5,0 ...................27_06_2018___12.18.15.417078
+INFO:root:response received from stage:R .....................27_06_2018___12.18.15.469107
+INFO:root:sending command to stage:GR,-5,0 ...................27_06_2018___12.18.15.582690
+INFO:root:response received from stage:R .....................27_06_2018___12.18.15.627123
+INFO:root:sending command to stage:GR,-5,0 ...................27_06_2018___12.18.15.760857
+INFO:root:response received from stage:R .....................27_06_2018___12.18.15.808706
+INFO:root:sending command to stage:GR,-5,0 ...................27_06_2018___12.18.16.100153
+INFO:root:response received from stage:R .....................27_06_2018___12.18.16.143136
+INFO:root:sending command to stage:GR,-5,0 ...................27_06_2018___12.18.16.292211
+INFO:root:response received from stage:R .....................27_06_2018___12.18.16.335468
+INFO:root:sending command to stage:GR,-5,0 ...................27_06_2018___12.18.16.466358
+INFO:root:response received from stage:R .....................27_06_2018___12.18.16.509124
+INFO:root:step size changed to: 10.0 .........................27_06_2018___12.18.18.414401
+INFO:root:step size changed to: 15.0 .........................27_06_2018___12.18.18.714054
+INFO:root:sending command to stage:GR,-15.0,0 ................27_06_2018___12.18.23.253414
+INFO:root:response received from stage:R .....................27_06_2018___12.18.23.314605
+INFO:root:sending command to stage:GR,-15.0,0 ................27_06_2018___12.18.23.804114
+INFO:root:response received from stage:R .....................27_06_2018___12.18.23.864373
+INFO:root:sending command to stage:GR,-15.0,0 ................27_06_2018___12.18.23.974638
+INFO:root:response received from stage:R .....................27_06_2018___12.18.24.035373
+INFO:root:sending command to stage:GR,-15.0,0 ................27_06_2018___12.18.24.216500
+INFO:root:response received from stage:R .....................27_06_2018___12.18.24.293291
+INFO:root:step size changed to: 20.0 .........................27_06_2018___12.18.27.717896
+INFO:root:step size changed to: 25.0 .........................27_06_2018___12.18.27.997369
+INFO:root:step size changed to: 30.0 .........................27_06_2018___12.18.28.217978
+INFO:root:step size changed to: 35.0 .........................27_06_2018___12.18.28.443461
+INFO:root:step size changed to: 40.0 .........................27_06_2018___12.18.28.617939
+INFO:root:sending command to stage:GR,-40.0,0 ................27_06_2018___12.18.30.153711
+INFO:root:response received from stage:R .....................27_06_2018___12.18.30.235136
+INFO:root:sending command to stage:GR,-40.0,0 ................27_06_2018___12.18.30.743718
+INFO:root:response received from stage:R .....................27_06_2018___12.18.30.824684
+INFO:root:sending command to stage:GR,-40.0,0 ................27_06_2018___12.18.31.034365
+INFO:root:response received from stage:R .....................27_06_2018___12.18.31.115888
+INFO:root:sending command to stage:GR,-40.0,0 ................27_06_2018___12.18.31.205633
+INFO:root:response received from stage:R .....................27_06_2018___12.18.31.287715
+INFO:root:sending command to stage:GR,-40.0,0 ................27_06_2018___12.18.31.829922
+INFO:root:response received from stage:R .....................27_06_2018___12.18.31.910745
+INFO:root:sending command to stage:GR,-40.0,0 ................27_06_2018___12.18.32.049278
+INFO:root:response received from stage:R .....................27_06_2018___12.18.32.142724
+INFO:root:sending command to stage:GR,-40.0,0 ................27_06_2018___12.18.32.333993
+INFO:root:response received from stage:R .....................27_06_2018___12.18.32.414427
+INFO:root:sending command to stage:GR,-40.0,0 ................27_06_2018___12.18.32.647532
+INFO:root:response received from stage:R .....................27_06_2018___12.18.32.734280
+INFO:root:sending command to stage:GR,-40.0,0 ................27_06_2018___12.18.32.928156
+INFO:root:response received from stage:R .....................27_06_2018___12.18.33.009448
+INFO:root:sending command to stage:GR,-40.0,0 ................27_06_2018___12.18.33.219727
+INFO:root:response received from stage:R .....................27_06_2018___12.18.33.301414
+INFO:root:sending command to stage:GR,-40.0,0 ................27_06_2018___12.18.33.533717
+INFO:root:response received from stage:R .....................27_06_2018___12.18.33.615462
+INFO:root:sending command to stage:GR,-40.0,0 ................27_06_2018___12.18.33.680296
+INFO:root:response received from stage:R .....................27_06_2018___12.18.33.760871
+INFO:root:sending command to stage:GR,-40.0,0 ................27_06_2018___12.18.33.951034
+INFO:root:response received from stage:R .....................27_06_2018___12.18.34.033333
+INFO:root:sending command to stage:GR,-40.0,0 ................27_06_2018___12.18.34.349566
+INFO:root:response received from stage:R .....................27_06_2018___12.18.34.431256
+INFO:root:sending command to stage:GR,40.0,0 .................27_06_2018___12.18.34.843500
+INFO:root:response received from stage:R .....................27_06_2018___12.18.34.924883
+INFO:root:sending command to stage:GR,40.0,0 .................27_06_2018___12.18.35.058936
+INFO:root:response received from stage:R .....................27_06_2018___12.18.35.138460
+INFO:root:sending command to stage:GR,40.0,0 .................27_06_2018___12.18.35.235628
+INFO:root:response received from stage:R .....................27_06_2018___12.18.35.316732
+INFO:root:sending command to stage:GR,40.0,0 .................27_06_2018___12.18.35.423001
+INFO:root:response received from stage:R .....................27_06_2018___12.18.35.502422
+INFO:root:sending command to stage:GR,40.0,0 .................27_06_2018___12.18.35.624780
+INFO:root:response received from stage:R .....................27_06_2018___12.18.35.705269
+INFO:root:sending command to stage:GR,40.0,0 .................27_06_2018___12.18.35.791167
+INFO:root:response received from stage:R .....................27_06_2018___12.18.35.873447
+INFO:root:sending command to stage:GR,40.0,0 .................27_06_2018___12.18.36.049573
+INFO:root:response received from stage:R .....................27_06_2018___12.18.36.134388
+INFO:root:sending command to stage:GR,40.0,0 .................27_06_2018___12.18.36.215286
+INFO:root:response received from stage:R .....................27_06_2018___12.18.36.299906
+INFO:root:sending command to stage:GR,40.0,0 .................27_06_2018___12.18.36.503534
+INFO:root:response received from stage:R .....................27_06_2018___12.18.36.584556
