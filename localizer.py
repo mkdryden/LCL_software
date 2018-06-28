@@ -27,6 +27,7 @@ class Localizer(QtCore.QObject):
 		# self.localizer_model = load_model(os.path.join(experiment_folder_location,'binary_localizer6.hdf5'))
 		self.localizer_model._make_predict_function()
 		self.position = np.zeros((1,2))
+		self.lysed_cell_count = 0
 
 	@QtCore.pyqtSlot('PyQt_PyObject')
 	def vid_process_slot(self,image):
@@ -60,20 +61,21 @@ class Localizer(QtCore.QObject):
 	@QtCore.pyqtSlot('PyQt_PyObject')
 	def position_return_slot(self,position):
 		# we need to get the position from the stage and store it
-		self.position = position
+		self.return_position = position
 		print('GOT POSITION',position)
 
 	def move_frame(self,direction,relative=True):
 		frame_dir_dict = {
-		'u': np.array([0,95]),
+		'u': np.array([0,-95]),
 		'd': np.array([0,95]),
 		'l': np.array([-95,0]),
 		'r': np.array([95,0])
 		}
-		if relative == True:
-			self.localizer_move_signal.emit(frame_dir_dict[direction],False,True,False)
-		else:
-			self.localizer_move_signal.emit(self.position,False,False,False)
+		self.localizer_move_signal.emit(frame_dir_dict[direction],False,True,False)
+
+
+	def return_to_original_position(self):		
+		self.localizer_move_signal.emit(self.return_position,False,False,False)
 
 	@QtCore.pyqtSlot()
 	def localize(self):
@@ -82,16 +84,38 @@ class Localizer(QtCore.QObject):
 		using the method of lysis that the user selects, then returns to the original
 		position (the center of the well)
 		'''
-		# first get our position
-		self.get_position_signal.emit()		 
-		
-		# localizer_move_slot(self, move_vector, goto_reticle = False,move_relative = True,scale_vector = True):
-		self.move_frame('l')
-		time.sleep(1)
+		# first get our well center position
+		self.get_position_signal.emit()		 		
+		# now start moving and lysing all in view
+		self.lyse_all_in_view()
+		box_size = 5
+		directions = self.get_spiral_directions(box_size)
 		QApplication.processEvents()
-		self.move_frame('r')
-		time.sleep(1)		
-		self.get_position_signal.emit()
+		for num,let in directions:
+			for i in range(num):
+				self.move_frame(let)
+				QApplication.processEvents()
+				self.lyse_all_in_view()
+		self.return_to_original_position()
+		
+	def get_spiral_directions(self,box_size):
+	    letters = ['u', 'l', 'd', 'r']
+	    nums = []
+	    lets = []
+	    for i in range(1,box_size*2,2):
+	        num_line = [i]*2 + [i+1]*2
+	        let_line = letters
+	        nums += num_line
+	        lets += let_line
+	    nums += [nums[-1]]
+	    lets += lets[-4]
+	    directions = zip(nums,lets)
+	    return directions			
+
+	def lyse_all_in_view(self):
+		print('lysing all in view...')
+		time.sleep(.25)
+		pass
 
 	@QtCore.pyqtSlot()
 	def localize_real(self):

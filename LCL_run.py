@@ -247,7 +247,7 @@ class main_window(QMainWindow):
 	@QtCore.pyqtSlot()
 	def qswitch_screenshot_slot(self):
 		self.qswitch_screenshot_signal.emit()
-		comment('stage position during qswitch: {}'.format(stage.get_position()))
+		comment('stage position during qswitch: {}'.format(stage.get_position_slot()))
 		laser.fire_qswitch()		
 	
 	@QtCore.pyqtSlot()
