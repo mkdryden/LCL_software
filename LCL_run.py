@@ -205,7 +205,7 @@ class main_window(QMainWindow):
 	def get_experiment_variables(self):
 		var_dict = {'stain(s) used:':'Enter the stain(s) used',
 		'cell line:':'Enter the cell line',
-		'sample id:': 'Enter the sample ID'}
+		'fixative used:': 'Enter the fixative used'}
 		nums = range(10)
 		checks = ['a','e','i','o','u'] + [str(num) for num in nums]
 		for key, value in var_dict.items():
@@ -252,7 +252,7 @@ class main_window(QMainWindow):
 	
 	@QtCore.pyqtSlot()
 	def ai_fire_qswitch_slot(self):	
-		self.qswitch_screenshot_signal.emit()
+		# self.qswitch_screenshot_signal.emit()
 		comment('automated firing from localizer!')
 		laser.fire_qswitch()
 	
