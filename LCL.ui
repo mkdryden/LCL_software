@@ -30,46 +30,12 @@
      <string>PushButton</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="target_screenshot_button">
-    <property name="geometry">
-     <rect>
-      <x>3</x>
-      <y>3</y>
-      <width>71</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="focusPolicy">
-     <enum>Qt::NoFocus</enum>
-    </property>
-    <property name="text">
-     <string>Target 
- Screenshot</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="non_target_screenshot_button">
-    <property name="geometry">
-     <rect>
-      <x>73</x>
-      <y>3</y>
-      <width>71</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="focusPolicy">
-     <enum>Qt::NoFocus</enum>
-    </property>
-    <property name="text">
-     <string>Non-Target 
- Screenshot</string>
-    </property>
-   </widget>
    <widget class="QPushButton" name="misc_screenshot_button">
     <property name="geometry">
      <rect>
-      <x>3</x>
-      <y>33</y>
-      <width>71</width>
+      <x>0</x>
+      <y>0</y>
+      <width>131</width>
       <height>31</height>
      </rect>
     </property>
@@ -85,7 +51,7 @@
     <property name="geometry">
      <rect>
       <x>4</x>
-      <y>83</y>
+      <y>53</y>
       <width>131</width>
       <height>41</height>
      </rect>
@@ -95,8 +61,8 @@
     <property name="geometry">
      <rect>
       <x>6</x>
-      <y>63</y>
-      <width>71</width>
+      <y>33</y>
+      <width>121</width>
       <height>16</height>
      </rect>
     </property>
@@ -108,7 +74,7 @@
     <property name="geometry">
      <rect>
       <x>3</x>
-      <y>123</y>
+      <y>93</y>
       <width>131</width>
       <height>23</height>
      </rect>
@@ -124,7 +90,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>170</y>
+      <y>140</y>
       <width>51</width>
       <height>22</height>
      </rect>
@@ -143,7 +109,7 @@
     <property name="geometry">
      <rect>
       <x>9</x>
-      <y>150</y>
+      <y>120</y>
       <width>71</width>
       <height>16</height>
      </rect>
@@ -166,59 +132,20 @@
    <widget class="QGroupBox" name="laser_controls_groupbox">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>260</y>
+      <x>10</x>
+      <y>220</y>
       <width>120</width>
-      <height>201</height>
+      <height>131</height>
      </rect>
     </property>
     <property name="title">
      <string>Laser Controls</string>
     </property>
-    <widget class="QPushButton" name="start_flashlamp_pushbutton">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>20</y>
-       <width>101</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Flash Lamp Auto</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="stop_flashlamp_pushbutton">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>50</y>
-       <width>101</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Flash Lamp Off</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="fire_qswitch_pushbutton">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>80</y>
-       <width>101</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Fire Q-Switch</string>
-     </property>
-    </widget>
     <widget class="QDoubleSpinBox" name="qswitch_delay_doublespin_box">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>127</y>
+       <y>47</y>
        <width>101</width>
        <height>22</height>
       </rect>
@@ -246,7 +173,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>108</y>
+       <y>28</y>
        <width>101</width>
        <height>16</height>
       </rect>
@@ -259,7 +186,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>150</y>
+       <y>70</y>
        <width>101</width>
        <height>16</height>
       </rect>
@@ -272,7 +199,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>170</y>
+       <y>90</y>
        <width>101</width>
        <height>22</height>
       </rect>
@@ -297,28 +224,11 @@
      </property>
     </widget>
    </widget>
-   <widget class="QPushButton" name="lysed_screenshot_button">
-    <property name="geometry">
-     <rect>
-      <x>73</x>
-      <y>33</y>
-      <width>71</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="focusPolicy">
-     <enum>Qt::NoFocus</enum>
-    </property>
-    <property name="text">
-     <string>Lysed 
- Screenshot</string>
-    </property>
-   </widget>
    <widget class="QDoubleSpinBox" name="step_size_doublespin_box">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>220</y>
+      <y>190</y>
       <width>71</width>
       <height>22</height>
      </rect>
@@ -346,8 +256,8 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>200</y>
-      <width>81</width>
+      <y>170</y>
+      <width>101</width>
       <height>16</height>
      </rect>
     </property>
@@ -359,7 +269,7 @@
     <property name="geometry">
      <rect>
       <x>70</x>
-      <y>170</y>
+      <y>140</y>
       <width>71</width>
       <height>17</height>
      </rect>
@@ -367,6 +277,73 @@
     <property name="text">
      <string>CLAHE</string>
     </property>
+   </widget>
+   <widget class="QGroupBox" name="automation_groupbox">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>360</y>
+      <width>120</width>
+      <height>121</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Automation</string>
+    </property>
+    <widget class="QDoubleSpinBox" name="cells_to_lyse_doublespin_box">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>50</y>
+       <width>101</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::ClickFocus</enum>
+     </property>
+     <property name="decimals">
+      <number>0</number>
+     </property>
+     <property name="minimum">
+      <double>1.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>10000.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>1.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>1.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QLabel" name="cells_to_lyse_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>91</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Cells to Lyse</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="process_well_pushButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>80</y>
+       <width>101</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Process Well</string>
+     </property>
+    </widget>
    </widget>
   </widget>
  </widget>

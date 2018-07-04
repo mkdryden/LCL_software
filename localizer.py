@@ -31,10 +31,14 @@ class Localizer(QtCore.QObject):
 		# self.localizer_model = load_model(os.path.join(experiment_folder_location,'binary_localizer6.hdf5'))
 		self.localizer_model._make_predict_function()
 		self.position = np.zeros((1,2))
+		self.well_center = np.zeros((1,2))
 		self.lysed_cell_count = 0
 		self.get_well_center = True
 		self.delay_time = .2
+		self.cells_to_lyse = 0
+
 		# cv2.imshow('img',self.get_network_output(self.hallucination_img,'multi'))
+
 	@QtCore.pyqtSlot('PyQt_PyObject')
 	def vid_process_slot(self,image):
 		self.image = image
@@ -48,7 +52,7 @@ class Localizer(QtCore.QObject):
 		with graph.as_default():
 			segmented_image = self.localizer_model.predict(img,batch_size = 1)	
 		if mode == 'multi':
-			print(segmented_image.shape)
+			# print(segmented_image.shape)
 			return_img = np.zeros((125,125,3))
 			#red cell
 			return_img[:,:,2] = segmented_image[0,:,:,1]			
@@ -58,19 +62,10 @@ class Localizer(QtCore.QObject):
 			return_img = segmented_image
 		return return_img
 
-	# def continuous_extermination(self):
-	# 	'''
-	# 	function to run the network in a loop until everything on the screen 
-	# 	is destroyed
-	# 	'''
-	# 	cell_found = True
-	# 	while cell_found == True:
-
 	@QtCore.pyqtSlot('PyQt_PyObject')
 	def position_return_slot(self,position):
 		# we need to get the position from the stage and store it
 		self.position = position.copy()
-		print('GOT POSITION!!!!!!!')
 		self.wait_for_position = False
 
 	def get_stage_position(self):		
@@ -79,11 +74,10 @@ class Localizer(QtCore.QObject):
 			self.get_position_signal.emit()
 			QApplication.processEvents()
 			time.sleep(.1)
-			print('waiting for position...')
 		return self.position
 
 	def move_frame(self,direction,relative=True):
-		distance = 10
+		distance = 80
 		frame_dir_dict = {
 		'u': np.array([0,-distance]),
 		'd': np.array([0,distance]),
@@ -91,7 +85,6 @@ class Localizer(QtCore.QObject):
 		'r': np.array([distance,0])
 		}
 		self.localizer_move_signal.emit(frame_dir_dict[direction],False,True,False)
-
 
 	def return_to_original_position(self,position):				
 		self.localizer_move_signal.emit(position,False,False,False)
@@ -104,20 +97,28 @@ class Localizer(QtCore.QObject):
 		position (the center of the well)
 		'''
 		# first get our well center position
-		well_center = self.get_stage_position()		
+		self.well_center = self.get_stage_position()		
 		# now start moving and lysing all in view
 		self.lyse_all_in_view()
+		if self.lysed_cell_count >= self.cells_to_lyse: 
+			self.return_to_original_position(self.well_center)
+			return	
 		box_size = 1
 		directions = self.get_spiral_directions(box_size)		
 		self.get_well_center = False
 		for num,let in directions:
+			if self.lysed_cell_count >= self.cells_to_lyse: 
+				self.return_to_original_position(self.well_center)
+				return	
 			for i in range(num):
-				print('MOVING:',num,let)
+				if self.lysed_cell_count >= self.cells_to_lyse: 
+					self.return_to_original_position(self.well_center)
+					return	
 				time.sleep(2)
 				self.move_frame(let)				
 				QApplication.processEvents()
 				self.lyse_all_in_view()
-		self.return_to_original_position(well_center)
+		self.return_to_original_position(self.well_center)
 		
 	def get_spiral_directions(self,box_size):
 	    letters = ['u', 'l', 'd', 'r']
@@ -141,14 +142,18 @@ class Localizer(QtCore.QObject):
 		gets initial position lyses all cells in view, and then
 		returns to initial position
 		'''
-		view_center = self.get_stage_position()
 		self.start_laser_flash_signal.emit()
+		view_center = self.get_stage_position()		
 		print('lysing all in view...')
 		self.delay()
 		segmented_image = self.get_network_output(self.hallucination_img,'multi')
+		# segmented_image = self.get_network_output(self.hallucination_img,'multi')
 		cv2.imshow('Cell Outlines and Centers',segmented_image)
 		# lyse all cells in view
-		self.lyse_cells(segmented_image,'red','excision')
+		self.lyse_cells(segmented_image,'red','direct')
+		if self.lysed_cell_count >= self.cells_to_lyse: 
+			self.return_to_original_position(self.well_center)
+			return	
 		# now return to our original position		
 		self.delay()
 		self.return_to_original_position(view_center)
@@ -168,8 +173,6 @@ class Localizer(QtCore.QObject):
 			print('NO CELLS FOUND')
 			return
 
-		
-
 		if lyse_type == 'direct':
 			self.direct_lysis(cell_centers)
 		elif lyse_type == 'excision':			
@@ -178,31 +181,41 @@ class Localizer(QtCore.QObject):
 	def excision_lysis(self,cell_contours):
 		# for each contour we want to trace it
 		window_center = np.array([125./2,125./2])
-		for i in range(len(cell_contours)):			
-			contour = cell_contours[i]
-			point_number = contour.shape[0] 
-			old_center = contour[0].reshape(2)
-			self.hit_target(old_center-window_center,True)
-			time.sleep(.2)
-			for j in range(1,point_number):		
-				new_center = contour[j].reshape(2)		
-				move_vec = -old_center + new_center
-				scaled_move_vec = move_vec*1.5
-				self.hit_target(scaled_move_vec,False)
-				old_center = new_center
-				time.sleep(.2)		
+		if len(cell_centers) >0:
+			for i in range(len(cell_contours)):			
+				contour = cell_contours[i]
+				point_number = contour.shape[0] 
+				old_center = contour[0].reshape(2)
+				self.hit_target(old_center-window_center,True)
+				time.sleep(.2)
+				for j in range(1,point_number,2):		
+					new_center = contour[j].reshape(2)		
+					move_vec = -old_center + new_center
+					scaled_move_vec = move_vec*1.5
+					self.hit_target(scaled_move_vec,False)
+					old_center = new_center
+					time.sleep(.1)
+				self.lysed_cell_count += 1		
+				if self.lysed_cell_count >= self.cells_to_lyse: 
+					self.return_to_original_position(self.well_center)
+					return	
 
 	def direct_lysis(self,cell_centers):
 		window_center = np.array([125./2,125./2])
 		print('centers:',cell_centers)
 		old_center = cell_centers[0]
-		self.hit_target(old_center-window_center,True,'direct')
+		self.hit_target(old_center-window_center,True)
+		self.lysed_cell_count += 1
 		self.delay()
 		if len(cell_centers) > 1:
 			for i in range(1,len(cell_centers)):
-				self.hit_target(-old_center + cell_centers[i],False,'direct')
+				self.hit_target(-old_center + cell_centers[i],False)
 				old_center = cell_centers[i]
 				self.delay()
+			self.lysed_cell_count += 1
+			if self.lysed_cell_count >= self.cells_to_lyse: 
+				self.return_to_original_position(self.well_center)
+				return	
 
 	def get_contours_and_centers(self,confidence_image):
 		_, contours, _ = cv2.findContours(np.uint8(confidence_image), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -218,10 +231,9 @@ class Localizer(QtCore.QObject):
 				cv2.circle(cell_image,center,2 ,(255,0,0),-1)
 				center = np.array(center)
 				cell_centers.append(center)
-		return cell_contours,cell_centers
-				# print('contour:',contour,type(contour),contour.shape)
-		# cv2.drawContours(cell_image, contours, -1, (255,255,255), 1)
-		# cv2.imshow('Cell Outlines and Centers',cell_image)
+		cv2.drawContours(cell_image, contours, -1, (255,255,255), 1)
+		cv2.imshow('Cell Outlines and Centers',cell_image)
+		return cell_contours,cell_centers				
 
 	def threshold_based_on_type(self,segmented_image,cell_type):
 		if cell_type == 'green':
@@ -233,93 +245,17 @@ class Localizer(QtCore.QObject):
 			_,confidence_image = cv2.threshold(segmented_image,.5,1,cv2.THRESH_BINARY)
 		return confidence_image
 
-	def hit_target(self,center,goto_reticle = False,lysis_type = 'direct'):
+	def hit_target(self,center,goto_reticle = False):
 		# we need to scale our centers up to the proper resolution and then 
 		# send it to the stage
 		# localizer_move_slot(self, move_vector, goto_reticle = False,move_relative = True,scale_vector = True):
 		x = center[0]*851/125
 		y = center[1]*681/125
-		if lysis_type == 'direct':		
-			self.localizer_move_signal.emit(np.array([x,y]),goto_reticle,True,True)
-		elif lysis_type == 'excision':
-			self.localizer_move_signal.emit(np.array([x,y]),goto_reticle,True,True)
+		self.localizer_move_signal.emit(np.array([x,y]),goto_reticle,True,True)
 		self.ai_fire_qswitch_signal.emit()
 		# for i in range(1):
 			# self.ai_fire_qswitch_signal.emit()
 		# 	time.sleep(.1)
-		
-		# for i in range(num_shots):
-		# 	time.sleep(.1)
-		# 	self.fire_qswitch_signal.emit()
-
-				
-
-
-
-
-	@QtCore.pyqtSlot()
-	def localize2(self):
-		self.start_laser_flash_signal.emit()
-		# segmented_image = self.get_network_output(self.image,'binary')
-		segmented_image = self.get_network_output(self.image,'multi')
-		# print(segmented_image.shape)
-		# segmented_image = np.argmax(segmented_image,axis = 2)
-		# print(segmented_image.shape)
-		cv2.imshow('Cell Outlines and Centers',segmented_image)
-		# this retrieves the green cells
-		# _,confidence_image = cv2.threshold(segmented_image[:,:,1],.5,1,cv2.THRESH_BINARY)
-		# # binary localization 
-		# # _,confidence_image = cv2.threshold(segmented_image,.5,1,cv2.THRESH_BINARY)
-		# _, contours, _ = cv2.findContours(np.uint8(confidence_image), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-		# cell_image = np.zeros((125,125))
-		# cell_contours = []
-		# cell_centers = []
-		# for contour in contours:
-		# 	print(cv2.contourArea(contour))
-		# 	if cv2.contourArea(contour) > 20:
-		# 		(x,y),radius = cv2.minEnclosingCircle(contour)
-		# 		center = (int(x),int(y))
-		# 		cell_contours.append(contour)				
-		# 		cv2.circle(cell_image,center,2 ,(255,0,0),-1)
-		# 		center = np.array(center)
-		# 		cell_centers.append(center)
-		# 		# print('contour:',contour,type(contour),contour.shape)
-		# cv2.drawContours(cell_image, contours, -1, (255,255,255), 1)
-		# cv2.imshow('Cell Outlines and Centers',cell_image)
-		######## DIRECT SHOT LYSIS
-		# if len(cell_centers) != 0:			
-		# 	print('centers:',cell_centers)
-		# 	window_center = np.array([125./2,125./2])
-		# 	old_center = cell_centers[0]
-		# 	self.hit_target(old_center-window_center,True)
-		# 	time.sleep(.25)
-		# 	if len(cell_centers) > 1:
-		# 		for i in range(1,len(cell_centers)):
-		# 			self.hit_target(-old_center + cell_centers[i])
-		# 			old_center = cell_centers[i]
-		# 			time.sleep(.25)			
-		# else:
-		# 	print('no cells found!')
-		######### EXCISION
-		# if len(cell_contours) != 0:			
-		# 	window_center = np.array([125./2,125./2])
-		# 	# for each contour we want to trace it
-		# 	for i in range(len(contours)):			
-		# 		contour = contours[i]
-		# 		point_number = contour.shape[0] 
-		# 		old_center = contour[0].reshape(2)
-		# 		self.hit_target(old_center-window_center,True)
-		# 		time.sleep(.25)
-		# 		for j in range(1,point_number):		
-		# 			new_center = contour[j].reshape(2)		
-		# 			move_vec = -old_center + new_center
-		# 			scaled_move_vec = move_vec*1.5
-		# 			self.hit_target(scaled_move_vec)
-		# 			old_center = new_center
-		# 			time.sleep(.25)			
-		# else:
-		# 	print('no cells found!')
-		self.stop_laser_flash_signal.emit()	
 
 	
 

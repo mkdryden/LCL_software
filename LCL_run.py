@@ -174,10 +174,7 @@ class main_window(QMainWindow):
 		self.start_video_signal.emit()		
 		
 		# Screenshot and comment buttons
-		self.ui.target_screenshot_button.clicked.connect(self.screen_shooter.save_target_image)			
-		self.ui.non_target_screenshot_button.clicked.connect(self.screen_shooter.save_non_target_image)					
 		self.ui.misc_screenshot_button.clicked.connect(self.screen_shooter.save_misc_image)
-		self.ui.lysed_screenshot_button.clicked.connect(self.screen_shooter.save_lysed_screenshot)
 		self.ui.user_comment_button.clicked.connect(self.send_user_comment)
 		self.ui.noise_filter_checkbox.stateChanged.connect(self.noise_filter_check_changed)
 
@@ -187,13 +184,9 @@ class main_window(QMainWindow):
 		self.localizer.get_position_signal.connect(stage.get_position_slot)
 		stage.position_return_signal.connect(self.localizer.position_return_slot)
 
-		# Laser control buttons
-		self.ui.start_flashlamp_pushbutton.clicked.connect(laser.fire_auto)
-		self.ui.stop_flashlamp_pushbutton.clicked.connect(laser.simmer)				
+		# Laser control buttons		
 		self.ui.qswitch_delay_doublespin_box.valueChanged.connect(laser.set_delay)
 		self.ui.attenuator_doublespin_box.valueChanged.connect(attenuator.set_attenuation)
-		self.ui.fire_qswitch_pushbutton.clicked.connect(laser.fire_qswitch)
-		self.ui.fire_qswitch_pushbutton.clicked.connect(self.qswitch_screenshot_slot)
 		self.show()		
 		comment('finished gui init')	
 
@@ -263,6 +256,8 @@ class main_window(QMainWindow):
 	@QtCore.pyqtSlot()
 	def stop_laser_flash_slot(self):
 		laser.stop_flash()
+
+		
 	# def toggle_dmf_or_lysis(self):
 	# 	# we want to get our objective out of the way first
 	# 	if self.lysing == True: 
