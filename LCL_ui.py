@@ -90,7 +90,7 @@ class Ui_MainWindow(object):
         self.noise_filter_checkbox.setGeometry(QtCore.QRect(70, 140, 71, 17))
         self.noise_filter_checkbox.setObjectName("noise_filter_checkbox")
         self.automation_groupbox = QtWidgets.QGroupBox(self.centralwidget)
-        self.automation_groupbox.setGeometry(QtCore.QRect(10, 360, 120, 121))
+        self.automation_groupbox.setGeometry(QtCore.QRect(10, 360, 120, 251))
         self.automation_groupbox.setObjectName("automation_groupbox")
         self.cells_to_lyse_doublespin_box = QtWidgets.QDoubleSpinBox(self.automation_groupbox)
         self.cells_to_lyse_doublespin_box.setGeometry(QtCore.QRect(10, 50, 101, 22))
@@ -105,8 +105,20 @@ class Ui_MainWindow(object):
         self.cells_to_lyse_label.setGeometry(QtCore.QRect(10, 30, 91, 16))
         self.cells_to_lyse_label.setObjectName("cells_to_lyse_label")
         self.process_well_pushButton = QtWidgets.QPushButton(self.automation_groupbox)
-        self.process_well_pushButton.setGeometry(QtCore.QRect(10, 80, 101, 31))
+        self.process_well_pushButton.setGeometry(QtCore.QRect(10, 210, 101, 31))
         self.process_well_pushButton.setObjectName("process_well_pushButton")
+        self.lysis_mode_comboBox = QtWidgets.QComboBox(self.automation_groupbox)
+        self.lysis_mode_comboBox.setGeometry(QtCore.QRect(10, 100, 101, 23))
+        self.lysis_mode_comboBox.setObjectName("lysis_mode_comboBox")
+        self.lysis_mode_label = QtWidgets.QLabel(self.automation_groupbox)
+        self.lysis_mode_label.setGeometry(QtCore.QRect(10, 80, 91, 16))
+        self.lysis_mode_label.setObjectName("lysis_mode_label")
+        self.cell_type_to_lyse_comboBox = QtWidgets.QComboBox(self.automation_groupbox)
+        self.cell_type_to_lyse_comboBox.setGeometry(QtCore.QRect(10, 170, 101, 23))
+        self.cell_type_to_lyse_comboBox.setObjectName("cell_type_to_lyse_comboBox")
+        self.cell_type_to_lyse_label = QtWidgets.QLabel(self.automation_groupbox)
+        self.cell_type_to_lyse_label.setGeometry(QtCore.QRect(10, 130, 91, 31))
+        self.cell_type_to_lyse_label.setObjectName("cell_type_to_lyse_label")
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -129,6 +141,9 @@ class Ui_MainWindow(object):
         self.automation_groupbox.setTitle(_translate("MainWindow", "Automation"))
         self.cells_to_lyse_label.setText(_translate("MainWindow", "Cells to Lyse"))
         self.process_well_pushButton.setText(_translate("MainWindow", "Process Well"))
+        self.lysis_mode_label.setText(_translate("MainWindow", "Lysis Mode"))
+        self.cell_type_to_lyse_label.setText(_translate("MainWindow", "Cell Type \n"
+"to Lyse"))
 
 
 if __name__ == "__main__":

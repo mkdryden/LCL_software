@@ -110,7 +110,7 @@ class ImageViewer(QtWidgets.QWidget):
 
 class main_window(QMainWindow):
 	start_video_signal = QtCore.pyqtSignal()
-	qswitch_screenshot_signal = QtCore.pyqtSignal()
+	qswitch_screenshot_signal = QtCore.pyqtSignal('PyQt_PyObject')
 	start_focus_signal = QtCore.pyqtSignal()
 	start_localization_signal = QtCore.pyqtSignal()
 
@@ -187,6 +187,9 @@ class main_window(QMainWindow):
 		# Laser control buttons		
 		self.ui.qswitch_delay_doublespin_box.valueChanged.connect(laser.set_delay)
 		self.ui.attenuator_doublespin_box.valueChanged.connect(attenuator.set_attenuation)
+
+		self.ui.cells_to_lyse_doublespin_box.valueChanged.connect(self.localizer.set_cells_to_lyse)
+		self.ui.process_well_pushButton.clicked.connect(self.start_localization)
 		self.show()		
 		comment('finished gui init')	
 
@@ -231,21 +234,24 @@ class main_window(QMainWindow):
 		'100x']
 		self.ui.magnification_combobox.addItems(magnifications)	
 		self.ui.magnification_combobox.currentIndexChanged.connect(stage.change_magnification)
+		self.ui.cell_type_to_lyse_comboBox.addItems(['red','green'])
+		self.ui.cell_type_to_lyse_comboBox.currentIndexChanged.connect(self.localizer.change_type_to_lyse)
+		self.ui.lysis_mode_comboBox.addItems(['direct','excision'])	
+		self.ui.lysis_mode_comboBox.currentIndexChanged.connect(self.localizer.change_lysis_mode)
 
 	def send_user_comment(self):
 		comment('user comment:{}'.format(self.ui.comment_box.toPlainText()))
 		self.ui.comment_box.clear()
 
-	# TODO: MAKE THIS WAYY SAFER
 	@QtCore.pyqtSlot()
 	def qswitch_screenshot_slot(self):
-		self.qswitch_screenshot_signal.emit()
+		self.qswitch_screenshot_signal.emit(15)
 		comment('stage position during qswitch: {}'.format(stage.get_position_slot()))
 		laser.fire_qswitch()		
 	
-	@QtCore.pyqtSlot()
-	def ai_fire_qswitch_slot(self):	
-		# self.qswitch_screenshot_signal.emit()
+	@QtCore.pyqtSlot('PyQt_PyObject')
+	def ai_fire_qswitch_slot(self,num_frames):	
+		self.qswitch_screenshot_signal.emit(num_frames)
 		comment('automated firing from localizer!')
 		laser.fire_qswitch()
 	
@@ -287,7 +293,6 @@ class main_window(QMainWindow):
 			# 71:self.toggle_dmf_or_lysis,
 			84:stage.move_left_one_well_slot,
 			89:stage.move_right_one_well_slot,
-			80:self.start_localization,
 			96:self.screen_shooter.save_target_image
 			}
 			if event.key() in key_control_dict.keys():

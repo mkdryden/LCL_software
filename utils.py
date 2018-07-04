@@ -68,8 +68,8 @@ class screen_shooter(QtCore.QObject):
 		self.image_title = 'lysed'
 		self.requested_frames += 1
 
-	@QtCore.pyqtSlot()
-	def save_qswitch_fire_slot(self):
+	@QtCore.pyqtSlot('PyQt_PyObject')
+	def save_qswitch_fire_slot(self,num_frames):
 		'''
 		takes an initial screenshot of the current frame (before firing)
 		and then queues up 4 more pictures to be taken during the firing
@@ -79,7 +79,7 @@ class screen_shooter(QtCore.QObject):
 		cv2.imwrite(os.path.join(experiment_folder_location,
 				'before_qswitch___{}.tif'.format(now())),self.image)
 		self.image_title = 'during_qswitch_fire'
-		self.requested_frames += 15
+		self.requested_frames += num_frames
 
 experiment_name = 'experiment_{}'.format(now())	
 experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)),'Experiments',experiment_name) 		
