@@ -36,7 +36,7 @@ class stage_controller(QtCore.QObject):
 		self.center_y = center_y
 		self.reticle_x = reticle_x		
 		self.reticle_y = reticle_y
-		print('RETICLE RECEIVED!')
+		# print('RETICLE RECEIVED!')
 
 	def change_magnification(self,index):
 		map_dict = {
@@ -180,7 +180,7 @@ class stage_controller(QtCore.QObject):
 			move_vector = self.scale_move_vector(move_vector)
 			self.move_relative(move_vector)
 		elif move_relative == False and scale_vector == False:
-			print(move_vector)			
+			# print(move_vector)			
 			self.go_to_position(move_vector)	
 		elif move_relative == True and scale_vector == False:
 			self.move_relative(move_vector)

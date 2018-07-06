@@ -293,7 +293,8 @@ class main_window(QMainWindow):
 			# 71:self.toggle_dmf_or_lysis,
 			84:stage.move_left_one_well_slot,
 			89:stage.move_right_one_well_slot,
-			96:self.screen_shooter.save_target_image
+			96:self.screen_shooter.save_target_image,
+			16777216:self.localizer.stop_auto_lysis
 			}
 			if event.key() in key_control_dict.keys():
 				key_control_dict[event.key()]()
