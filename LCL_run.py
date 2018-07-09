@@ -249,11 +249,15 @@ class main_window(QMainWindow):
 		comment('stage position during qswitch: {}'.format(stage.get_position_slot()))
 		laser.fire_qswitch()		
 	
-	@QtCore.pyqtSlot('PyQt_PyObject')
-	def ai_fire_qswitch_slot(self,num_frames):	
-		self.qswitch_screenshot_signal.emit(num_frames)
+	@QtCore.pyqtSlot('PyQt_PyObject','PyQt_PyObject')
+	def ai_fire_qswitch_slot(self,num_frames,auto_fire):
 		comment('automated firing from localizer!')
-		laser.fire_qswitch()
+		if auto_fire == True:
+			self.qswitch_screenshot_signal.emit(num_frames)
+			laser.qswitch_auto()
+		else:	
+			self.qswitch_screenshot_signal.emit(num_frames)
+			laser.fire_qswitch()
 	
 	@QtCore.pyqtSlot()		
 	def start_laser_flash_slot(self):

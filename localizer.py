@@ -19,7 +19,7 @@ class Localizer(QtCore.QObject):
 	get_position_signal = QtCore.pyqtSignal()
 	fire_qswitch_signal = QtCore.pyqtSignal()
 	stop_laser_flash_signal = QtCore.pyqtSignal()
-	ai_fire_qswitch_signal = QtCore.pyqtSignal('PyQt_PyObject')
+	ai_fire_qswitch_signal = QtCore.pyqtSignal('PyQt_PyObject','PyQt_PyObject')
 	start_laser_flash_signal = QtCore.pyqtSignal()
 	# qswitch_screenshot_signal = QtCore.pyqtSignal()
 
@@ -209,6 +209,10 @@ class Localizer(QtCore.QObject):
 		elif lyse_type == 'excision':			
 			self.excision_lysis(cell_contours)
 
+	# def get_return_vec(self,contour):
+	# 	return_vec = np.zeros((1,2))
+	# 	for vec in contour
+
 	def excision_lysis(self,cell_contours):
 		# for each contour we want to trace it
 		window_center = np.array([125./2,125./2])
@@ -216,20 +220,35 @@ class Localizer(QtCore.QObject):
 			for i in range(len(cell_contours)):			
 				contour = cell_contours[i]
 				point_number = contour.shape[0] 
+				# this block is responsible for vectoring from one contour start to another
 				if i == 0:
-					old_center = contour[0].reshape(2)
-					self.hit_target(old_center-window_center,True,0)
-				print('SLEEPING')
-				time.sleep(2)
-
-				for j in range(1,point_number,2):		
+					contour_start = contour[0].reshape(2)
+					self.move_to_target(contour_start - window_center,True)
+					old_center = np.copy(contour_start)
+				else:
+					# return_vec =  np.sum((cell_contours[i-1].reshape(-1,2)),axis = 1) 
+					new_center = contour[0].reshape(2)
+					print('hitting!',return_vec.shape,new_center.shape)
+					self.move_to_target(-return_vec.reshape(2) - contour_start + new_center,False)
+					old_center = new_center
+					contour_start = np.copy(new_center)
+				# now turn on the autofire				
+				time.sleep(.1)
+				self.ai_fire_qswitch_signal.emit(0,True)				
+				# this block is responsible for vectoring around the contour
+				return_vec = np.zeros((2))
+				for j in range(1,point_number):		
 					new_center = contour[j].reshape(2)		
 					move_vec = -old_center + new_center
-					scaled_move_vec = move_vec*1.5
-					self.hit_target(scaled_move_vec,False,0)
+					scaled_move_vec = move_vec
+					return_vec = np.add(return_vec,scaled_move_vec)
+					print(return_vec,return_vec.shape,scaled_move_vec.shape)
+					self.move_to_target(scaled_move_vec,False)
 					old_center = new_center
 					time.sleep(.1)
-				self.lysed_cell_count += 1		
+				self.lysed_cell_count += 1
+				self.ai_fire_qswitch_signal.emit(0,False)
+				time.sleep(.1)		
 				if self.auto_lysis == False:
 					self.stop_laser_flash_signal.emit()	
 					return
@@ -243,18 +262,21 @@ class Localizer(QtCore.QObject):
 		window_center = np.array([125./2,125./2])
 		print('centers:',cell_centers)
 		old_center = cell_centers[0]
-		self.hit_target(old_center-window_center,True,0)
+		self.move_to_target(old_center-window_center,True)
+		self.delay()
+		self.ai_fire_qswitch_signal.emit(0,False)
+		self.delay()
 		self.lysed_cell_count += 1
-		if self.lysed_cell_count >= self.cells_to_lyse: 
-				self.delay()
+		if self.lysed_cell_count >= self.cells_to_lyse: 				
 				self.return_to_original_position(self.well_center)
 				self.stop_laser_flash_signal.emit()	
-				return	
-		self.delay()
+				return			
 		if len(cell_centers) > 1:
 			for i in range(1,len(cell_centers)):
-				self.hit_target(-old_center + cell_centers[i],False,0)
-				old_center = cell_centers[i]
+				self.move_to_target(-old_center + cell_centers[i],False)
+				old_center = cell_centers[i]				
+				self.delay()
+				self.ai_fire_qswitch_signal.emit(0,False)												
 				self.delay()
 				self.lysed_cell_count += 1
 				if self.auto_lysis == False:
@@ -294,16 +316,16 @@ class Localizer(QtCore.QObject):
 			_,confidence_image = cv2.threshold(segmented_image,.5,1,cv2.THRESH_BINARY)
 		return confidence_image
 
-	def hit_target(self,center,goto_reticle = False,num_frames=5):
+	def move_to_target(self,center,goto_reticle = False):
 		# we need to scale our centers up to the proper resolution and then 
 		# send it to the stage
 		# localizer_move_slot(self, move_vector, goto_reticle = False,move_relative = True,scale_vector = True):
 		x = center[0]*851/125
 		y = center[1]*681/125
 		self.localizer_move_signal.emit(np.array([x,y]),goto_reticle,True,True)
-		self.delay()
-		self.ai_fire_qswitch_signal.emit(num_frames)
-		self.delay()
+		# self.delay()
+		# self.ai_fire_qswitch_signal.emit(num_frames)
+		# self.delay()
 		# for i in range(1):
 			# self.ai_fire_qswitch_signal.emit()
 		# 	time.sleep(.1)
