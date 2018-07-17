@@ -158,6 +158,7 @@ class main_window(QMainWindow):
 		# self.vid.vid_process_signal.connect(self.autofocuser.vid_process_slot)
 		self.vid.vid_process_signal.connect(self.localizer.vid_process_slot)
 		self.qswitch_screenshot_signal.connect(self.screen_shooter.save_qswitch_fire_slot)
+		self.localizer.qswitch_screenshot_signal.connect(self.screen_shooter.save_qswitch_fire_slot)
 		# self.start_focus_signal.connect(self.autofocuser.autofocus)
 		self.start_localization_signal.connect(self.localizer.localize)
 		# self.autofocuser.position_and_variance_signal.connect(self.plot_variance_and_position)
@@ -249,14 +250,12 @@ class main_window(QMainWindow):
 		comment('stage position during qswitch: {}'.format(stage.get_position_slot()))
 		laser.fire_qswitch()		
 	
-	@QtCore.pyqtSlot('PyQt_PyObject','PyQt_PyObject')
-	def ai_fire_qswitch_slot(self,num_frames,auto_fire):
+	@QtCore.pyqtSlot('PyQt_PyObject')
+	def ai_fire_qswitch_slot(self,auto_fire):
 		comment('automated firing from localizer!')
-		if auto_fire == True:
-			self.qswitch_screenshot_signal.emit(num_frames)
+		if auto_fire == True:			
 			laser.qswitch_auto()
 		else:	
-			self.qswitch_screenshot_signal.emit(num_frames)
 			laser.fire_qswitch()
 	
 	@QtCore.pyqtSlot()		

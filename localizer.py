@@ -10,7 +10,12 @@ global graph
 from PyQt5.QtWidgets import QApplication
 import pickle
 from sklearn.preprocessing import StandardScaler
+from utils import MeanIoU
 graph = tf.get_default_graph()
+
+num_classes = 3
+miou_metric = MeanIoU(num_classes)
+mean_iou = miou_metric.mean_iou
 
 experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)),'models')
 
@@ -19,16 +24,18 @@ class Localizer(QtCore.QObject):
 	get_position_signal = QtCore.pyqtSignal()
 	fire_qswitch_signal = QtCore.pyqtSignal()
 	stop_laser_flash_signal = QtCore.pyqtSignal()
-	ai_fire_qswitch_signal = QtCore.pyqtSignal('PyQt_PyObject','PyQt_PyObject')
+	ai_fire_qswitch_signal = QtCore.pyqtSignal('PyQt_PyObject')
 	start_laser_flash_signal = QtCore.pyqtSignal()
+	qswitch_screenshot_signal = QtCore.pyqtSignal('PyQt_PyObject')
 	# qswitch_screenshot_signal = QtCore.pyqtSignal()
 
 	def __init__(self, parent = None):
-		super(Localizer, self).__init__(parent)
-		self.localizer_model = load_model(os.path.join(experiment_folder_location,'multiclass_localizer14.hdf5'))
+		super(Localizer, self).__init__(parent)		
+		self.localizer_model = load_model(os.path.join(experiment_folder_location,'multiclass_localizer18_2.hdf5'),custom_objects={'mean_iou': mean_iou})
+		# self.localizer_model = load_model(os.path.join(experiment_folder_location,'multiclass_localizer14.hdf5'))
+		# self.localizer_model = load_model(os.path.join(experiment_folder_location,'binary_localizer6.hdf5'))
 		self.norm = StandardScaler()
 		self.hallucination_img = cv2.imread(os.path.join(experiment_folder_location,'before_qswitch___06_07_2018___11.48.59.274395.tif'))
-		# self.localizer_model = load_model(os.path.join(experiment_folder_location,'binary_localizer6.hdf5'))
 		self.localizer_model._make_predict_function()
 		self.position = np.zeros((1,2))
 		self.well_center = np.zeros((1,2))
@@ -140,12 +147,15 @@ class Localizer(QtCore.QObject):
 				if self.lysed_cell_count >= self.cells_to_lyse: 
 					self.return_to_original_position(self.well_center)
 					return	
-				time.sleep(2)
+				time.sleep(.2)
 				self.move_frame(let)				
+				time.sleep(.2)
 				QApplication.processEvents()
+				time.sleep(.2)
 				self.lyse_all_in_view()
 		self.return_to_original_position(self.well_center)
-		
+
+
 	def get_spiral_directions(self,box_size):
 	    letters = ['u', 'l', 'd', 'r']
 	    nums = []
@@ -172,8 +182,8 @@ class Localizer(QtCore.QObject):
 		view_center = self.get_stage_position()		
 		print('lysing all in view...')
 		self.delay()
-		# segmented_image = self.get_network_output(self.image,'multi')
-		segmented_image = self.get_network_output(self.hallucination_img,'multi')
+		segmented_image = self.get_network_output(self.image,'multi')
+		# segmented_image = self.get_network_output(self.hallucination_img,'multi')
 		# cv2.imshow('Cell Outlines and Centers',segmented_image)
 		# lyse all cells in view
 		self.lyse_cells(segmented_image,self.cell_type_to_lyse,self.lysis_mode)
@@ -234,20 +244,23 @@ class Localizer(QtCore.QObject):
 					contour_start = np.copy(new_center)
 				# now turn on the autofire				
 				time.sleep(.1)
-				self.ai_fire_qswitch_signal.emit(0,True)				
+				self.qswitch_screenshot_signal.emit(2)
+				self.ai_fire_qswitch_signal.emit(True)				
 				# this block is responsible for vectoring around the contour
 				return_vec = np.zeros((2))
 				for j in range(1,point_number):		
 					new_center = contour[j].reshape(2)		
 					move_vec = -old_center + new_center
-					scaled_move_vec = move_vec
+					scaled_move_vec = move_vec*1.5
 					return_vec = np.add(return_vec,scaled_move_vec)
 					print(return_vec,return_vec.shape,scaled_move_vec.shape)
+					self.qswitch_screenshot_signal.emit(1)
 					self.move_to_target(scaled_move_vec,False)
 					old_center = new_center
 					time.sleep(.1)
 				self.lysed_cell_count += 1
-				self.ai_fire_qswitch_signal.emit(0,False)
+				self.qswitch_screenshot_signal.emit(2)
+				self.ai_fire_qswitch_signal.emit(False)
 				time.sleep(.1)		
 				if self.auto_lysis == False:
 					self.stop_laser_flash_signal.emit()	
@@ -264,7 +277,8 @@ class Localizer(QtCore.QObject):
 		old_center = cell_centers[0]
 		self.move_to_target(old_center-window_center,True)
 		self.delay()
-		self.ai_fire_qswitch_signal.emit(0,False)
+		self.qswitch_screenshot_signal.emit(10)
+		self.ai_fire_qswitch_signal.emit(False)
 		self.delay()
 		self.lysed_cell_count += 1
 		if self.lysed_cell_count >= self.cells_to_lyse: 				
@@ -273,10 +287,11 @@ class Localizer(QtCore.QObject):
 				return			
 		if len(cell_centers) > 1:
 			for i in range(1,len(cell_centers)):
+				self.qswitch_screenshot_signal.emit(15)
 				self.move_to_target(-old_center + cell_centers[i],False)
 				old_center = cell_centers[i]				
 				self.delay()
-				self.ai_fire_qswitch_signal.emit(0,False)												
+				self.ai_fire_qswitch_signal.emit(False)												
 				self.delay()
 				self.lysed_cell_count += 1
 				if self.auto_lysis == False:
