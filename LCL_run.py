@@ -235,7 +235,7 @@ class main_window(QMainWindow):
 		'100x']
 		self.ui.magnification_combobox.addItems(magnifications)	
 		self.ui.magnification_combobox.currentIndexChanged.connect(stage.change_magnification)
-		self.ui.cell_type_to_lyse_comboBox.addItems(['red','green'])
+		self.ui.cell_type_to_lyse_comboBox.addItems(['red','green','green hope'])
 		self.ui.cell_type_to_lyse_comboBox.currentIndexChanged.connect(self.localizer.change_type_to_lyse)
 		self.ui.lysis_mode_comboBox.addItems(['direct','excision'])	
 		self.ui.lysis_mode_comboBox.currentIndexChanged.connect(self.localizer.change_lysis_mode)

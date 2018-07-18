@@ -31,7 +31,8 @@ class Localizer(QtCore.QObject):
 
 	def __init__(self, parent = None):
 		super(Localizer, self).__init__(parent)		
-		self.localizer_model = load_model(os.path.join(experiment_folder_location,'multiclass_localizer18_2.hdf5'),custom_objects={'mean_iou': mean_iou})
+		# self.localizer_model = load_model(os.path.join(experiment_folder_location,'multiclass_localizer18_2.hdf5'),custom_objects={'mean_iou': mean_iou})
+		self.localizer_model = load_model(os.path.join(experiment_folder_location,'binary_green_hope_localizer3.hdf5'))
 		# self.localizer_model = load_model(os.path.join(experiment_folder_location,'multiclass_localizer14.hdf5'))
 		# self.localizer_model = load_model(os.path.join(experiment_folder_location,'binary_localizer6.hdf5'))
 		self.norm = StandardScaler()
@@ -47,8 +48,9 @@ class Localizer(QtCore.QObject):
 		self.lysis_mode = 'direct'
 		self.auto_lysis = False		
 
-
-		# cv2.imshow('img',self.get_network_output(self.hallucination_img,'multi'))
+		img = self.get_network_output(self.hallucination_img,'binary')
+		print('IMG SHAPE:',img.shape)
+		cv2.imshow('img',self.get_network_output(self.hallucination_img,'binary'))
 
 	def stop_auto_lysis(self):
 		self.auto_lysis = False
@@ -56,7 +58,8 @@ class Localizer(QtCore.QObject):
 	def change_type_to_lyse(self,index):
 		map_dict = {
 		0:'red',
-		1:'green'
+		1:'green',
+		2:'green hope'
 		}
 		self.cell_type_to_lyse = map_dict[index]
 		comment('changed cell type to:'+str(self.cell_type_to_lyse))
@@ -93,7 +96,7 @@ class Localizer(QtCore.QObject):
 			#green cell
 			return_img[:,:,1] = segmented_image[0,:,:,2]			
 		elif mode == 'binary':
-			return_img = segmented_image
+			return_img = segmented_image[0,:,:,0]
 		return return_img
 
 	@QtCore.pyqtSlot('PyQt_PyObject')
@@ -111,7 +114,7 @@ class Localizer(QtCore.QObject):
 		return self.position
 
 	def move_frame(self,direction,relative=True):
-		distance = 80
+		distance = 95
 		frame_dir_dict = {
 		'u': np.array([0,-distance]),
 		'd': np.array([0,distance]),
@@ -182,11 +185,15 @@ class Localizer(QtCore.QObject):
 		view_center = self.get_stage_position()		
 		print('lysing all in view...')
 		self.delay()
-		segmented_image = self.get_network_output(self.image,'multi')
-		# segmented_image = self.get_network_output(self.hallucination_img,'multi')
-		# cv2.imshow('Cell Outlines and Centers',segmented_image)
-		# lyse all cells in view
-		self.lyse_cells(segmented_image,self.cell_type_to_lyse,self.lysis_mode)
+		if self.cell_type_to_lyse == 'green hope':
+			segmented_image = self.get_network_output(self.image,'binary')
+			self.lyse_cells(segmented_image,self.cell_type_to_lyse,self.lysis_mode)
+		else:
+			segmented_image = self.get_network_output(self.image,'multi')
+			# segmented_image = self.get_network_output(self.hallucination_img,'multi')
+			# cv2.imshow('Cell Outlines and Centers',segmented_image)
+			# lyse all cells in view
+			self.lyse_cells(segmented_image,self.cell_type_to_lyse,self.lysis_mode)
 		if self.auto_lysis == False:
 			self.stop_laser_flash_signal.emit()	
 			return
@@ -326,9 +333,9 @@ class Localizer(QtCore.QObject):
 			_,confidence_image = cv2.threshold(segmented_image[:,:,1],.5,1,cv2.THRESH_BINARY)
 		elif cell_type == 'red':
 			_,confidence_image = cv2.threshold(segmented_image[:,:,2],.5,1,cv2.THRESH_BINARY)
-		elif cell_type == 'any':
+		elif cell_type == 'green hope':
 			# assumes a binary image!
-			_,confidence_image = cv2.threshold(segmented_image,.5,1,cv2.THRESH_BINARY)
+			_,confidence_image = cv2.threshold(segmented_image,.3,1,cv2.THRESH_BINARY)
 		return confidence_image
 
 	def move_to_target(self,center,goto_reticle = False):
