@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import QApplication
 import pickle
 from sklearn.preprocessing import StandardScaler
 from utils import MeanIoU
+from keras import backend as K
 graph = tf.get_default_graph()
 
 num_classes = 3
@@ -27,41 +28,46 @@ class Localizer(QtCore.QObject):
 	ai_fire_qswitch_signal = QtCore.pyqtSignal('PyQt_PyObject')
 	start_laser_flash_signal = QtCore.pyqtSignal()
 	qswitch_screenshot_signal = QtCore.pyqtSignal('PyQt_PyObject')
-	# qswitch_screenshot_signal = QtCore.pyqtSignal()
 
 	def __init__(self, parent = None):
 		super(Localizer, self).__init__(parent)		
-		# self.localizer_model = load_model(os.path.join(experiment_folder_location,'multiclass_localizer18_2.hdf5'),custom_objects={'mean_iou': mean_iou})
-		self.localizer_model = load_model(os.path.join(experiment_folder_location,'binary_green_hope_localizer3.hdf5'))
-		# self.localizer_model = load_model(os.path.join(experiment_folder_location,'multiclass_localizer14.hdf5'))
-		# self.localizer_model = load_model(os.path.join(experiment_folder_location,'binary_localizer6.hdf5'))
-		self.norm = StandardScaler()
-		self.hallucination_img = cv2.imread(os.path.join(experiment_folder_location,'before_qswitch___06_07_2018___11.48.59.274395.tif'))
+		self.localizer_model = load_model(os.path.join(experiment_folder_location,'multiclass_localizer18_2.hdf5'),custom_objects={'mean_iou': mean_iou})
+		self.norm = StandardScaler()		
 		self.localizer_model._make_predict_function()
 		self.position = np.zeros((1,2))
 		self.well_center = np.zeros((1,2))
 		self.lysed_cell_count = 0
 		self.get_well_center = True
-		self.delay_time = .2
+		self.delay_time = .35
 		self.cells_to_lyse = 1
 		self.cell_type_to_lyse = 'red'
 		self.lysis_mode = 'direct'
 		self.auto_lysis = False		
 
-		img = self.get_network_output(self.hallucination_img,'binary')
-		print('IMG SHAPE:',img.shape)
-		cv2.imshow('img',self.get_network_output(self.hallucination_img,'binary'))
+		# self.hallucination_img = cv2.imread(os.path.join(experiment_folder_location,'before_qswitch___06_07_2018___11.48.59.274395.tif'))
+		# img = self.get_network_output(self.hallucination_img,'binary')
+		# print('IMG SHAPE:',img.shape)
+		# cv2.imshow('img',img)
 
 	def stop_auto_lysis(self):
 		self.auto_lysis = False
 
 	def change_type_to_lyse(self,index):
 		map_dict = {
-		0:'red',
-		1:'green',
-		2:'green hope'
+		0:('red','multiclass_localizer18_2.hdf5'),
+		1:('green','multiclass_localizer18_2.hdf5'),
+		2:('green hope','binary_green_hope_localizer3.hdf5')
 		}
-		self.cell_type_to_lyse = map_dict[index]
+		self.cell_type_to_lyse = map_dict[index][0]
+		comment('loading cell localizer model...{}'.format(map_dict[index][1]))
+		self.localizer_model = None
+		K.clear_session()	
+		# TODO: remove this if statement once we have a model that doesnt need the custom object
+		if map_dict[index] != 'green hope':	
+			self.localizer_model = load_model(os.path.join(experiment_folder_location,map_dict[index][1]),custom_objects={'mean_iou': mean_iou})
+		else:
+			self.localizer_model = load_model(os.path.join(experiment_folder_location,map_dict[index][1]))
+		self.localizer_model._make_predict_function()
 		comment('changed cell type to:'+str(self.cell_type_to_lyse))
 
 	def change_lysis_mode(self,index):
@@ -148,13 +154,15 @@ class Localizer(QtCore.QObject):
 					self.stop_laser_flash_signal.emit()	
 					return
 				if self.lysed_cell_count >= self.cells_to_lyse: 
+					self.delay()
 					self.return_to_original_position(self.well_center)
 					return	
-				time.sleep(.2)
+				self.delay()
 				self.move_frame(let)				
-				time.sleep(.2)
+				self.delay()
 				QApplication.processEvents()
-				time.sleep(.2)
+				self.delay()
+				QApplication.processEvents()
 				self.lyse_all_in_view()
 		self.return_to_original_position(self.well_center)
 
@@ -226,10 +234,6 @@ class Localizer(QtCore.QObject):
 		elif lyse_type == 'excision':			
 			self.excision_lysis(cell_contours)
 
-	# def get_return_vec(self,contour):
-	# 	return_vec = np.zeros((1,2))
-	# 	for vec in contour
-
 	def excision_lysis(self,cell_contours):
 		# for each contour we want to trace it
 		window_center = np.array([125./2,125./2])
@@ -245,7 +249,6 @@ class Localizer(QtCore.QObject):
 				else:
 					# return_vec =  np.sum((cell_contours[i-1].reshape(-1,2)),axis = 1) 
 					new_center = contour[0].reshape(2)
-					print('hitting!',return_vec.shape,new_center.shape)
 					self.move_to_target(-return_vec.reshape(2) - contour_start + new_center,False)
 					old_center = new_center
 					contour_start = np.copy(new_center)
@@ -268,7 +271,7 @@ class Localizer(QtCore.QObject):
 				self.lysed_cell_count += 1
 				self.qswitch_screenshot_signal.emit(2)
 				self.ai_fire_qswitch_signal.emit(False)
-				time.sleep(.1)		
+				self.delay()
 				if self.auto_lysis == False:
 					self.stop_laser_flash_signal.emit()	
 					return
@@ -335,22 +338,17 @@ class Localizer(QtCore.QObject):
 			_,confidence_image = cv2.threshold(segmented_image[:,:,2],.5,1,cv2.THRESH_BINARY)
 		elif cell_type == 'green hope':
 			# assumes a binary image!
+			# TODO: find the optimal location on the AUC curve for the threshold
 			_,confidence_image = cv2.threshold(segmented_image,.3,1,cv2.THRESH_BINARY)
 		return confidence_image
 
 	def move_to_target(self,center,goto_reticle = False):
 		# we need to scale our centers up to the proper resolution and then 
 		# send it to the stage
-		# localizer_move_slot(self, move_vector, goto_reticle = False,move_relative = True,scale_vector = True):
 		x = center[0]*851/125
 		y = center[1]*681/125
 		self.localizer_move_signal.emit(np.array([x,y]),goto_reticle,True,True)
-		# self.delay()
-		# self.ai_fire_qswitch_signal.emit(num_frames)
-		# self.delay()
-		# for i in range(1):
-			# self.ai_fire_qswitch_signal.emit()
-		# 	time.sleep(.1)
+
 
 	
 
