@@ -82,6 +82,7 @@ class screen_shooter(QtCore.QObject):
 		self.image_title = 'during_qswitch_fire'
 		self.requested_frames += num_frames
 
+
 class MeanIoU(object):
     # taken from http://www.davidtvs.com/keras-custom-metrics/
     def __init__(self, num_classes):

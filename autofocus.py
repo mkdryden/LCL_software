@@ -58,7 +58,7 @@ class autofocuser(QtCore.QObject):
 		self.ch.setOnVelocityChangeHandler(self.velocity_change_handler)
 		self.ch.setOnPositionChangeHandler(self.position_change_handler)
 		self.image_title = 0
-		self.focus_model = load_model(os.path.join(experiment_folder_location,'VGG_model.hdf5'))
+		self.focus_model = load_model(os.path.join(experiment_folder_location,'VGG_model_5.hdf5'))
 		self.focus_model._make_predict_function()
 		self.belt_slip_offset = 120
 		# self.step_to_position(self.full_scale)

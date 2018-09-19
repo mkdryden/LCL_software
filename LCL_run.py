@@ -34,8 +34,8 @@ class ShowVideo(QtCore.QObject):
 		self.camera.set(4,822)
 		self.center_x = int(1024/2)
 		self.center_y = int(822/2)
-		self.reticle_x = int(self.center_x+28)
-		self.reticle_y = int(self.center_y+118)
+		self.reticle_x = int(self.center_x+6)
+		self.reticle_y = int(self.center_y+115)
 
 	def draw_reticle(self,image):		
 		cv2.circle(image,(self.reticle_x,self.reticle_y),
@@ -129,7 +129,7 @@ class main_window(QMainWindow):
 		self.vid = ShowVideo(self.ui.verticalLayoutWidget.size())
 		self.screen_shooter = screen_shooter()
 		self.image_viewer = ImageViewer()
-		# self.autofocuser = autofocuser()
+		self.autofocuser = autofocuser()
 		self.localizer = Localizer()		
 
 		# add the viewer to our ui
@@ -140,9 +140,9 @@ class main_window(QMainWindow):
 		self.screenshooter_thread.start()
 		self.screen_shooter.moveToThread(self.screenshooter_thread)		
 
-		# self.autofocuser_thread = QThread()
-		# self.autofocuser_thread.start()
-		# self.autofocuser.moveToThread(self.autofocuser_thread)		
+		self.autofocuser_thread = QThread()
+		self.autofocuser_thread.start()
+		self.autofocuser.moveToThread(self.autofocuser_thread)		
 
 		self.localizer_thread = QThread()
 		self.localizer_thread.start()
@@ -155,13 +155,13 @@ class main_window(QMainWindow):
 		# connect the outputs to our signals
 		self.vid.VideoSignal.connect(self.image_viewer.setImage)		
 		self.vid.vid_process_signal.connect(self.screen_shooter.screenshot_slot)		
-		# self.vid.vid_process_signal.connect(self.autofocuser.vid_process_slot)
+		self.vid.vid_process_signal.connect(self.autofocuser.vid_process_slot)
 		self.vid.vid_process_signal.connect(self.localizer.vid_process_slot)
 		self.qswitch_screenshot_signal.connect(self.screen_shooter.save_qswitch_fire_slot)
 		self.localizer.qswitch_screenshot_signal.connect(self.screen_shooter.save_qswitch_fire_slot)
-		# self.start_focus_signal.connect(self.autofocuser.autofocus)
+		self.start_focus_signal.connect(self.autofocuser.autofocus)
 		self.start_localization_signal.connect(self.localizer.localize)
-		# self.autofocuser.position_and_variance_signal.connect(self.plot_variance_and_position)
+		self.autofocuser.position_and_variance_signal.connect(self.plot_variance_and_position)
 		self.image_viewer.click_move_signal.connect(stage.click_move_slot)
 		self.localizer.localizer_move_signal.connect(stage.localizer_move_slot)
 		self.localizer.ai_fire_qswitch_signal.connect(self.ai_fire_qswitch_slot)
@@ -290,8 +290,8 @@ class main_window(QMainWindow):
 			16777249:laser.fire_auto,
 			70:self.qswitch_screenshot_slot,
 			81:laser.qswitch_auto,
-			# 73:self.autofocuser.roll_forward,
-			# 75:self.autofocuser.roll_backward,
+			73:self.autofocuser.roll_forward,
+			75:self.autofocuser.roll_backward,
 			79:self.start_autofocus,
 			# 71:self.toggle_dmf_or_lysis,
 			84:stage.move_left_one_well_slot,
@@ -307,8 +307,8 @@ class main_window(QMainWindow):
 			# print('key released: {}'.format(event.key()))
 			key_control_dict = {
 			16777249:laser.stop_flash,
-			# 73:self.autofocuser.stop_roll,
-			# 75:self.autofocuser.stop_roll
+			73:self.autofocuser.stop_roll,
+			75:self.autofocuser.stop_roll
 			}
 			if event.key() in key_control_dict.keys():
 				key_control_dict[event.key()]()

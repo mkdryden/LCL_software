@@ -1,5 +1,5 @@
 import time
-from utils import comment
+from utils import comment,now
 from keras.models import load_model
 import os
 from PyQt5 import QtCore 
@@ -19,6 +19,40 @@ miou_metric = MeanIoU(num_classes)
 mean_iou = miou_metric.mean_iou
 
 experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)),'models')
+
+class wellStitcher():
+
+	def __init__(self,box_size,initial_img):
+		# get our inital coordinates
+		self.box_size = int(box_size*2 + 1)
+		self.center = int(np.ceil(box_size/2)+2)
+		self.curr_x = self.center
+		self.curr_y = self.center
+		# initialize the image and show it
+		self.img_x,self.img_y = int(1024),int(822)
+		self.well_img = np.zeros((self.img_y*self.box_size,self.img_x*self.box_size,3))
+
+		self.stitch_img(initial_img)
+
+
+	def stitch_img(self,img):
+		self.well_img[self.curr_y*self.img_y:(self.curr_y+1)*self.img_y, self.curr_x*self.img_x:(self.curr_x+1)*self.img_x,:] = img
+		self.resized_img = cv2.resize(self.well_img,(1024,822))
+		cv2.imshow('Stitch',self.resized_img)
+
+	def add_img(self,let,img):
+		if let == 'u': self.curr_y -= 1
+		if let == 'd': self.curr_y += 1
+		if let == 'l': self.curr_x -= 1
+		if let == 'r': self.curr_x += 1
+		print(self.curr_y,self.curr_x)
+		self.stitch_img(img)
+
+	def write_well_img(self):
+		experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)),'well_images')
+		cv2.imwrite(os.path.join(experiment_folder_location,
+				'{}___{}.tif'.format('well_image',now())),self.well_img)
+		
 
 class Localizer(QtCore.QObject):
 	localizer_move_signal = QtCore.pyqtSignal('PyQt_PyObject','PyQt_PyObject','PyQt_PyObject','PyQt_PyObject')
@@ -56,7 +90,7 @@ class Localizer(QtCore.QObject):
 		map_dict = {
 		0:('red','multiclass_localizer18_2.hdf5'),
 		1:('green','multiclass_localizer18_2.hdf5'),
-		2:('green hope','binary_green_hope_localizer3.hdf5')
+		2:('green hope','second_binary_green_hope_localizer_16_0.28892_1_54_7_12.hdf5')
 		}
 		self.cell_type_to_lyse = map_dict[index][0]
 		comment('loading cell localizer model...{}'.format(map_dict[index][1]))
@@ -120,17 +154,33 @@ class Localizer(QtCore.QObject):
 		return self.position
 
 	def move_frame(self,direction,relative=True):
-		distance = 95
+		y_distance = 95
+		x_distance = 120
 		frame_dir_dict = {
-		'u': np.array([0,-distance]),
-		'd': np.array([0,distance]),
-		'l': np.array([-distance,0]),
-		'r': np.array([distance,0])
+		'u': np.array([0,-y_distance]),
+		'd': np.array([0,y_distance]),
+		'l': np.array([-x_distance,0]),
+		'r': np.array([x_distance,0])
 		}
 		self.localizer_move_signal.emit(frame_dir_dict[direction],False,True,False)
 
 	def return_to_original_position(self,position):				
 		self.localizer_move_signal.emit(position,False,False,False)
+
+	@QtCore.pyqtSlot()
+	def tile_well(self):
+		self.well_center = self.get_stage_position()		
+		stitcher = wellStitcher(box_size,self.image)		
+		directions = self.get_spiral_directions(box_size)	
+		for num,let in directions:
+			self.delay()
+			self.move_frame(let)				
+			self.delay()
+			QApplication.processEvents()
+			stitcher.add_img(let,self.image)
+		comment('writing well tile file...')
+		stitcher.write_well_img()
+		comment('tiling completed!')			
 
 	@QtCore.pyqtSlot()
 	def localize(self):
@@ -139,13 +189,14 @@ class Localizer(QtCore.QObject):
 		using the method of lysis that the user selects, then returns to the original
 		position (the center of the well)
 		'''
-		# first get our well center position
+		# first get our well center position		
 		self.lysed_cell_count = 0
 		self.auto_lysis = True
 		self.well_center = self.get_stage_position()		
 		# now start moving and lysing all in view
 		self.lyse_all_in_view()
 		box_size = 5
+		# stitcher = wellStitcher(box_size,self.image)		
 		directions = self.get_spiral_directions(box_size)		
 		self.get_well_center = False
 		for num,let in directions:
@@ -163,8 +214,11 @@ class Localizer(QtCore.QObject):
 				QApplication.processEvents()
 				self.delay()
 				QApplication.processEvents()
+				# stitcher.add_img(let,self.image)
 				self.lyse_all_in_view()
-		self.return_to_original_position(self.well_center)
+		comment('lysis completed!')
+		# stitcher.write_well_img()
+		# self.return_to_original_position(self.well_center)
 
 
 	def get_spiral_directions(self,box_size):
@@ -288,8 +342,9 @@ class Localizer(QtCore.QObject):
 		self.move_to_target(old_center-window_center,True)
 		self.delay()
 		self.qswitch_screenshot_signal.emit(10)
-		self.ai_fire_qswitch_signal.emit(False)
-		self.delay()
+		for i in range(3):
+			self.ai_fire_qswitch_signal.emit(False)
+			self.delay()
 		self.lysed_cell_count += 1
 		if self.lysed_cell_count >= self.cells_to_lyse: 				
 				self.return_to_original_position(self.well_center)
@@ -301,7 +356,9 @@ class Localizer(QtCore.QObject):
 				self.move_to_target(-old_center + cell_centers[i],False)
 				old_center = cell_centers[i]				
 				self.delay()
-				self.ai_fire_qswitch_signal.emit(False)												
+				for i in range(3):	
+					self.ai_fire_qswitch_signal.emit(False)
+					self.delay()
 				self.delay()
 				self.lysed_cell_count += 1
 				if self.auto_lysis == False:
@@ -339,7 +396,7 @@ class Localizer(QtCore.QObject):
 		elif cell_type == 'green hope':
 			# assumes a binary image!
 			# TODO: find the optimal location on the AUC curve for the threshold
-			_,confidence_image = cv2.threshold(segmented_image,.3,1,cv2.THRESH_BINARY)
+			_,confidence_image = cv2.threshold(segmented_image,.9,1,cv2.THRESH_BINARY)
 		return confidence_image
 
 	def move_to_target(self,center,goto_reticle = False):
