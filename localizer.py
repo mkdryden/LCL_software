@@ -13,6 +13,7 @@ from sklearn.preprocessing import StandardScaler
 from utils import MeanIoU
 from keras import backend as K
 graph = tf.get_default_graph()
+import skimage.transform as transform
 
 num_classes = 3
 miou_metric = MeanIoU(num_classes)
@@ -66,7 +67,8 @@ class Localizer(QtCore.QObject):
 
 	def __init__(self, parent = None):
 		super(Localizer, self).__init__(parent)		
-		self.localizer_model = load_model(os.path.join(experiment_folder_location,'multiclass_localizer18_2.hdf5'),custom_objects={'mean_iou': mean_iou})
+		# self.localizer_model = load_model(os.path.join(experiment_folder_location,'multiclass_localizer18_2.hdf5'),custom_objects={'mean_iou': mean_iou})
+		self.localizer_model = load_model(os.path.join(experiment_folder_location,'model2018-10-18_08_47'),custom_objects={'mean_iou': mean_iou})
 		self.norm = StandardScaler()		
 		self.localizer_model._make_predict_function()
 		self.position = np.zeros((1,2))
@@ -89,8 +91,10 @@ class Localizer(QtCore.QObject):
 
 	def change_type_to_lyse(self,index):
 		map_dict = {
-		0:('red','multiclass_localizer18_2.hdf5'),
-		1:('green','multiclass_localizer18_2.hdf5'),
+		# 0:('red','multiclass_localizer18_2.hdf5'),
+		# 1:('green','multiclass_localizer18_2.hdf5'),
+		0:('red','model2018-10-18_08_47'),
+		1:('green','model2018-10-18_08_47'),
 		2:('green hope','second_binary_green_hope_localizer_16_0.28892_1_54_7_12.hdf5')
 		}
 		self.cell_type_to_lyse = map_dict[index][0]
@@ -123,7 +127,7 @@ class Localizer(QtCore.QObject):
 		
 	def get_network_output(self,img,mode):
 		img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)		
-		img = cv2.resize(img, (125, 125))
+		img = transform.resize(img, (128, 128), anti_aliasing=False)
 		img = self.norm.fit_transform(img)
 		img = np.expand_dims(img,axis = 4) 
 		img = np.expand_dims(img,axis = 0) 
@@ -131,13 +135,14 @@ class Localizer(QtCore.QObject):
 			segmented_image = self.localizer_model.predict(img,batch_size = 1)	
 		if mode == 'multi':
 			# print(segmented_image.shape)
-			return_img = np.zeros((125,125,3))
+			return_img = np.zeros((128,128,3))
 			#red cell
-			return_img[:,:,2] = segmented_image[0,:,:,1]			
+			return_img[:,:,2] = segmented_image[0,:,:,2]			
 			#green cell
-			return_img[:,:,1] = segmented_image[0,:,:,2]			
+			return_img[:,:,1] = segmented_image[0,:,:,1]			
 		elif mode == 'binary':
 			return_img = segmented_image[0,:,:,0]
+		return_img = transform.resize(return_img, (125, 125), anti_aliasing=False)
 		return return_img
 
 	@QtCore.pyqtSlot('PyQt_PyObject')
@@ -196,9 +201,9 @@ class Localizer(QtCore.QObject):
 		self.auto_lysis = True
 		self.well_center = self.get_stage_position()		
 		# now start moving and lysing all in view
-		# self.lyse_all_in_view()
+		self.lyse_all_in_view()
 		box_size = 5
-		stitcher = wellStitcher(box_size,self.image)		
+		# stitcher = wellStitcher(box_size,self.image)		
 		directions = self.get_spiral_directions(box_size)		
 		self.get_well_center = False
 		for num,let in directions:
@@ -216,11 +221,11 @@ class Localizer(QtCore.QObject):
 				QApplication.processEvents()
 				self.delay()
 				QApplication.processEvents()
-				stitcher.add_img(let,self.image)
-				# self.lyse_all_in_view()
+				# stitcher.add_img(let,self.image)
+				self.lyse_all_in_view()
 		comment('lysis completed!')
-		stitcher.write_well_img()
-		# self.return_to_original_position(self.well_center)
+		# stitcher.write_well_img()
+		self.return_to_original_position(self.well_center)
 
 
 	def get_spiral_directions(self,box_size):
@@ -293,7 +298,7 @@ class Localizer(QtCore.QObject):
 	def excision_lysis(self,cell_contours):
 		# for each contour we want to trace it
 		window_center = np.array([125./2,125./2])
-		if len(cell_contours) >0:
+		if len(cell_contours) > 0:
 			for i in range(len(cell_contours)):			
 				contour = cell_contours[i]
 				point_number = contour.shape[0] 
@@ -339,6 +344,9 @@ class Localizer(QtCore.QObject):
 
 	def direct_lysis(self,cell_centers):
 		window_center = np.array([125./2,125./2])
+		if len(cell_centers) < 2: return
+		cell_centers = cell_centers[1:]
+
 		print('centers:',cell_centers)
 		old_center = cell_centers[0]
 		self.move_to_target(old_center-window_center,True)
@@ -392,9 +400,9 @@ class Localizer(QtCore.QObject):
 
 	def threshold_based_on_type(self,segmented_image,cell_type):
 		if cell_type == 'green':
-			_,confidence_image = cv2.threshold(segmented_image[:,:,1],.5,1,cv2.THRESH_BINARY)
+			_,confidence_image = cv2.threshold(segmented_image[:,:,1],.9,1,cv2.THRESH_BINARY)
 		elif cell_type == 'red':
-			_,confidence_image = cv2.threshold(segmented_image[:,:,2],.5,1,cv2.THRESH_BINARY)
+			_,confidence_image = cv2.threshold(segmented_image[:,:,2],.9,1,cv2.THRESH_BINARY)
 		elif cell_type == 'green hope':
 			# assumes a binary image!
 			# TODO: find the optimal location on the AUC curve for the threshold

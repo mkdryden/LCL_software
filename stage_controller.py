@@ -70,12 +70,13 @@ class stage_controller(QtCore.QObject):
 		comment('step size changed to: {}'.format(step_size))
 		self.step_size = step_size
 
-	def issue_command(self,command):
+	def issue_command(self,command, suppress_msg = False):
 		'''
 		sends command and handles any errors from stage
 		'''
 		command_string = '{}\r'.format(command)
-		comment('sending command to stage:{}'.format(command_string))
+		if(not suppress_msg):
+			comment('sending command to stage:{}'.format(command_string))
 		self.ser.write(command_string.encode('utf-8'))
 
 	def get_long_response(self):		
@@ -96,8 +97,8 @@ class stage_controller(QtCore.QObject):
 		comment('response received from stage:{}'.format(response))
 		return response
 
-	def send_receive(self,command):
-		self.issue_command(command)
+	def send_receive(self,command, suppress_msg = False):
+		self.issue_command(command, suppress_msg)
 		response = self.get_response()		
 		return response
 
@@ -184,6 +185,17 @@ class stage_controller(QtCore.QObject):
 			self.go_to_position(move_vector)	
 		elif move_relative == True and scale_vector == False:
 			self.move_relative(move_vector)
+
+	# zoom and recenter gui signals
+	@QtCore.pyqtSlot('PyQt_PyObject')
+	def zoom_and_move_slot(self, move_vector):
+
+		if(move_vector[0] == 0 and  move_vector[1] == 0):
+			return
+					
+		pixel_move_vector = np.array([move_vector[0], move_vector[1]])
+		step_move_vector = self.scale_move_vector(pixel_move_vector)
+		self.move_relative(step_move_vector)
 
 
 	def go_to_dmf_location(self):
