@@ -1,6 +1,6 @@
-from Phidget22.PhidgetException import *
-from Phidget22.Phidget import *
-from Phidget22.Devices.Stepper import *
+# from Phidget22.PhidgetException import *
+# from Phidget22.Phidget import *
+# from Phidget22.Devices.Stepper import *
 import time
 from utils import comment
 import matplotlib.pyplot as plt

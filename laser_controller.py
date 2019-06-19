@@ -35,8 +35,8 @@ class laser_controller():
 
 	def send_receive(self,command):
 		self.issue_command(command)
-		# response = self.get_response()
-		# return response		
+		response = self.get_response()
+		return response		
 
 	def simmer(self):
 		return self.send_receive('M')

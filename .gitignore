@@ -1,0 +1,14 @@
+
+well_images/
+
+venv/
+
+models/
+
+__pycache__/
+
+*.so
+
+*.c
+
+_pi_cffi\.o

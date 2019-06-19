@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1000</width>
-    <height>689</height>
+    <width>1505</width>
+    <height>733</height>
    </rect>
   </property>
   <property name="focusPolicy">
@@ -33,7 +33,7 @@
    <widget class="QPushButton" name="misc_screenshot_button">
     <property name="geometry">
      <rect>
-      <x>0</x>
+      <x>10</x>
       <y>0</y>
       <width>131</width>
       <height>31</height>
@@ -43,14 +43,13 @@
      <enum>Qt::NoFocus</enum>
     </property>
     <property name="text">
-     <string>Misc. 
- Screenshot</string>
+     <string>Screenshot</string>
     </property>
    </widget>
    <widget class="QTextEdit" name="comment_box">
     <property name="geometry">
      <rect>
-      <x>4</x>
+      <x>10</x>
       <y>53</y>
       <width>131</width>
       <height>41</height>
@@ -61,7 +60,7 @@
     <property name="geometry">
      <rect>
       <x>6</x>
-      <y>33</y>
+      <y>30</y>
       <width>121</width>
       <height>16</height>
      </rect>
@@ -73,7 +72,7 @@
    <widget class="QPushButton" name="user_comment_button">
     <property name="geometry">
      <rect>
-      <x>3</x>
+      <x>10</x>
       <y>93</y>
       <width>131</width>
       <height>23</height>
@@ -83,14 +82,14 @@
      <enum>Qt::NoFocus</enum>
     </property>
     <property name="text">
-     <string>Add comment to log</string>
+     <string>Add comment</string>
     </property>
    </widget>
    <widget class="QComboBox" name="magnification_combobox">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>140</y>
+      <y>160</y>
       <width>51</width>
       <height>22</height>
      </rect>
@@ -108,9 +107,9 @@
    <widget class="QLabel" name="magnification_label">
     <property name="geometry">
      <rect>
-      <x>9</x>
-      <y>120</y>
-      <width>71</width>
+      <x>10</x>
+      <y>140</y>
+      <width>111</width>
       <height>16</height>
      </rect>
     </property>
@@ -121,114 +120,19 @@
    <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>145</x>
-      <y>3</y>
-      <width>851</width>
-      <height>681</height>
+      <x>150</x>
+      <y>10</y>
+      <width>1351</width>
+      <height>711</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout"/>
-   </widget>
-   <widget class="QGroupBox" name="laser_controls_groupbox">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>220</y>
-      <width>120</width>
-      <height>131</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Laser Controls</string>
-    </property>
-    <widget class="QDoubleSpinBox" name="qswitch_delay_doublespin_box">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>47</y>
-       <width>101</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="focusPolicy">
-      <enum>Qt::ClickFocus</enum>
-     </property>
-     <property name="decimals">
-      <number>0</number>
-     </property>
-     <property name="minimum">
-      <double>50.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>10000.000000000000000</double>
-     </property>
-     <property name="singleStep">
-      <double>5.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>200.000000000000000</double>
-     </property>
-    </widget>
-    <widget class="QLabel" name="Qswitch_delay_label">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>28</y>
-       <width>101</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Q Switch Delay [us]</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="attenuator_label">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>70</y>
-       <width>101</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Attenuator</string>
-     </property>
-    </widget>
-    <widget class="QDoubleSpinBox" name="attenuator_doublespin_box">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>90</y>
-       <width>101</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="focusPolicy">
-      <enum>Qt::ClickFocus</enum>
-     </property>
-     <property name="decimals">
-      <number>2</number>
-     </property>
-     <property name="minimum">
-      <double>0.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>100.000000000000000</double>
-     </property>
-     <property name="singleStep">
-      <double>0.100000000000000</double>
-     </property>
-     <property name="value">
-      <double>0.600000000000000</double>
-     </property>
-    </widget>
    </widget>
    <widget class="QDoubleSpinBox" name="step_size_doublespin_box">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>190</y>
+      <y>260</y>
       <width>71</width>
       <height>22</height>
      </rect>
@@ -256,8 +160,8 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>170</y>
-      <width>101</width>
+      <y>240</y>
+      <width>131</width>
       <height>16</height>
      </rect>
     </property>
@@ -265,26 +169,13 @@
      <string>Stage Step Size</string>
     </property>
    </widget>
-   <widget class="QCheckBox" name="noise_filter_checkbox">
-    <property name="geometry">
-     <rect>
-      <x>70</x>
-      <y>140</y>
-      <width>71</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>CLAHE</string>
-    </property>
-   </widget>
    <widget class="QGroupBox" name="automation_groupbox">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>360</y>
+      <y>320</y>
       <width>120</width>
-      <height>251</height>
+      <height>241</height>
      </rect>
     </property>
     <property name="title">
@@ -294,7 +185,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>50</y>
+       <y>40</y>
        <width>101</width>
        <height>22</height>
       </rect>
@@ -322,7 +213,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>30</y>
+       <y>20</y>
        <width>91</width>
        <height>16</height>
       </rect>
@@ -335,7 +226,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>210</y>
+       <y>200</y>
        <width>101</width>
        <height>31</height>
       </rect>
@@ -348,7 +239,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>100</y>
+       <y>90</y>
        <width>101</width>
        <height>23</height>
       </rect>
@@ -358,7 +249,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>80</y>
+       <y>70</y>
        <width>91</width>
        <height>16</height>
       </rect>
@@ -381,9 +272,9 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>130</y>
+       <y>120</y>
        <width>91</width>
-       <height>31</height>
+       <height>41</height>
       </rect>
      </property>
      <property name="text">
@@ -391,6 +282,122 @@
 to Lyse</string>
      </property>
     </widget>
+   </widget>
+   <widget class="QPushButton" name="record_push_button">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>620</y>
+      <width>101</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Record</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="Tile_and_navigate_pushbutton">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>570</y>
+      <width>101</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Tile and
+Navigate</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cube_position_combobox">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>210</y>
+      <width>51</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
+    <property name="editable">
+     <bool>false</bool>
+    </property>
+    <property name="currentText">
+     <string extracomment="4x"/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>190</y>
+      <width>121</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Cube Position</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="autofocus_checkbox">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>210</y>
+      <width>51</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>AF</string>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="exposure_doublespin_box">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>690</y>
+      <width>101</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
+    </property>
+    <property name="decimals">
+     <number>0</number>
+    </property>
+    <property name="minimum">
+     <double>1.000000000000000</double>
+    </property>
+    <property name="maximum">
+     <double>1000000.000000000000000</double>
+    </property>
+    <property name="singleStep">
+     <double>5.000000000000000</double>
+    </property>
+    <property name="value">
+     <double>60.000000000000000</double>
+    </property>
+   </widget>
+   <widget class="QLabel" name="exposure_label">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>670</y>
+      <width>131</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Exposure</string>
+    </property>
    </widget>
   </widget>
  </widget>
