@@ -12,3 +12,5 @@ __pycache__/
 *.c
 
 _pi_cffi\.o
+
+Experiments/

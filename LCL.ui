@@ -173,7 +173,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>320</y>
+      <y>290</y>
       <width>120</width>
       <height>241</height>
      </rect>
@@ -287,7 +287,7 @@ to Lyse</string>
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>620</y>
+      <y>590</y>
       <width>101</width>
       <height>31</height>
      </rect>
@@ -303,7 +303,7 @@ to Lyse</string>
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>570</y>
+      <y>540</y>
       <width>101</width>
       <height>41</height>
      </rect>
@@ -362,7 +362,7 @@ Navigate</string>
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>690</y>
+      <y>650</y>
       <width>101</width>
       <height>22</height>
      </rect>
@@ -380,23 +380,64 @@ Navigate</string>
      <double>1000000.000000000000000</double>
     </property>
     <property name="singleStep">
-     <double>5.000000000000000</double>
+     <double>1000.000000000000000</double>
     </property>
     <property name="value">
-     <double>60.000000000000000</double>
+     <double>5000.000000000000000</double>
     </property>
    </widget>
    <widget class="QLabel" name="exposure_label">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>670</y>
+      <y>630</y>
       <width>131</width>
       <height>16</height>
      </rect>
     </property>
     <property name="text">
      <string>Exposure</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="brightness_label">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>680</y>
+      <width>131</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Brightness</string>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="brightness_doublespin_box">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>700</y>
+      <width>101</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="focusPolicy">
+     <enum>Qt::ClickFocus</enum>
+    </property>
+    <property name="decimals">
+     <number>0</number>
+    </property>
+    <property name="minimum">
+     <double>1.000000000000000</double>
+    </property>
+    <property name="maximum">
+     <double>100.000000000000000</double>
+    </property>
+    <property name="singleStep">
+     <double>10.000000000000000</double>
+    </property>
+    <property name="value">
+     <double>50.000000000000000</double>
     </property>
    </widget>
   </widget>
