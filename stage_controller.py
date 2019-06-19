@@ -27,7 +27,8 @@ class stage_controller(QtCore.QObject):
         self.calibration_factor = 1.20 * 4
         self.lysing_loc = self.get_position_slot()
         self.lysing = True
-        self.send_receive('B X=0 Y=0 Z=0')
+        comment(self.send_receive('B X=0 Y=0 Z=0'))
+        comment(self.send_receive('7TTL Y=0'))
         self.steps_between_wells = 4400
         self.down = False
 
@@ -238,11 +239,24 @@ class stage_controller(QtCore.QObject):
     def turn_off_autofocus(self):
         self.send_receive('LK F=85')
 
+    def set_led_brightness(self):
+        pass
+
+    def send_laser_pulse(self):
+        comment(self.send_receive('7TTL Y=1'))
+        comment(self.send_receive('7TTL Y=0'))
 
 
 if __name__ == '__main__':
     stage = stage_controller()
     # print(stage.send_receive('R Z=100000'))
     # print(stage.send_receive('LK F=102'))
-    print(stage.send_receive('LK F=97'))
+    # print(stage.send_receive('LK F=97'))
+    # print(stage.send_receive('{}LED X=100'.format(7)))
+    # while True:
+    print(stage.issue_command('7TTL Y=1'))
+    print(stage.issue_command('7TTL Y=0'))
+    # print(stage.send_receive('DU Y'))
+
+    # time.sleep(5)
     # print(stage.get_objective_position())

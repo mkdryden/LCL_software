@@ -23,6 +23,8 @@ assert lib.tl_camera_sdk_dll_initialize() == 0
 assert lib.tl_camera_open_sdk() == 0
 
 SHIFT_AMT = np.array([4], dtype=np.uint8)
+INITIAL_EXPOSURE = 5000
+INITIAL_BRIGHTNESS = 50
 
 def get_camera_ids():
     # returns a handle to a char array of all of the available cameras separated by spaces
@@ -34,16 +36,11 @@ def get_camera_ids():
 @ffi.def_extern()
 def tl_camera_frame_available_callback(sender, image_buffer, frame_count, metadata, metadata_size_in_bytes, context):
     data = ffi.buffer(image_buffer, 2160 * 4096 * 2)
-    np_data = np.frombuffer(data, np.uint16)
-    np_data = np.right_shift(np_data, SHIFT_AMT)
-    np_data = np_data.astype(np.uint8)
+    np_data = np.right_shift(np.frombuffer(data, np.uint16), SHIFT_AMT).astype(np.uint8)
     np_data = np_data.reshape((2160, -1))
-    np_data = cv2.resize(np_data, (1352, 711))
-
+    np_data = cv2.resize(np_data, (1352, 712))
     height, width = np_data.shape
-    qt_image = QtGui.QImage(np_data.data, width, height, QtGui.QImage.Format_Grayscale8)#.convertToFormat(QtGui.QImage.Format_RGB32)
-    # qt_image = qt_image.scaled(window.vid.window_size, QtCore.Qt.KeepAspectRatio,
-    #                            transformMode=QtCore.Qt.SmoothTransformation)
+    qt_image = QtGui.QImage(np_data.data, width, height, QtGui.QImage.Format_Grayscale8)
     window.vid.VideoSignal.emit(qt_image)
 
 
@@ -63,8 +60,8 @@ class ShowVideo(QtCore.QObject):
         self.camera_handle = None
 
     def draw_reticle(self, image):
-        cv2.circle(image, (self.reticle_x, self.reticle_y),
-                   5, (0, 0, 0), -1)
+        # cv2.circle(image, (self.reticle_x, self.reticle_y),
+        #            5, (0, 0, 0), -1)
         cv2.circle(image, (self.center_x, self.center_y), 5, (0, 0, 0), -1)
 
     # @staticmethod
@@ -77,15 +74,20 @@ class ShowVideo(QtCore.QObject):
         function_pointer = lib.tl_camera_frame_available_callback
         print('setting frame available callback...',
               lib.tl_camera_set_frame_available_callback(self.camera_handle, function_pointer, ffi.new('int*', 0)))
-        print('setting exposure...', lib.tl_camera_set_exposure_time(self.camera_handle, 60))
+        print('setting exposure...', lib.tl_camera_set_exposure_time(self.camera_handle, INITIAL_EXPOSURE))
         print('setting frames per trigger...',
               lib.tl_camera_set_frames_per_trigger_zero_for_unlimited(self.camera_handle, 0))
         print('arming camera...', lib.tl_camera_arm(self.camera_handle, 1))
         print('triggering camera...', lib.tl_camera_issue_software_trigger(self.camera_handle))
+        print('setting brightness...', stage.send_receive('7LED X={}'.format(INITIAL_BRIGHTNESS)))
 
     def change_exposure(self, value):
         comment('setting exposure to {}'.format(value))
         lib.tl_camera_set_exposure_time(self.camera_handle, int(value))
+
+    def change_brightness(self, value):
+        comment('setting brightness to {}'.format(value))
+        stage.send_receive('7LED X={}'.format(value))
 
 
 class ImageViewer(QtWidgets.QWidget):
@@ -103,6 +105,7 @@ class ImageViewer(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(QtGui.QImage)
     def setImage(self, image):
+
         if image.isNull():
             comment("Viewer Dropped frame!")
         self.image = image
@@ -182,6 +185,7 @@ class main_window(QMainWindow):
         self.start_video_signal.connect(self.vid.startVideo)
         self.start_video_signal.emit()
         self.ui.exposure_doublespin_box.valueChanged.connect(self.vid.change_exposure)
+        self.ui.brightness_doublespin_box.valueChanged.connect(self.vid.change_brightness)
 
         # Screenshot and comment buttons
         self.ui.misc_screenshot_button.clicked.connect(self.screen_shooter.save_misc_image)
@@ -259,9 +263,9 @@ class main_window(QMainWindow):
 
     @QtCore.pyqtSlot()
     def qswitch_screenshot_slot(self):
-        self.qswitch_screenshot_signal.emit(15)
+        # self.qswitch_screenshot_signal.emit(15)
         # comment('stage position during qswitch: {}'.format(stage.get_position_slot()))
-        laser.fire_qswitch()
+        stage.send_laser_pulse()
 
     @QtCore.pyqtSlot('PyQt_PyObject')
     def ai_fire_qswitch_slot(self, auto_fire):
@@ -270,16 +274,6 @@ class main_window(QMainWindow):
         #     laser.qswitch_auto()
         # else:
         #     laser.fire_qswitch()
-
-    @QtCore.pyqtSlot()
-    def start_laser_flash_slot(self):
-        pass
-        # laser.fire_auto()
-
-    @QtCore.pyqtSlot()
-    def stop_laser_flash_slot(self):
-        pass
-        # laser.stop_flash()
 
     def keyPressEvent(self, event):
         if not event.isAutoRepeat():
@@ -291,7 +285,7 @@ class main_window(QMainWindow):
                 68: stage.move_right,
                 66: stage.move_last,
                 # 16777249: laser.fire_auto,
-                # 70: self.qswitch_screenshot_slot,
+                70: self.qswitch_screenshot_slot,
                 # 81: laser.qswitch_auto,
                 # 73: stage.start_roll_down,
                 # 75:self.autofocuser.roll_backward,
@@ -329,6 +323,7 @@ class main_window(QMainWindow):
 
 
 if __name__ == '__main__':
+    # TODO refactor so the gui runs on separate process from "stage"
     parser = argparse.ArgumentParser()
     parser.add_argument('test_run')
     args = parser.parse_args()
