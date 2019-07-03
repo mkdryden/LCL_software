@@ -40,6 +40,7 @@ class screen_shooter(QtCore.QObject):
         self.image_title = ''
         self.recording = False
         self.movie_file = None
+        self.image = None
 
     @QtCore.pyqtSlot('PyQt_PyObject')
     def screenshot_slot(self, image):

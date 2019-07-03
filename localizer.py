@@ -42,6 +42,7 @@ class wellStitcher():
 		self.well_img = np.zeros((self.img_y*self.box_size,self.img_x*self.box_size,3))		
 		self.stitch_img(initial_img)
 
+
 	def manage_zoom(self,pos):
 		print('trackbar at',pos)
 
@@ -86,12 +87,14 @@ class Localizer(QtCore.QObject):
 		self.cells_to_lyse = 1
 		self.cell_type_to_lyse = 'red'
 		self.lysis_mode = 'direct'
-		self.auto_mode = False		
-		im_loc = os.path.join(experiment_folder_location,'test_img.jpeg')
-		self.hallucination_img = cv2.imread(im_loc)
-		img = self.get_network_output(self.hallucination_img)
-		plt.imshow(img)
-		plt.show()
+		self.auto_mode = False
+
+		# ONLY NEED THESE LINES FOR TESTING
+		# im_loc = os.path.join(experiment_folder_location,'test_img.jpeg')
+		# self.hallucination_img = cv2.imread(im_loc)
+		# img = self.get_network_output(self.hallucination_img)
+		# plt.imshow(img)
+		# plt.show()
 
 
 	@QtCore.pyqtSlot('PyQt_PyObject')
@@ -137,6 +140,7 @@ class Localizer(QtCore.QObject):
 
 	@QtCore.pyqtSlot()
 	def tile_slot(self):
+		print('clicked!')
 		# first get our well center position		
 		self.well_center = self.get_stage_position()		
 		box_size = 6
