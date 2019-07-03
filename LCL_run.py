@@ -14,7 +14,7 @@ from fluorescence_controller import ExcitationController
 from laser_controller import LaserController
 # import time
 # import threading
-from PyQt5.QtWidgets import QInputDialog, QLineEdit
+from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 # from autofocus import autofocuser
 from localizer import Localizer
 # import matplotlib.pyplot as plt
@@ -24,7 +24,7 @@ assert lib.tl_camera_sdk_dll_initialize() == 0
 assert lib.tl_camera_open_sdk() == 0
 
 SHIFT_AMT = np.array([4], dtype=np.uint8)
-INITIAL_EXPOSURE = 5000
+INITIAL_EXPOSURE = 5*1000
 INITIAL_BRIGHTNESS = 50
 
 
@@ -87,7 +87,7 @@ class ShowVideo(QtCore.QObject):
 
     def change_exposure(self, value):
         comment('setting exposure to {}'.format(value))
-        lib.tl_camera_set_exposure_time(self.camera_handle, int(value))
+        lib.tl_camera_set_exposure_time(self.camera_handle, int(value*1000))
 
     def change_brightness(self, value):
         comment('setting brightness to {}'.format(value))
@@ -190,13 +190,13 @@ class MainWindow(QMainWindow):
 
         # Stage movement buttons
         self.ui.step_size_doublespin_box.valueChanged.connect(asi_controller.set_step_size)
-        self.ui.repetition_rate_double_spin_box.valueChanged.connect(laser.set_pulse_frequency)
-        self.ui.burst_count_double_spin_box.valueChanged.connect(laser.set_burst_counter)
+        # self.ui.repetition_rate_double_spin_box.valueChanged.connect(laser.set_pulse_frequency)
+        # self.ui.burst_count_double_spin_box.valueChanged.connect(laser.set_burst_counter)
         self.setup_comboboxes()
         # self.localizer.get_position_signal.connect(asi_controller.get_position_slot)
         # stage.position_return_signal.connect(self.localizer.position_return_slot)
         self.ui.autofocus_checkbox.stateChanged.connect(self.autofocus_toggle)
-        self.ui.retract_objective_checkbox.setChecked(asi_controller.get_objective_retracted())
+        self.ui.retract_objective_checkbox.setChecked(asi_controller.get_is_objective_retracted())
         self.ui.retract_objective_checkbox.stateChanged.connect(asi_controller.toggle_objective_retraction)
         self.ui.calibrate_af_pushbutton.clicked.connect(asi_controller.calibrate_af)
         self.ui.intensity_doublespin_box.valueChanged.connect(excitation.change_intensity)
@@ -207,6 +207,7 @@ class MainWindow(QMainWindow):
         # print('WIDTH:', self.ui.verticalLayoutWidget.frameGeometry().width())
         # print('HEIGHT:', self.ui.verticalLayoutWidget.frameGeometry().height())
         comment('finished gui init')
+
 
     def get_text(self, text_prompt):
         text, okPressed = QInputDialog.getText(self, "Experiment Input", text_prompt, QLineEdit.Normal, "")
@@ -221,7 +222,7 @@ class MainWindow(QMainWindow):
         checks = ['a', 'e', 'i', 'o', 'u'] + [str(num) for num in nums]
         for key, value in var_dict.items():
             good_entry = False
-            while good_entry != True:
+            while good_entry is not True:
                 user_input = self.get_text(var_dict[key])
                 val = user_input.lower()
                 if any(vowel in val for vowel in checks):
@@ -258,14 +259,17 @@ class MainWindow(QMainWindow):
         comment('user comment:{}'.format(self.ui.comment_box.toPlainText()))
         self.ui.comment_box.clear()
 
-    @QtCore.pyqtSlot()
-    def qswitch_screenshot_slot(self):
-        if self.laser_enable:
-            # self.qswitch_screenshot_signal.emit(15)
-            # comment('stage position during qswitch: {}'.format(asi_controller.get_position_slot()))
-            laser.start_burst()
+    # @QtCore.pyqtSlot()
+    # def qswitch_screenshot_slot(self):
+    #     if self.laser_enable:
+    #         self.qswitch_screenshot_signal.emit(15)
+    #         comment('stage position during qswitch: {}'.format(asi_controller.get_position_slot()))
+    #         laser.start_burst()
 
     def enable_laser_firing(self):
+        if asi_controller.get_cube_position() == 1:
+            _ = QMessageBox.about(self, 'Bad!', 'You are trying to fire the laser at the filter!')
+            return
         self.ui.laser_groupbox.setTitle('Laser - ARMED')
         self.laser_enable = True
 
@@ -283,7 +287,7 @@ class MainWindow(QMainWindow):
 
     def keyPressEvent(self, event):
         if not event.isAutoRepeat():
-            print('key pressed {}'.format(event.key()))
+            # print('key pressed {}'.format(event.key()))
             key_control_dict = {
                 87: asi_controller.move_up,
                 65: asi_controller.move_left,
@@ -291,7 +295,7 @@ class MainWindow(QMainWindow):
                 68: asi_controller.move_right,
                 66: asi_controller.move_last,
                 16777249: self.enable_laser_firing,
-                70: self.qswitch_screenshot_slot,
+                # 70: self.qswitch_screenshot_slot,
                 # 81: laser.qswitch_auto,
                 # 73: stage.start_roll_down,
                 # 75:self.autofocuser.roll_backward,
@@ -310,7 +314,7 @@ class MainWindow(QMainWindow):
             # print('key released: {}'.format(event.key()))
             key_control_dict = {
                 16777249: self.disable_laser_firing,
-                70: laser.stop_burst
+                # 70: laser.stop_burst
             }
             if event.key() in key_control_dict.keys():
                 key_control_dict[event.key()]()
@@ -322,7 +326,7 @@ if __name__ == '__main__':
     parser.add_argument('test_run')
     args = parser.parse_args()
     app = QApplication(sys.argv)
-    laser = LaserController()
+    # laser = LaserController()
     asi_controller = StageController()
     excitation = ExcitationController()
     window = MainWindow(args.test_run)

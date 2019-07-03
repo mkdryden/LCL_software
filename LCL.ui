@@ -17,7 +17,7 @@
    </font>
   </property>
   <property name="focusPolicy">
-   <enum>Qt::StrongFocus</enum>
+   <enum>Qt::ClickFocus</enum>
   </property>
   <property name="windowTitle">
    <string>LCL System</string>
@@ -146,6 +146,9 @@
     <property name="focusPolicy">
      <enum>Qt::ClickFocus</enum>
     </property>
+    <property name="suffix">
+     <string>μm</string>
+    </property>
     <property name="decimals">
      <number>0</number>
     </property>
@@ -156,10 +159,10 @@
      <double>10000.000000000000000</double>
     </property>
     <property name="singleStep">
-     <double>5.000000000000000</double>
+     <double>50.000000000000000</double>
     </property>
     <property name="value">
-     <double>5.000000000000000</double>
+     <double>50.000000000000000</double>
     </property>
    </widget>
    <widget class="QLabel" name="step_size_label">
@@ -332,7 +335,7 @@ Navigate</string>
      <enum>Qt::ClickFocus</enum>
     </property>
     <property name="suffix">
-     <string>μs</string>
+     <string>ms</string>
     </property>
     <property name="decimals">
      <number>0</number>
@@ -341,13 +344,13 @@ Navigate</string>
      <double>1.000000000000000</double>
     </property>
     <property name="maximum">
-     <double>1000000.000000000000000</double>
+     <double>10000.000000000000000</double>
     </property>
     <property name="singleStep">
-     <double>1000.000000000000000</double>
+     <double>5.000000000000000</double>
     </property>
     <property name="value">
-     <double>5000.000000000000000</double>
+     <double>5.000000000000000</double>
     </property>
    </widget>
    <widget class="QLabel" name="exposure_label">
@@ -386,7 +389,7 @@ Navigate</string>
      </rect>
     </property>
     <property name="focusPolicy">
-     <enum>Qt::ClickFocus</enum>
+     <enum>Qt::NoFocus</enum>
     </property>
     <property name="suffix">
      <string>%</string>
@@ -395,7 +398,7 @@ Navigate</string>
      <number>0</number>
     </property>
     <property name="minimum">
-     <double>1.000000000000000</double>
+     <double>0.000000000000000</double>
     </property>
     <property name="maximum">
      <double>100.000000000000000</double>
@@ -619,7 +622,7 @@ Navigate</string>
       <string>hz</string>
      </property>
      <property name="decimals">
-      <number>1</number>
+      <number>0</number>
      </property>
      <property name="minimum">
       <double>1.000000000000000</double>

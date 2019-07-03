@@ -1,3 +1,4 @@
+import future
 import serial, sys
 import numpy as np
 from utils import comment
@@ -15,7 +16,7 @@ class StageController(QtCore.QObject):
         '''
         super(StageController, self).__init__(parent)
         self.ser = self.get_connection()
-        self.step_size = 5
+        self.step_size = 500
         self.reverse_move_vector = np.zeros(2)
         self.return_from_dmf_vector = np.zeros(2)
         self.magnification = 4
@@ -29,16 +30,30 @@ class StageController(QtCore.QObject):
         comment(self.send_receive('7TTL Y=0'))
         self.steps_between_wells = 4400
         self.down = False
-        # TODO make it so the system knows if the objective is retracted!
         self.objective_retracted = None
+        self.previous_z = None
 
-    def get_objective_retracted(self):
+    def get_all_positions(self):
+        positions = self.send_receive('W X Y Z')
+        cleaned = positions.replace('\r', '').split(' ')[1:-1]
+        self.x, self.y, self.z = [int(x) for x in cleaned]
+        return self.x, self.y, self.z
+
+    def move(self, x=None, y=None, z=None):
+        cmd_string = 'M'
+        for direction, var in zip(['X', 'Y', 'Z'], [x, y, z]):
+            if var is not None:
+                cmd_string += f' {direction}={var}'
+        self.send_receive(cmd_string)
+
+    def get_is_objective_retracted(self):
         pos = int(self.send_receive('W Z').split(':A ')[1])
-        if pos > -100000:
+        # up is negative. ~95000 is in focus for 20x
+        if pos > -80000:
             comment('objective is retracted on startup')
             self.objective_retracted = True
             return True
-        elif pos < -100000:
+        elif pos < -80000:
             comment('objective is down on startup')
             self.objective_retracted = False
             return False
@@ -111,7 +126,7 @@ class StageController(QtCore.QObject):
 
     def set_step_size(self, step_size):
         comment('step size changed to: {}'.format(step_size))
-        self.step_size = step_size
+        self.step_size = step_size*10
 
     def issue_command(self, command, suppress_msg=False):
         '''
@@ -194,7 +209,7 @@ class StageController(QtCore.QObject):
 
     @QtCore.pyqtSlot('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
     def localizer_move_slot(self, move_vector, goto_reticle=False, move_relative=True, scale_vector=True):
-        if move_relative == True and scale_vector == True:
+        if move_relative is True and scale_vector == True:
             if goto_reticle == True:
                 center = np.array([self.center_x, self.center_y])
                 reticle = np.array([self.reticle_x, self.reticle_y])
@@ -234,12 +249,13 @@ class StageController(QtCore.QObject):
         return int(pos) - 1
 
     def pull_objective_up(self):
-        self.send_receive('R Z=100000')
+        _,_, self.previous_z = self.get_all_positions()
+        self.move(z=0)
         while 'N' not in self.send_receive('STATUS'):
-            time.sleep(1)
+            time.sleep(.5)
 
     def set_objective_down(self):
-        self.send_receive('R Z=-100000')
+        self.move(z=self.previous_z)
 
     def turn_on_autofocus(self):
         self.set_focus_state('lock')
@@ -281,11 +297,12 @@ if __name__ == '__main__':
     # print(stage.send_receive('LK F=102'))
     # print(stage.send_receive('LK F=97'))
     # print(stage.send_receive('{}LED X=100'.format(7)))
+    # stage.move(x=0, y=0, z=-80000)
+    stage.get_all_positions()
     # while True:
     # print(stage.issue_command('7TTL Y=1'))
     # print(stage.issue_command('7TTL Y=0'))
     # stage.send_receive('W Z')
-    print(int(stage.send_receive('W Z').split(':A ')[1]))
     # stage.send_receive('LK F=79')
     # time.sleep(.5)
     # stage.send_receive('LK F=85')
