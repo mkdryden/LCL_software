@@ -118,7 +118,6 @@ class ImageViewer(QtWidgets.QWidget):
         click_x, click_y = QMouseEvent.pos().x(), QMouseEvent.pos().y()
         self.click_move_signal.emit(click_x, click_y)
 
-
 class MainWindow(QMainWindow):
     start_video_signal = QtCore.pyqtSignal()
     qswitch_screenshot_signal = QtCore.pyqtSignal('PyQt_PyObject')
@@ -164,7 +163,7 @@ class MainWindow(QMainWindow):
         self.vid.vid_process_signal.connect(self.screen_shooter.screenshot_slot)
         self.ui.record_push_button.clicked.connect(self.screen_shooter.toggle_recording_slot)
         # self.vid.vid_process_signal.connect(self.autofocuser.vid_process_slot)
-        # self.vid.vid_process_signal.connect(self.localizer.vid_process_slot)
+        self.vid.vid_process_signal.connect(self.localizer.vid_process_slot)
         self.qswitch_screenshot_signal.connect(self.screen_shooter.save_qswitch_fire_slot)
         self.localizer.qswitch_screenshot_signal.connect(self.screen_shooter.save_qswitch_fire_slot)
         # self.start_focus_signal.connect(self.autofocuser.autofocus)
@@ -190,11 +189,11 @@ class MainWindow(QMainWindow):
 
         # Stage movement buttons
         self.ui.step_size_doublespin_box.valueChanged.connect(asi_controller.set_step_size)
-        # self.ui.repetition_rate_double_spin_box.valueChanged.connect(laser.set_pulse_frequency)
-        # self.ui.burst_count_double_spin_box.valueChanged.connect(laser.set_burst_counter)
+        self.ui.repetition_rate_double_spin_box.valueChanged.connect(laser.set_pulse_frequency)
+        self.ui.burst_count_double_spin_box.valueChanged.connect(laser.set_burst_counter)
         self.setup_comboboxes()
-        # self.localizer.get_position_signal.connect(asi_controller.get_position_slot)
-        # stage.position_return_signal.connect(self.localizer.position_return_slot)
+        self.localizer.get_position_signal.connect(asi_controller.get_all_positions)
+        asi_controller.position_return_signal.connect(self.localizer.position_return_slot)
         self.ui.autofocus_checkbox.stateChanged.connect(self.autofocus_toggle)
         self.ui.retract_objective_checkbox.setChecked(asi_controller.get_is_objective_retracted())
         self.ui.retract_objective_checkbox.stateChanged.connect(asi_controller.toggle_objective_retraction)
@@ -244,11 +243,11 @@ class MainWindow(QMainWindow):
         self.ui.excitation_lamp_on_combobox.addItems(['Off', '385nm', '430nm', '475nm', '525nm', '575nm', '630nm',
                                                       'All'])
         self.ui.excitation_lamp_on_combobox.currentIndexChanged.connect(excitation.change_fluorescence)
-        self.ui.magnification_combobox.addItems(['20x', '40x', 'None', 'None', 'None'])
+        self.ui.magnification_combobox.addItems(['20x', '40x', '100x', 'None', 'None'])
         self.ui.cube_position_combobox.addItems(['1', '2', '3', '4'])
         self.ui.magnification_combobox.setCurrentIndex(asi_controller.get_objective_position())
         self.ui.cube_position_combobox.setCurrentIndex(asi_controller.get_cube_position())
-        self.ui.magnification_combobox.currentIndexChanged.connect(asi_controller.change_magnification)
+        self.ui.magnification_combobox.currentIndexChanged.connect(self.change_magnification)
         self.ui.cube_position_combobox.currentIndexChanged.connect(asi_controller.change_cube_position)
         self.ui.cell_type_to_lyse_comboBox.addItems(['red', 'green'])
         self.ui.lysis_mode_comboBox.addItems(['direct', 'excision'])
@@ -259,12 +258,17 @@ class MainWindow(QMainWindow):
         comment('user comment:{}'.format(self.ui.comment_box.toPlainText()))
         self.ui.comment_box.clear()
 
-    # @QtCore.pyqtSlot()
-    # def qswitch_screenshot_slot(self):
-    #     if self.laser_enable:
-    #         self.qswitch_screenshot_signal.emit(15)
-    #         comment('stage position during qswitch: {}'.format(asi_controller.get_position_slot()))
-    #         laser.start_burst()
+    def change_magnification(self, index):
+        _ = QMessageBox.about(self, 'Notice', 'Wait for objective to reposition before continuing.')
+        time.sleep(1)
+        asi_controller.change_magnification(index)
+
+    @QtCore.pyqtSlot()
+    def qswitch_screenshot_slot(self):
+        if self.laser_enable:
+            self.qswitch_screenshot_signal.emit(15)
+            comment('stage position during qswitch: {}'.format(asi_controller.get_all_positions()))
+            laser.start_burst()
 
     def enable_laser_firing(self):
         if asi_controller.get_cube_position() == 1:
@@ -295,7 +299,7 @@ class MainWindow(QMainWindow):
                 68: asi_controller.move_right,
                 66: asi_controller.move_last,
                 16777249: self.enable_laser_firing,
-                # 70: self.qswitch_screenshot_slot,
+                70: self.qswitch_screenshot_slot,
                 # 81: laser.qswitch_auto,
                 # 73: stage.start_roll_down,
                 # 75:self.autofocuser.roll_backward,
@@ -326,7 +330,7 @@ if __name__ == '__main__':
     parser.add_argument('test_run')
     args = parser.parse_args()
     app = QApplication(sys.argv)
-    # laser = LaserController()
+    laser = LaserController()
     asi_controller = StageController()
     excitation = ExcitationController()
     window = MainWindow(args.test_run)

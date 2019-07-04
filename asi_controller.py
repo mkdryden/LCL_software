@@ -32,11 +32,25 @@ class StageController(QtCore.QObject):
         self.down = False
         self.objective_retracted = None
         self.previous_z = None
+        self.objective_slots = {
+            1: 20,
+            2: 40,
+            3: 100,
+            4: 'None',
+            5: 'None'
+        }
+        self.objective_calibration_factors = {
+            20: 1,
+            40: 0.51,
+            100: 0.205}
+        self.current_magnification = self.objective_slots[self.get_objective_position() + 1]
 
+    @QtCore.pyqtSlot()
     def get_all_positions(self):
         positions = self.send_receive('W X Y Z')
         cleaned = positions.replace('\r', '').split(' ')[1:-1]
         self.x, self.y, self.z = [int(x) for x in cleaned]
+        self.position_return_signal.emit(np.array([self.x, self.y]))
         return self.x, self.y, self.z
 
     def move(self, x=None, y=None, z=None):
@@ -66,13 +80,13 @@ class StageController(QtCore.QObject):
         self.objective_retracted = not self.objective_retracted
 
     def get_connection(self):
-        possible_coms = range(0,5)
+        possible_coms = range(0, 5)
         for com in possible_coms:
             try:
                 com = '/dev/ttyUSB{}'.format(com)
                 parity = serial.PARITY_NONE
                 ser = serial.Serial(com, 115200, timeout=.25,
-                                         parity=parity)
+                                    parity=parity)
                 ser.write('BU\r'.encode('utf-8'))
                 response = ser.readline()
                 if response == b'TIGER_COMM\r\n':
@@ -92,17 +106,11 @@ class StageController(QtCore.QObject):
         self.reticle_y = reticle_y
 
     def change_magnification(self, index):
-        map_dict = {
-            1: 20,
-            2: 40,
-            3: 'None',
-            4: 'None',
-            5: 'None'
-        }
         self.pull_objective_up()
         self.send_receive('MOVE O={}'.format(index + 1))
         self.set_objective_down()
-        comment('magnification changed to: {}'.format(map_dict[index + 1]))
+        self.current_magnification = self.objective_slots[index + 1]
+        comment(f'magnification changed to: {self.current_magnification}')
         # self.compensate_for_objective_offsets(self.magnification, map_dict[index + 1])
 
     def change_cube_position(self, index):
@@ -126,12 +134,9 @@ class StageController(QtCore.QObject):
 
     def set_step_size(self, step_size):
         comment('step size changed to: {}'.format(step_size))
-        self.step_size = step_size*10
+        self.step_size = step_size * 10
 
     def issue_command(self, command, suppress_msg=False):
-        '''
-        sends command and handles any errors from stage
-        '''
         command_string = '{}\r'.format(command)
         if not suppress_msg:
             comment('sending command to stage:{}'.format(command_string))
@@ -183,28 +188,19 @@ class StageController(QtCore.QObject):
     def move_last(self):
         return self.move_relative(self.reverse_move_vector)
 
-    # def remove_calibrated_error(self, x, y):
-    #     # an attempt to calibrate out some error...
-    #     if self.magnification == 4:
-    #         x_error = -.036 * x + 5.5586
-    #         x += x_error
-    #         y_error = -.0573 * y - 5.1509
-    #         y += y_error
-    #     return np.array([int(x), int(y)])
-
     def scale_move_vector(self, vector):
-        return vector / self.magnification * self.microns_per_pixel * self.calibration_factor
+        default_calibration = 4.8
+        return np.round(vector * default_calibration * self.objective_calibration_factors[self.current_magnification],
+                        4)
 
     def click_move_slot(self, click_x, click_y):
         # center movement:
-        # window_center = np.array([851/2,681/2])
-        # reticle movement:
-        window_center = np.array([self.reticle_x * 1352 / 4096, self.reticle_y * 712 / 2160])
+        window_center = np.array([1352 / 2, 712 / 2])
+        # # reticle movement:
+        # window_center = np.array([self.reticle_x * 1352 / 4096, self.reticle_y * 712 / 2160])
         mouse_click_location = np.array([click_x, click_y])
         pixel_move_vector = mouse_click_location - window_center
         step_move_vector = self.scale_move_vector(pixel_move_vector)
-        step_move_vector = self.remove_calibrated_error(step_move_vector[0], step_move_vector[1])
-        comment('click move vector: {}'.format(step_move_vector))
         return self.move_relative(step_move_vector)
 
     @QtCore.pyqtSlot('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
@@ -217,10 +213,10 @@ class StageController(QtCore.QObject):
                 move_vector += center_to_reticle
             move_vector = self.scale_move_vector(move_vector)
             self.move_relative(move_vector)
-        elif move_relative == False and scale_vector == False:
+        elif move_relative is False and scale_vector is False:
             # print(move_vector)
-            self.go_to_position(move_vector)
-        elif move_relative == True and scale_vector == False:
+            self.move(x=move_vector[0], y=move_vector[1])
+        elif move_relative is True and scale_vector is False:
             self.move_relative(move_vector)
 
     # zoom and recenter gui signals
@@ -249,7 +245,7 @@ class StageController(QtCore.QObject):
         return int(pos) - 1
 
     def pull_objective_up(self):
-        _,_, self.previous_z = self.get_all_positions()
+        _, _, self.previous_z = self.get_all_positions()
         self.move(z=0)
         while 'N' not in self.send_receive('STATUS'):
             time.sleep(.5)
@@ -293,29 +289,4 @@ class StageController(QtCore.QObject):
 
 if __name__ == '__main__':
     stage = StageController()
-    # print(stage.send_receive('R Z=100000'))
-    # print(stage.send_receive('LK F=102'))
-    # print(stage.send_receive('LK F=97'))
-    # print(stage.send_receive('{}LED X=100'.format(7)))
-    # stage.move(x=0, y=0, z=-80000)
     stage.get_all_positions()
-    # while True:
-    # print(stage.issue_command('7TTL Y=1'))
-    # print(stage.issue_command('7TTL Y=0'))
-    # stage.send_receive('W Z')
-    # stage.send_receive('LK F=79')
-    # time.sleep(.5)
-    # stage.send_receive('LK F=85')
-    # time.sleep(.5)
-    # stage.send_receive('LK F=72')
-    # time.sleep(.5)
-    # stage.send_receive('LK F=102')
-    # time.sleep(.5)
-    # for i in range(10 ** 7):
-    #     stage.send_receive('LK Y?')
-    #     time.sleep(.02)
-    # stage.send_receive('LK F=79')
-    # print(stage.send_receive('DU Y'))
-
-    # time.sleep(5)
-    # print(stage.get_objective_position())

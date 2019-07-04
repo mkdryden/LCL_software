@@ -1,4 +1,4 @@
-import serial
+import serial, sys
 import numpy as np
 from utils import comment
 from PyQt5 import QtCore
@@ -6,29 +6,40 @@ import time
 
 DEFAULT_INTENSITY = 50
 
+
 class ExcitationController(QtCore.QObject):
     position_return_signal = QtCore.pyqtSignal('PyQt_PyObject')
 
     def __init__(self, parent=None):
-        '''
-        open the serial port and check the status of the stage
-        '''
         super(ExcitationController, self).__init__(parent)
-        com = '/dev/ttyACM0'
-        baud = 19200
-        parity = serial.PARITY_NONE
-        self.ser = serial.Serial(com, baud, timeout=.25,
-                                 parity=parity)
-        comment(self.send_receive('co'))
+        self.ser = self.get_connection()
         comment(self.send_receive('lh?'))
         comment(self.send_receive(('ip=' + ','.join(['500' for i in range(6)]))))
-        comment(self.send_receive('lh?'))
         self.lamp_index = 0
         self.current_intensity = DEFAULT_INTENSITY
         self.turn_all_off()
-        # comment(self.send_receive('sv?'))
-        # dictionary containing tuples in the form: (cube_position, led_position)
 
+    def get_connection(self):
+        possible_coms = range(0, 5)
+        for com in possible_coms:
+            try:
+                com = '/dev/ttyACM{}'.format(com)
+                parity = serial.PARITY_NONE
+                ser = serial.Serial(com, 19200, timeout=.25,
+                                    parity=parity)
+                ser.write('co\r'.encode('utf-8'))
+                response = ser.readline()
+                print('response:', response)
+                ser.write('sn?\r'.encode('utf-8'))
+                response = ser.readline()
+                if response == b'223\r':
+                    comment('fluorescence controller found on {}'.format(com))
+                    return ser
+            except Exception as e:
+                print(e)
+                comment('fluorescence controller not on COM ' + com)
+        comment('could not connect to fluorescence controller. exiting...')
+        sys.exit(1)
 
     def get_response(self):
         response = ''
@@ -40,9 +51,6 @@ class ExcitationController(QtCore.QObject):
         return response
 
     def issue_command(self, command, suppress_msg=False):
-        '''
-        sends command and handles any errors from excitation lamp
-        '''
         command_string = '{}\r'.format(command)
         if (not suppress_msg):
             comment('sending command to excitation lamp:{}'.format(command_string))
@@ -54,7 +62,7 @@ class ExcitationController(QtCore.QObject):
         return response
 
     def turn_led_on(self, led):
-        self.send_receive('on='+str(led))
+        self.send_receive('on=' + str(led))
         self.send_receive('on?')
         self.send_receive('ip?')
 
@@ -77,7 +85,7 @@ class ExcitationController(QtCore.QObject):
         self.current_intensity = intensity
         if self.lamp_index == 0: return
         intensity *= 10
-        cmd_string = 'ip=' + ',' * (self.lamp_index-1) + str(int(intensity))
+        cmd_string = 'ip=' + ',' * (self.lamp_index - 1) + str(int(intensity))
         self.send_receive(cmd_string)
         self.send_receive('ip?')
 
@@ -86,9 +94,10 @@ class ExcitationController(QtCore.QObject):
         self.send_receive('on=a')
         self.send_receive('on?')
 
+
 if __name__ == '__main__':
     fluor = ExcitationController()
     fluor.turn_all_off()
     # fluor.turn_led_on(3)
     # fluor.send_receive('0,1,0,0,0,0,0')
-    fluor.send_receive('ip?')
+    # fluor.send_receive('sn?\r')

@@ -39,9 +39,6 @@ class LaserController:
         sys.exit(1)
 
     def issue_command(self, command, suppress_msg=False):
-        '''
-        sends command and handles any errors from excitation lamp
-        '''
         if (not suppress_msg):
             comment('sending command to laser:{}'.format(command))
         self.ser.write(command.encode('utf-8'))
