@@ -137,10 +137,10 @@
    <widget class="QDoubleSpinBox" name="step_size_doublespin_box">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>260</y>
+      <x>150</x>
+      <y>400</y>
       <width>71</width>
-      <height>22</height>
+      <height>31</height>
      </rect>
     </property>
     <property name="focusPolicy">
@@ -168,8 +168,8 @@
    <widget class="QLabel" name="step_size_label">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>240</y>
+      <x>150</x>
+      <y>380</y>
       <width>81</width>
       <height>16</height>
      </rect>
@@ -196,7 +196,7 @@
        <x>10</x>
        <y>40</y>
        <width>101</width>
-       <height>22</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="focusPolicy">
@@ -321,215 +321,6 @@ to Lyse</string>
      <string>Tile</string>
     </property>
    </widget>
-   <widget class="QDoubleSpinBox" name="exposure_doublespin_box">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
-      <y>370</y>
-      <width>101</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <property name="focusPolicy">
-     <enum>Qt::ClickFocus</enum>
-    </property>
-    <property name="suffix">
-     <string>ms</string>
-    </property>
-    <property name="decimals">
-     <number>0</number>
-    </property>
-    <property name="minimum">
-     <double>1.000000000000000</double>
-    </property>
-    <property name="maximum">
-     <double>10000.000000000000000</double>
-    </property>
-    <property name="singleStep">
-     <double>5.000000000000000</double>
-    </property>
-    <property name="value">
-     <double>5.000000000000000</double>
-    </property>
-   </widget>
-   <widget class="QLabel" name="exposure_label">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
-      <y>350</y>
-      <width>131</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Exposure</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="brightness_label">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
-      <y>400</y>
-      <width>131</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Brightness</string>
-    </property>
-   </widget>
-   <widget class="QDoubleSpinBox" name="brightness_doublespin_box">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
-      <y>420</y>
-      <width>101</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <property name="focusPolicy">
-     <enum>Qt::NoFocus</enum>
-    </property>
-    <property name="suffix">
-     <string>%</string>
-    </property>
-    <property name="decimals">
-     <number>0</number>
-    </property>
-    <property name="minimum">
-     <double>0.000000000000000</double>
-    </property>
-    <property name="maximum">
-     <double>100.000000000000000</double>
-    </property>
-    <property name="singleStep">
-     <double>10.000000000000000</double>
-    </property>
-    <property name="value">
-     <double>50.000000000000000</double>
-    </property>
-   </widget>
-   <widget class="QGroupBox" name="fluorescence_groupBox">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>290</y>
-      <width>120</width>
-      <height>171</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Fluorescence</string>
-    </property>
-    <widget class="QLabel" name="excitation_lamp_on_label">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>70</y>
-       <width>101</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Excitation</string>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="cube_position_combobox">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>40</y>
-       <width>51</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="focusPolicy">
-      <enum>Qt::NoFocus</enum>
-     </property>
-     <property name="editable">
-      <bool>false</bool>
-     </property>
-     <property name="currentText">
-      <string extracomment="4x"/>
-     </property>
-    </widget>
-    <widget class="QLabel" name="cube_position_label">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>20</y>
-       <width>81</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Cube Position</string>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="excitation_lamp_on_combobox">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>90</y>
-       <width>71</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="focusPolicy">
-      <enum>Qt::NoFocus</enum>
-     </property>
-     <property name="editable">
-      <bool>false</bool>
-     </property>
-     <property name="currentText">
-      <string extracomment="4x"/>
-     </property>
-    </widget>
-    <widget class="QLabel" name="intensity_label">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>120</y>
-       <width>101</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Intensity</string>
-     </property>
-    </widget>
-    <widget class="QDoubleSpinBox" name="intensity_doublespin_box">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>140</y>
-       <width>71</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="focusPolicy">
-      <enum>Qt::ClickFocus</enum>
-     </property>
-     <property name="suffix">
-      <string>%</string>
-     </property>
-     <property name="decimals">
-      <number>0</number>
-     </property>
-     <property name="minimum">
-      <double>5.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>100.000000000000000</double>
-     </property>
-     <property name="singleStep">
-      <double>10.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>50.000000000000000</double>
-     </property>
-    </widget>
-   </widget>
    <widget class="QGroupBox" name="autofocus_groubox">
     <property name="geometry">
      <rect>
@@ -577,10 +368,10 @@ to Lyse</string>
    <widget class="QGroupBox" name="laser_groupbox">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>470</y>
+      <x>150</x>
+      <y>440</y>
       <width>120</width>
-      <height>121</height>
+      <height>131</height>
      </rect>
     </property>
     <property name="title">
@@ -592,7 +383,7 @@ to Lyse</string>
        <x>10</x>
        <y>40</y>
        <width>66</width>
-       <height>24</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="decimals">
@@ -614,7 +405,7 @@ to Lyse</string>
        <x>10</x>
        <y>90</y>
        <width>66</width>
-       <height>24</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="suffix">
@@ -667,7 +458,7 @@ to Lyse</string>
     <property name="geometry">
      <rect>
       <x>150</x>
-      <y>500</y>
+      <y>350</y>
       <width>111</width>
       <height>21</height>
      </rect>
@@ -676,49 +467,320 @@ to Lyse</string>
      <string>Retract Objective</string>
     </property>
    </widget>
-   <widget class="QDoubleSpinBox" name="gain_doublespin_box">
+   <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>150</x>
-      <y>470</y>
-      <width>101</width>
-      <height>22</height>
+      <x>10</x>
+      <y>250</y>
+      <width>120</width>
+      <height>471</height>
      </rect>
     </property>
-    <property name="focusPolicy">
-     <enum>Qt::ClickFocus</enum>
+    <property name="title">
+     <string>Acquisition Settings</string>
     </property>
-    <property name="suffix">
-     <string/>
-    </property>
-    <property name="decimals">
-     <number>0</number>
-    </property>
-    <property name="minimum">
-     <double>0.000000000000000</double>
-    </property>
-    <property name="maximum">
-     <double>480.000000000000000</double>
-    </property>
-    <property name="singleStep">
-     <double>10.000000000000000</double>
-    </property>
-    <property name="value">
-     <double>45.000000000000000</double>
-    </property>
-   </widget>
-   <widget class="QLabel" name="gain_label">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
-      <y>450</y>
-      <width>131</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Gain</string>
-    </property>
+    <widget class="QDoubleSpinBox" name="gain_doublespin_box">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>140</y>
+       <width>101</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::ClickFocus</enum>
+     </property>
+     <property name="suffix">
+      <string/>
+     </property>
+     <property name="decimals">
+      <number>0</number>
+     </property>
+     <property name="minimum">
+      <double>0.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>480.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>10.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>45.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="brightness_doublespin_box">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>90</y>
+       <width>101</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="suffix">
+      <string>%</string>
+     </property>
+     <property name="decimals">
+      <number>0</number>
+     </property>
+     <property name="minimum">
+      <double>0.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>100.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>10.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>50.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QLabel" name="gain_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>120</y>
+       <width>131</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Gain</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="exposure_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>131</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Exposure</string>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="exposure_doublespin_box">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>101</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::ClickFocus</enum>
+     </property>
+     <property name="suffix">
+      <string>ms</string>
+     </property>
+     <property name="decimals">
+      <number>0</number>
+     </property>
+     <property name="minimum">
+      <double>1.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>10000.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>5.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>5.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QLabel" name="brightness_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>131</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Brightness</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="preset_comboBox">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>350</y>
+       <width>101</width>
+       <height>23</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="acquisition_preset_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>330</y>
+       <width>59</width>
+       <height>15</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Preset</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="save_preset_pushButton">
+     <property name="geometry">
+      <rect>
+       <x>9</x>
+       <y>380</y>
+       <width>101</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Save/Overwrite</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="add_preset_pushButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>410</y>
+       <width>101</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Add Preset</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="remove_preset_pushButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>440</y>
+       <width>101</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Remove Preset</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="cube_position_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>173</y>
+       <width>81</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Cube Position</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="cube_position_combobox">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>193</y>
+       <width>101</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="editable">
+      <bool>false</bool>
+     </property>
+     <property name="currentText">
+      <string extracomment="4x"/>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="intensity_doublespin_box">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>240</y>
+       <width>101</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::ClickFocus</enum>
+     </property>
+     <property name="suffix">
+      <string>%</string>
+     </property>
+     <property name="decimals">
+      <number>0</number>
+     </property>
+     <property name="minimum">
+      <double>0.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>100.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>10.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>0.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QLabel" name="intensity_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>220</y>
+       <width>101</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Intensity</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="excitation_lamp_on_combobox">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>300</y>
+       <width>101</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="editable">
+      <bool>false</bool>
+     </property>
+     <property name="currentText">
+      <string extracomment="4x"/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="excitation_lamp_on_label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>280</y>
+       <width>101</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Excitation</string>
+     </property>
+    </widget>
    </widget>
   </widget>
  </widget>

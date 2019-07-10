@@ -9,7 +9,6 @@ import time
 # sudo chmod o+rw /dev/ttyUSB0
 class StageController(QtCore.QObject):
     position_return_signal = QtCore.pyqtSignal('PyQt_PyObject')
-    update_objective_retraction_state_signal = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         '''
@@ -124,14 +123,12 @@ class StageController(QtCore.QObject):
         self.move(z=0)
         while 'N' not in self.send_receive('STATUS'):
             time.sleep(.5)
-        # self.update_objective_retraction_state_signal.emit()
 
     def set_objective_down(self):
         if self.previous_z is not None:
             self.move(z=self.previous_z)
         else:
             self.move(z=-90000)
-        # self.update_objective_retraction_state_signal.emit()
 
     def change_magnification(self, index):
         # if we are up, stay up, if we are down, pull up, change, then go down

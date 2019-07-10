@@ -8,7 +8,7 @@ import PyQt5.QtCore
 from PyQt5.QtCore import QThread
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
-from utils import screen_shooter, now, comment
+from utils import screen_shooter, now, comment, preset_loc
 from asi_controller import StageController
 from fluorescence_controller import ExcitationController
 from laser_controller import LaserController
@@ -19,6 +19,7 @@ from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 from localizer import Localizer
 # import matplotlib.pyplot as plt
 from _pi_cffi import ffi, lib
+import pandas as pd
 
 assert lib.tl_camera_sdk_dll_initialize() == 0
 assert lib.tl_camera_open_sdk() == 0
@@ -26,6 +27,7 @@ assert lib.tl_camera_open_sdk() == 0
 SHIFT_AMT = np.array([4], dtype=np.uint8)
 INITIAL_EXPOSURE = 5 * 1000
 INITIAL_BRIGHTNESS = 50
+INITIAL_GAIN = 45
 
 
 def get_camera_ids():
@@ -46,6 +48,63 @@ def tl_camera_frame_available_callback(sender, image_buffer, frame_count, metada
     cv2.circle(np_data, (width // 2, height // 2), 5, (0, 0, 0), -1)
     qt_image = QtGui.QImage(np_data.data, width, height, QtGui.QImage.Format_Grayscale8)
     window.vid.VideoSignal.emit(qt_image)
+
+
+class PresetManager():
+    def __init__(self):
+        self.presets = pd.read_csv(preset_loc)
+        print(self.presets)
+        self.current_index = 0
+        wavelengths = ['Off', '385', '430', '475', '525', '575', '630', 'All']
+        self.wv_dict = dict(zip(wavelengths, range(len(wavelengths))))
+        self.values = None
+
+    def select_preset(self, index):
+        window.ui.exposure_doublespin_box.setValue(self.presets['exposure'][index])
+        window.ui.brightness_doublespin_box.setValue(self.presets['brightness'][index])
+        window.ui.gain_doublespin_box.setValue(self.presets['gain'][index])
+        window.ui.cube_position_combobox.setCurrentIndex(self.presets['cube_position'][index] - 1)
+        window.ui.intensity_doublespin_box.setValue(self.presets['intensity'][index])
+        window.ui.excitation_lamp_on_combobox.setCurrentIndex(self.wv_dict[(str(self.presets['excitation'][index]))])
+        self.current_index = index
+
+    def get_all_current_values(self):
+        self.values = []
+        self.values.append(int(window.ui.exposure_doublespin_box.value()))
+        self.values.append(int(window.ui.brightness_doublespin_box.value()))
+        self.values.append(int(window.ui.gain_doublespin_box.value()))
+        self.values.append(window.ui.cube_position_combobox.currentIndex())
+        self.values.append(int(window.ui.intensity_doublespin_box.value()))
+        self.values.append(window.ui.excitation_lamp_on_combobox.currentIndex())
+
+    def change_preset(self):
+        name = self.presets['name'][self.current_index]
+        if name == 'Default':
+            _ = QMessageBox.about(window, 'Notice', 'Cannot overwrite default preset!')
+            return
+        self.get_all_current_values()
+        self.presets['exposure'][self.current_index] = self.values[0]
+        self.presets['brightness'][self.current_index] = self.values[1]
+        self.presets['gain'][self.current_index] = self.values[2]
+        self.presets['cube_position'][self.current_index] = self.values[3]
+        self.presets['intensity'][self.current_index] = self.values[4]
+        index_for_key = [k for k, v in self.wv_dict.items() if v == self.values[5]]
+        self.presets['excitation'][self.current_index] = index_for_key[0]
+        self.presets.to_csv(preset_loc, index=False)
+        _ = QMessageBox.about(window, 'Notice', f'{name} preset has been saved.')
+
+    def add_preset(self):
+        name, ok_pressed = QInputDialog.getText(window, 'New Preset', 'Enter the name for the new preset',
+                                                QLineEdit.Normal, '')
+        if not ok_pressed: return
+        self.get_all_current_values()
+        print([name] + self.values)
+        self.presets.append([name] + self.values)
+        print(self.presets)
+        self.presets.to_csv(preset_loc, index=False)
+
+    def remove_preset(self):
+        pass
 
 
 class ShowVideo(QtCore.QObject):
@@ -84,6 +143,7 @@ class ShowVideo(QtCore.QObject):
         print('arming camera...', lib.tl_camera_arm(self.camera_handle, 1))
         print('triggering camera...', lib.tl_camera_issue_software_trigger(self.camera_handle))
         print('setting brightness...', asi_controller.send_receive('7LED X={}'.format(INITIAL_BRIGHTNESS)))
+        print('setting gain...', self.change_gain(45))
 
     def change_exposure(self, value):
         comment(f'setting exposure to {value}')
@@ -195,8 +255,8 @@ class MainWindow(QMainWindow):
 
         # Stage movement buttons
         self.ui.step_size_doublespin_box.valueChanged.connect(asi_controller.set_step_size)
-        # self.ui.repetition_rate_double_spin_box.valueChanged.connect(laser.set_pulse_frequency)
-        # self.ui.burst_count_double_spin_box.valueChanged.connect(laser.set_burst_counter)
+        self.ui.repetition_rate_double_spin_box.valueChanged.connect(laser.set_pulse_frequency)
+        self.ui.burst_count_double_spin_box.valueChanged.connect(laser.set_burst_counter)
         self.setup_comboboxes()
         self.localizer.get_position_signal.connect(asi_controller.get_all_positions)
         asi_controller.position_return_signal.connect(self.localizer.position_return_slot)
@@ -205,16 +265,19 @@ class MainWindow(QMainWindow):
         self.ui.retract_objective_checkbox.stateChanged.connect(asi_controller.toggle_objective_retraction)
         self.ui.calibrate_af_pushbutton.clicked.connect(asi_controller.calibrate_af)
         self.ui.intensity_doublespin_box.valueChanged.connect(excitation.change_intensity)
+        self.ui.save_preset_pushButton.clicked.connect(preset_manager.change_preset)
+        self.ui.add_preset_pushButton.clicked.connect(preset_manager.add_preset)
 
         self.ui.cells_to_lyse_doublespin_box.valueChanged.connect(self.localizer.set_cells_to_lyse)
         self.ui.process_well_pushButton.clicked.connect(self.start_localization)
+
         self.show()
         # print('WIDTH:', self.ui.verticalLayoutWidget.frameGeometry().width())
         # print('HEIGHT:', self.ui.verticalLayoutWidget.frameGeometry().height())
         comment('finished gui init')
 
     def get_text(self, text_prompt):
-        text, okPressed = QInputDialog.getText(self, "Experiment Input", text_prompt, QLineEdit.Normal, "")
+        text, okPressed = QInputDialog.getText(self, 'Experiment Input', text_prompt, QLineEdit.Normal, "")
         if okPressed and text != None:
             return text
 
@@ -256,7 +319,6 @@ class MainWindow(QMainWindow):
         self.ui.magnification_combobox.addItems(['20x', '40x', '100x', 'None', 'None'])
         self.ui.magnification_combobox.setCurrentIndex(asi_controller.get_objective_position())
         self.ui.magnification_combobox.currentIndexChanged.connect(self.change_magnification)
-        asi_controller.update_objective_retraction_state_signal.connect(self.update_objective_retraction_state)
 
         self.ui.cell_type_to_lyse_comboBox.addItems(['red', 'green'])
         self.ui.cell_type_to_lyse_comboBox.currentIndexChanged.connect(self.localizer.change_type_to_lyse)
@@ -264,14 +326,8 @@ class MainWindow(QMainWindow):
         self.ui.lysis_mode_comboBox.addItems(['direct', 'excision'])
         self.ui.lysis_mode_comboBox.currentIndexChanged.connect(self.localizer.change_lysis_mode)
 
-    @QtCore.pyqtSlot()
-    def update_objective_retraction_state(self):
-        print('UPDATING OBJECTIVE STATE')
-        _, _, z = asi_controller.get_all_positions()
-        if z < -80000:
-            self.ui.retract_objective_checkbox.setChecked(True)
-        else:
-            self.ui.retract_objective_checkbox.setChecked(False)
+        self.ui.preset_comboBox.addItems(preset_manager.presets['name'])
+        self.ui.preset_comboBox.currentIndexChanged.connect(preset_manager.select_preset)
 
     def send_user_comment(self):
         comment('user comment:{}'.format(self.ui.comment_box.toPlainText()))
@@ -283,11 +339,11 @@ class MainWindow(QMainWindow):
         asi_controller.change_magnification(index)
 
     # @QtCore.pyqtSlot()
-    # def qswitch_screenshot_slot(self):
-    #     if self.laser_enable:
-    #         self.qswitch_screenshot_signal.emit(15)
-    #         comment('stage position during qswitch: {}'.format(asi_controller.get_all_positions()))
-    #         laser.start_burst()
+    def qswitch_screenshot_slot(self):
+        if self.laser_enable:
+            self.qswitch_screenshot_signal.emit(15)
+            comment('stage position during qswitch: {}'.format(asi_controller.get_all_positions()))
+            laser.start_burst()
 
     def enable_laser_firing(self):
         if asi_controller.get_cube_position() == 1:
@@ -318,7 +374,7 @@ class MainWindow(QMainWindow):
                 68: asi_controller.move_right,
                 66: asi_controller.move_last,
                 16777249: self.enable_laser_firing,
-                # 70: self.qswitch_screenshot_slot,
+                70: self.qswitch_screenshot_slot,
                 # 81: laser.qswitch_auto,
                 # 73: stage.start_roll_down,
                 # 75:self.autofocuser.roll_backward,
@@ -337,7 +393,7 @@ class MainWindow(QMainWindow):
             # print('key released: {}'.format(event.key()))
             key_control_dict = {
                 16777249: self.disable_laser_firing,
-                # 70: laser.stop_burst
+                70: laser.stop_burst
             }
             if event.key() in key_control_dict.keys():
                 key_control_dict[event.key()]()
@@ -349,8 +405,10 @@ if __name__ == '__main__':
     parser.add_argument('test_run')
     args = parser.parse_args()
     app = QApplication(sys.argv)
-    # laser = LaserController()
+    laser = LaserController()
     asi_controller = StageController()
     excitation = ExcitationController()
+    preset_manager = PresetManager()
     window = MainWindow(args.test_run)
+    print(preset_loc)
     comment('exit with code: ' + str(app.exec_()))

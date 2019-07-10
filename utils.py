@@ -28,6 +28,8 @@ def comment(text):
     print(text, threading.current_thread())
 
 
+
+
 class screen_shooter(QtCore.QObject):
     '''
     handles the various different types of screenshots
@@ -147,6 +149,7 @@ class MeanIoU(object):
         return np.mean(iou).astype(np.float32)
 
 
+preset_loc = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'presets')
 experiment_name = 'experiment_{}'.format(now())
 experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Experiments', experiment_name)
 log = logging.getLogger(__name__)
