@@ -9,6 +9,7 @@ import time
 # sudo chmod o+rw /dev/ttyUSB0
 class StageController(QtCore.QObject):
     position_return_signal = QtCore.pyqtSignal('PyQt_PyObject')
+    update_objective_retraction_state_signal = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         '''
@@ -45,40 +46,6 @@ class StageController(QtCore.QObject):
             100: 0.205}
         self.current_magnification = self.objective_slots[self.get_objective_position() + 1]
 
-    @QtCore.pyqtSlot()
-    def get_all_positions(self):
-        positions = self.send_receive('W X Y Z')
-        cleaned = positions.replace('\r', '').split(' ')[1:-1]
-        self.x, self.y, self.z = [int(x) for x in cleaned]
-        self.position_return_signal.emit(np.array([self.x, self.y]))
-        return self.x, self.y, self.z
-
-    def move(self, x=None, y=None, z=None):
-        cmd_string = 'M'
-        for direction, var in zip(['X', 'Y', 'Z'], [x, y, z]):
-            if var is not None:
-                cmd_string += f' {direction}={var}'
-        self.send_receive(cmd_string)
-
-    def get_is_objective_retracted(self):
-        pos = int(self.send_receive('W Z').split(':A ')[1])
-        # up is negative. ~95000 is in focus for 20x
-        if pos > -80000:
-            comment('objective is retracted on startup')
-            self.objective_retracted = True
-            return True
-        elif pos < -80000:
-            comment('objective is down on startup')
-            self.objective_retracted = False
-            return False
-
-    def toggle_objective_retraction(self):
-        if self.objective_retracted:
-            self.set_objective_down()
-        elif not self.objective_retracted:
-            self.pull_objective_up()
-        self.objective_retracted = not self.objective_retracted
-
     def get_connection(self):
         possible_coms = range(0, 5)
         for com in possible_coms:
@@ -98,20 +65,93 @@ class StageController(QtCore.QObject):
         comment('could not connect to asi controller. exiting...')
         sys.exit(1)
 
+    def issue_command(self, command, suppress_msg=False):
+        command_string = '{}\r'.format(command)
+        if not suppress_msg:
+            comment('sending command to stage:{}'.format(command_string))
+        self.ser.write(command_string.encode('utf-8'))
+
+    def get_response(self):
+        response = ''
+        while '\r' not in response:
+            piece = self.ser.read()
+            if piece != b'':
+                response += piece.decode('utf-8')
+        comment('response received from stage:{}'.format(response))
+        return response
+
+    def send_receive(self, command, suppress_msg=False):
+        self.issue_command(command, suppress_msg)
+        response = self.get_response()
+        return response
+
+    @QtCore.pyqtSlot()
+    def get_all_positions(self):
+        positions = self.send_receive('W X Y Z')
+        cleaned = positions.replace('\r', '').split(' ')[1:-1]
+        self.x, self.y, self.z = [int(x) for x in cleaned]
+        self.position_return_signal.emit(np.array([self.x, self.y]))
+        return self.x, self.y, self.z
+
+    def move(self, x=None, y=None, z=None):
+        cmd_string = 'M'
+        for direction, var in zip(['X', 'Y', 'Z'], [x, y, z]):
+            if var is not None:
+                cmd_string += f' {direction}={var}'
+        self.send_receive(cmd_string)
+
+    def get_is_objective_retracted(self):
+        pos = int(self.send_receive('W Z').split(':A ')[1])
+        # up is negative. ~95000 is in focus for 20x
+        if pos > -80000:
+            comment('objective is retracted')
+            self.objective_retracted = True
+            return True
+        elif pos < -80000:
+            comment('objective is down')
+            self.objective_retracted = False
+            return False
+
+    def toggle_objective_retraction(self):
+        if self.objective_retracted:
+            self.set_objective_down()
+        elif not self.objective_retracted:
+            self.pull_objective_up()
+        self.objective_retracted = not self.objective_retracted
+
+    def pull_objective_up(self):
+        _, _, self.previous_z = self.get_all_positions()
+        self.move(z=0)
+        while 'N' not in self.send_receive('STATUS'):
+            time.sleep(.5)
+        # self.update_objective_retraction_state_signal.emit()
+
+    def set_objective_down(self):
+        if self.previous_z is not None:
+            self.move(z=self.previous_z)
+        else:
+            self.move(z=-90000)
+        # self.update_objective_retraction_state_signal.emit()
+
+    def change_magnification(self, index):
+        # if we are up, stay up, if we are down, pull up, change, then go down
+        up = self.get_is_objective_retracted()
+        if up:
+            self.send_receive('MOVE O={}'.format(index + 1))
+        else:
+            self.pull_objective_up()
+            self.send_receive('MOVE O={}'.format(index + 1))
+            self.set_objective_down()
+        self.current_magnification = self.objective_slots[index + 1]
+        comment(f'magnification changed to: {self.current_magnification}')
+        # self.compensate_for_objective_offsets(self.magnification, map_dict[index + 1])
+
     @QtCore.pyqtSlot('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
     def reticle_and_center_slot(self, center_x, center_y, reticle_x, reticle_y):
         self.center_x = center_x
         self.center_y = center_y
         self.reticle_x = reticle_x
         self.reticle_y = reticle_y
-
-    def change_magnification(self, index):
-        self.pull_objective_up()
-        self.send_receive('MOVE O={}'.format(index + 1))
-        self.set_objective_down()
-        self.current_magnification = self.objective_slots[index + 1]
-        comment(f'magnification changed to: {self.current_magnification}')
-        # self.compensate_for_objective_offsets(self.magnification, map_dict[index + 1])
 
     def change_cube_position(self, index):
         self.send_receive('MOVE S={}'.format(index + 1))
@@ -135,39 +175,6 @@ class StageController(QtCore.QObject):
     def set_step_size(self, step_size):
         comment('step size changed to: {}'.format(step_size))
         self.step_size = step_size * 10
-
-    def issue_command(self, command, suppress_msg=False):
-        command_string = '{}\r'.format(command)
-        if not suppress_msg:
-            comment('sending command to stage:{}'.format(command_string))
-        self.ser.write(command_string.encode('utf-8'))
-
-    def get_response(self):
-        response = ''
-        while '\r' not in response:
-            piece = self.ser.read()
-            if piece != b'':
-                response += piece.decode('utf-8')
-        comment('response received from stage:{}'.format(response))
-        return response
-
-    def send_receive(self, command, suppress_msg=False):
-        self.issue_command(command, suppress_msg)
-        response = self.get_response()
-        return response
-
-    # @QtCore.pyqtSlot()
-    # def get_position_slot(self):
-    #     x = str(self.send_receive('W X')).split('A ')[1].split('\r')[0]
-    #     y = str(self.send_receive('W Y')).split('A ')[1].split('\r')[0]
-    #     position = np.array([int(x), int(y)])
-    #     self.position_return_signal.emit(position)
-    #     return position
-
-    # def go_to_position(self, position_vector):
-    #     x = position_vector[0]
-    #     y = position_vector[1]
-    #     return self.send_receive('MOVE X={} Y={}'.format(x, y))
 
     def move_up(self):
         return self.send_receive('R Y=-{}'.format(self.step_size))
@@ -243,15 +250,6 @@ class StageController(QtCore.QObject):
         pos = self.send_receive('W S')
         pos = pos.split('A ')[1]
         return int(pos) - 1
-
-    def pull_objective_up(self):
-        _, _, self.previous_z = self.get_all_positions()
-        self.move(z=0)
-        while 'N' not in self.send_receive('STATUS'):
-            time.sleep(.5)
-
-    def set_objective_down(self):
-        self.move(z=self.previous_z)
 
     def turn_on_autofocus(self):
         self.set_focus_state('lock')

@@ -36,10 +36,10 @@ def mean_iou(y_true, y_pred):
 
 class WellStitcher():
 
-    def __init__(self, box_size, initial_img):
+    def __init__(self, outward_length, initial_img):
         # get our inital coordinates
-        self.box_size = int(box_size * 2 + 1)
-        self.center = int(np.ceil(box_size / 2) + 3)
+        self.box_size = int(outward_length * 2 + 1)
+        self.center = outward_length #int(np.ceil(self.box_size / 2) + 3)
         self.curr_x = self.center
         self.curr_y = self.center
         # initialize the image and show it
@@ -51,9 +51,7 @@ class WellStitcher():
         print('trackbar at', pos)
 
     def stitch_img(self, img):
-        # img = img.astype(np.uint8)
         img = cv2.resize(img, (self.img_x, self.img_y))
-        save_loc = os.path.join(experiment_folder_location, '{}___{}.tif'.format('well_image', now()))
         self.well_img[self.curr_y * self.img_y:(self.curr_y + 1) * self.img_y,
         self.curr_x * self.img_x:(self.curr_x + 1) * self.img_x] = img
 
@@ -133,8 +131,8 @@ class Localizer(QtCore.QObject):
         return self.position
 
     def move_frame(self, direction, relative=True):
-        y_distance = 700
-        x_distance = 1320
+        y_distance = 335*10
+        x_distance = 128*5*10
         frame_dir_dict = {
             'u': np.array([0, -y_distance]),
             'd': np.array([0, y_distance]),
@@ -146,11 +144,11 @@ class Localizer(QtCore.QObject):
     def return_to_original_position(self, position):
         self.localizer_move_signal.emit(position, False, False, False)
 
-    def get_spiral_directions(self, box_size):
+    def get_spiral_directions(self, outward_length):
         letters = ['u', 'l', 'd', 'r']
         nums = []
         lets = []
-        for i in range(1, box_size * 2, 2):
+        for i in range(1, outward_length * 2, 2):
             num_line = [i] * 2 + [i + 1] * 2
             let_line = letters
             nums += num_line
@@ -161,22 +159,22 @@ class Localizer(QtCore.QObject):
         return directions
 
     def wait_for_new_image(self, initial_frame_number):
-        while self.frame_count - initial_frame_number < 3:
+        while self.frame_count - initial_frame_number < 15:
             self.delay()
             QApplication.processEvents()
         return
 
     @QtCore.pyqtSlot()
     def tile_slot(self):
-        # 70 * 1um steps moves us one frame upwards
-        # 132 * 1um steps moves us on frame sideways
+        # 168 * 2um steps moves us one frame upwards
+        # 128 * 5um steps moves us on frame sideways
         # first get our well center position
         self.well_center = self.get_stage_position()
         print(self.well_center)
-        box_size = 6
+        outward_length = 3
         self.auto_mode = True
-        stitcher = WellStitcher(box_size, self.image)
-        directions = self.get_spiral_directions(box_size)
+        stitcher = WellStitcher(outward_length, self.image)
+        directions = self.get_spiral_directions(outward_length)
         for num, let in directions:
             for i in range(num):
                 if self.auto_mode is False:
@@ -184,6 +182,7 @@ class Localizer(QtCore.QObject):
                 self.move_frame(let)
                 self.wait_for_new_image(self.frame_count)
                 stitcher.add_img(let, self.image)
+                self.delay()
         comment('Tiling completed!')
         stitcher.write_well_img()
         self.return_to_original_position(self.well_center)

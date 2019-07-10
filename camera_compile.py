@@ -16,6 +16,10 @@ ffibuilder.cdef("""
     int tl_camera_set_exposure_time(void *, long long);
     int tl_camera_get_exposure_time(void *, long long *);    
 
+    int tl_camera_set_gain(void *, int);
+    int tl_camera_get_gain(void *, int *);
+    int tl_camera_get_gain_range(void *, int *, int *) ;
+    
     int tl_camera_get_firmware_version(void *, char *, int);
     int tl_camera_close_camera(void *);
     

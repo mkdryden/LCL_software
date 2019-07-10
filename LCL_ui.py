@@ -37,7 +37,7 @@ class Ui_MainWindow(object):
         self.user_comment_button.setFocusPolicy(QtCore.Qt.NoFocus)
         self.user_comment_button.setObjectName("user_comment_button")
         self.magnification_combobox = QtWidgets.QComboBox(self.centralwidget)
-        self.magnification_combobox.setGeometry(QtCore.QRect(87, 125, 51, 22))
+        self.magnification_combobox.setGeometry(QtCore.QRect(80, 130, 61, 22))
         self.magnification_combobox.setFocusPolicy(QtCore.Qt.NoFocus)
         self.magnification_combobox.setEditable(False)
         self.magnification_combobox.setCurrentText("")
@@ -98,7 +98,7 @@ class Ui_MainWindow(object):
         self.record_push_button.setCheckable(True)
         self.record_push_button.setObjectName("record_push_button")
         self.tile_and_navigate_pushbutton = QtWidgets.QPushButton(self.centralwidget)
-        self.tile_and_navigate_pushbutton.setGeometry(QtCore.QRect(150, 260, 121, 41))
+        self.tile_and_navigate_pushbutton.setGeometry(QtCore.QRect(150, 260, 121, 31))
         self.tile_and_navigate_pushbutton.setObjectName("tile_and_navigate_pushbutton")
         self.exposure_doublespin_box = QtWidgets.QDoubleSpinBox(self.centralwidget)
         self.exposure_doublespin_box.setGeometry(QtCore.QRect(150, 370, 101, 22))
@@ -194,8 +194,21 @@ class Ui_MainWindow(object):
         self.repetition_rate_label.setGeometry(QtCore.QRect(10, 70, 91, 16))
         self.repetition_rate_label.setObjectName("repetition_rate_label")
         self.retract_objective_checkbox = QtWidgets.QCheckBox(self.centralwidget)
-        self.retract_objective_checkbox.setGeometry(QtCore.QRect(150, 450, 111, 21))
+        self.retract_objective_checkbox.setGeometry(QtCore.QRect(150, 500, 111, 21))
         self.retract_objective_checkbox.setObjectName("retract_objective_checkbox")
+        self.gain_doublespin_box = QtWidgets.QDoubleSpinBox(self.centralwidget)
+        self.gain_doublespin_box.setGeometry(QtCore.QRect(150, 470, 101, 22))
+        self.gain_doublespin_box.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.gain_doublespin_box.setSuffix("")
+        self.gain_doublespin_box.setDecimals(0)
+        self.gain_doublespin_box.setMinimum(0.0)
+        self.gain_doublespin_box.setMaximum(480.0)
+        self.gain_doublespin_box.setSingleStep(10.0)
+        self.gain_doublespin_box.setProperty("value", 45.0)
+        self.gain_doublespin_box.setObjectName("gain_doublespin_box")
+        self.gain_label = QtWidgets.QLabel(self.centralwidget)
+        self.gain_label.setGeometry(QtCore.QRect(150, 450, 131, 16))
+        self.gain_label.setObjectName("gain_label")
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -218,8 +231,7 @@ class Ui_MainWindow(object):
         self.cell_type_to_lyse_label.setText(_translate("MainWindow", "Cell Type \n"
 "to Lyse"))
         self.record_push_button.setText(_translate("MainWindow", "Record"))
-        self.tile_and_navigate_pushbutton.setText(_translate("MainWindow", "Tile and\n"
-"Navigate"))
+        self.tile_and_navigate_pushbutton.setText(_translate("MainWindow", "Tile"))
         self.exposure_doublespin_box.setSuffix(_translate("MainWindow", "ms"))
         self.exposure_label.setText(_translate("MainWindow", "Exposure"))
         self.brightness_label.setText(_translate("MainWindow", "Brightness"))
@@ -237,6 +249,7 @@ class Ui_MainWindow(object):
         self.burst_count_label.setText(_translate("MainWindow", "Burst Count"))
         self.repetition_rate_label.setText(_translate("MainWindow", "Repetition Rate"))
         self.retract_objective_checkbox.setText(_translate("MainWindow", "Retract Objective"))
+        self.gain_label.setText(_translate("MainWindow", "Gain"))
 
 
 if __name__ == "__main__":
