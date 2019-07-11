@@ -25,7 +25,7 @@ class StageController(QtCore.QObject):
         # self.lysing_loc = self.get_position_slot()
         self.lysing = True
         # turning off backlash
-        comment(self.send_receive('B X=0 Y=0 Z=0'))
+        comment(self.send_receive('B X=0 Y=0'))
         # setting TTL low
         comment(self.send_receive('7TTL Y=0'))
         self.steps_between_wells = 4400
@@ -98,6 +98,10 @@ class StageController(QtCore.QObject):
             if var is not None:
                 cmd_string += f' {direction}={var}'
         self.send_receive(cmd_string)
+
+    @QtCore.pyqtSlot('PyQt_PyObject')
+    def localizer_stage_command_slot(self, command):
+        self.send_receive(command)
 
     def get_is_objective_retracted(self):
         pos = int(self.send_receive('W Z').split(':A ')[1])
@@ -285,3 +289,4 @@ class StageController(QtCore.QObject):
 if __name__ == '__main__':
     stage = StageController()
     stage.get_all_positions()
+    stage.send_receive('B X? Y? Z?')

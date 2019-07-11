@@ -53,7 +53,8 @@ def tl_camera_frame_available_callback(sender, image_buffer, frame_count, metada
 class PresetManager():
     def __init__(self):
         self.presets = pd.read_csv(preset_loc, index_col='name')
-        print(self.presets)
+        comment('presets:')
+        comment(str(self.presets))
         wavelengths = ['Off', '385nm', '430nm', '475nm', '525nm', '575nm', '630nm', 'Allnm']
         self.wv_dict = dict(zip(wavelengths, range(len(wavelengths))))
         self.values = None
@@ -93,7 +94,11 @@ class PresetManager():
         _ = QMessageBox.about(window, 'Notice', f'{name} preset has been saved.')
 
     def add_preset(self):
-        name, ok_pressed = QInputDialog.getText(window, 'New Preset', 'Enter the name for the new preset',
+        t = '''
+        Enter the name for the new preset.\nAll Acquisition settings will be saved in this preset.
+        '''
+        name, ok_pressed = QInputDialog.getText(window, 'New Preset',
+                                                t,
                                                 QLineEdit.Normal, '')
         if not ok_pressed: return
         self.saving = True
@@ -198,6 +203,7 @@ class MainWindow(QMainWindow):
     start_focus_signal = QtCore.pyqtSignal()
     start_localization_signal = QtCore.pyqtSignal()
 
+
     def __init__(self, test_run):
         super(MainWindow, self).__init__()
         self.laser_enable = False
@@ -214,7 +220,7 @@ class MainWindow(QMainWindow):
         self.screen_shooter = screen_shooter()
         self.image_viewer = ImageViewer()
         # self.autofocuser = autofocuser()
-        # self.localizer = Localizer()
+        self.localizer = Localizer()
 
         # add the viewer to our ui
         self.ui.verticalLayout.addWidget(self.image_viewer)
@@ -224,29 +230,25 @@ class MainWindow(QMainWindow):
         self.screenshooter_thread.start()
         self.screen_shooter.moveToThread(self.screenshooter_thread)
 
-        # self.autofocuser_thread = QThread()
-        # self.autofocuser_thread.start()
-        # self.autofocuser.moveToThread(self.autofocuser_thread)
-
-        # self.localizer_thread = QThread()
-        # self.localizer_thread.start()
-        # self.localizer.moveToThread(self.localizer_thread)
+        self.localizer_thread = QThread()
+        self.localizer_thread.start()
+        self.localizer.moveToThread(self.localizer_thread)
 
         # connect the outputs to our signals
         self.vid.VideoSignal.connect(self.image_viewer.setImage)
         self.vid.vid_process_signal.connect(self.screen_shooter.screenshot_slot)
         self.ui.record_push_button.clicked.connect(self.screen_shooter.toggle_recording_slot)
         # self.vid.vid_process_signal.connect(self.autofocuser.vid_process_slot)
-        # self.vid.vid_process_signal.connect(self.localizer.vid_process_slot)
+        self.vid.vid_process_signal.connect(self.localizer.vid_process_slot)
         self.qswitch_screenshot_signal.connect(self.screen_shooter.save_qswitch_fire_slot)
-        # self.localizer.qswitch_screenshot_signal.connect(self.screen_shooter.save_qswitch_fire_slot)
+        self.localizer.qswitch_screenshot_signal.connect(self.screen_shooter.save_qswitch_fire_slot)
         # self.start_focus_signal.connect(self.autofocuser.autofocus)
         # self.start_localization_signal.connect(self.localizer.localize)
-        # self.ui.tile_and_navigate_pushbutton.clicked.connect(self.localizer.tile_slot)
+        self.ui.tile_and_navigate_pushbutton.clicked.connect(self.localizer.tile_slot)
         # self.autofocuser.position_and_variance_signal.connect(self.plot_variance_and_position)
         self.image_viewer.click_move_signal.connect(asi_controller.click_move_slot)
-        # self.localizer.localizer_move_signal.connect(asi_controller.localizer_move_slot)
-        # self.localizer.ai_fire_qswitch_signal.connect(self.ai_fire_qswitch_slot)
+        self.localizer.localizer_move_signal.connect(asi_controller.localizer_move_slot)
+        self.localizer.ai_fire_qswitch_signal.connect(self.ai_fire_qswitch_slot)
         self.vid.reticle_and_center_signal.connect(asi_controller.reticle_and_center_slot)
         self.vid.reticle_and_center_signal.emit(self.vid.center_x, self.vid.center_y, self.vid.reticle_x,
                                                 self.vid.reticle_y)
@@ -267,8 +269,8 @@ class MainWindow(QMainWindow):
         # self.ui.repetition_rate_double_spin_box.valueChanged.connect(laser.set_pulse_frequency)
         # self.ui.burst_count_double_spin_box.valueChanged.connect(laser.set_burst_counter)
         self.setup_comboboxes()
-        # self.localizer.get_position_signal.connect(asi_controller.get_all_positions)
-        # asi_controller.position_return_signal.connect(self.localizer.position_return_slot)
+        self.localizer.get_position_signal.connect(asi_controller.get_all_positions)
+        asi_controller.position_return_signal.connect(self.localizer.position_return_slot)
         self.ui.autofocus_checkbox.stateChanged.connect(self.autofocus_toggle)
         self.ui.retract_objective_checkbox.setChecked(asi_controller.get_is_objective_retracted())
         self.ui.retract_objective_checkbox.stateChanged.connect(asi_controller.toggle_objective_retraction)
@@ -277,7 +279,7 @@ class MainWindow(QMainWindow):
         self.ui.save_preset_pushButton.clicked.connect(preset_manager.change_preset)
         self.ui.add_preset_pushButton.clicked.connect(preset_manager.add_preset)
         self.ui.remove_preset_pushButton.clicked.connect(preset_manager.remove_preset)
-
+        self.localizer.localizer_stage_command_signal.connect(asi_controller.localizer_stage_command_slot)
         # self.ui.cells_to_lyse_doublespin_box.valueChanged.connect(self.localizer.set_cells_to_lyse)
         # self.ui.process_well_pushButton.clicked.connect(self.start_localization)
 
@@ -285,6 +287,8 @@ class MainWindow(QMainWindow):
         # print('WIDTH:', self.ui.verticalLayoutWidget.frameGeometry().width())
         # print('HEIGHT:', self.ui.verticalLayoutWidget.frameGeometry().height())
         comment('finished gui init')
+
+
 
     def get_text(self, text_prompt):
         text, okPressed = QInputDialog.getText(self, 'Experiment Input', text_prompt, QLineEdit.Normal, "")
@@ -393,7 +397,7 @@ class MainWindow(QMainWindow):
                 # 84: stage.move_left_one_well_slot,
                 # 89: stage.move_right_one_well_slot,
                 96: self.screen_shooter.save_target_image,
-                16777216: self.localizer.stop_auto_mode
+                # 16777216: self.localizer.stop_auto_mode
             }
             if event.key() in key_control_dict.keys():
                 key_control_dict[event.key()]()

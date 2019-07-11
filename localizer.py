@@ -82,6 +82,7 @@ class Localizer(QtCore.QObject):
     ai_fire_qswitch_signal = QtCore.pyqtSignal('PyQt_PyObject')
     start_laser_flash_signal = QtCore.pyqtSignal()
     qswitch_screenshot_signal = QtCore.pyqtSignal('PyQt_PyObject')
+    localizer_stage_command_signal = QtCore.pyqtSignal('PyQt_PyObject')
 
     def __init__(self, parent=None):
         super(Localizer, self).__init__(parent)
@@ -131,7 +132,7 @@ class Localizer(QtCore.QObject):
         return self.position
 
     def move_frame(self, direction, relative=True):
-        y_distance = 335*10
+        y_distance = 340*10
         x_distance = 128*5*10
         frame_dir_dict = {
             'u': np.array([0, -y_distance]),
@@ -171,10 +172,11 @@ class Localizer(QtCore.QObject):
         # first get our well center position
         self.well_center = self.get_stage_position()
         print(self.well_center)
-        outward_length = 3
+        outward_length = 1
         self.auto_mode = True
         stitcher = WellStitcher(outward_length, self.image)
         directions = self.get_spiral_directions(outward_length)
+        self.localizer_stage_command_signal.emit('B X=0.04 Y=0.04')
         for num, let in directions:
             for i in range(num):
                 if self.auto_mode is False:
@@ -183,9 +185,11 @@ class Localizer(QtCore.QObject):
                 self.wait_for_new_image(self.frame_count)
                 stitcher.add_img(let, self.image)
                 self.delay()
+                self.delay()
         comment('Tiling completed!')
         stitcher.write_well_img()
         self.return_to_original_position(self.well_center)
+        self.localizer_stage_command_signal.emit('B X=0 Y=0')
 
     def change_type_to_lyse(self, index):
         map_dict = {
