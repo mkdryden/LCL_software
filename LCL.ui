@@ -138,13 +138,16 @@
     <property name="geometry">
      <rect>
       <x>150</x>
-      <y>400</y>
+      <y>350</y>
       <width>71</width>
       <height>31</height>
      </rect>
     </property>
     <property name="focusPolicy">
      <enum>Qt::ClickFocus</enum>
+    </property>
+    <property name="buttonSymbols">
+     <enum>QAbstractSpinBox::UpDownArrows</enum>
     </property>
     <property name="suffix">
      <string>μm</string>
@@ -169,7 +172,7 @@
     <property name="geometry">
      <rect>
       <x>150</x>
-      <y>380</y>
+      <y>330</y>
       <width>81</width>
       <height>16</height>
      </rect>
@@ -296,7 +299,7 @@ to Lyse</string>
     <property name="geometry">
      <rect>
       <x>150</x>
-      <y>310</y>
+      <y>260</y>
       <width>121</width>
       <height>31</height>
      </rect>
@@ -312,7 +315,7 @@ to Lyse</string>
     <property name="geometry">
      <rect>
       <x>150</x>
-      <y>260</y>
+      <y>630</y>
       <width>121</width>
       <height>31</height>
      </rect>
@@ -369,7 +372,7 @@ to Lyse</string>
     <property name="geometry">
      <rect>
       <x>150</x>
-      <y>440</y>
+      <y>390</y>
       <width>120</width>
       <height>131</height>
      </rect>
@@ -385,6 +388,9 @@ to Lyse</string>
        <width>66</width>
        <height>31</height>
       </rect>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::ClickFocus</enum>
      </property>
      <property name="decimals">
       <number>0</number>
@@ -407,6 +413,9 @@ to Lyse</string>
        <width>66</width>
        <height>31</height>
       </rect>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::ClickFocus</enum>
      </property>
      <property name="suffix">
       <string>hz</string>
@@ -458,7 +467,7 @@ to Lyse</string>
     <property name="geometry">
      <rect>
       <x>150</x>
-      <y>350</y>
+      <y>300</y>
       <width>111</width>
       <height>21</height>
      </rect>
@@ -520,7 +529,7 @@ to Lyse</string>
       </rect>
      </property>
      <property name="focusPolicy">
-      <enum>Qt::NoFocus</enum>
+      <enum>Qt::ClickFocus</enum>
      </property>
      <property name="suffix">
       <string>%</string>
@@ -578,6 +587,9 @@ to Lyse</string>
      </property>
      <property name="focusPolicy">
       <enum>Qt::ClickFocus</enum>
+     </property>
+     <property name="contextMenuPolicy">
+      <enum>Qt::DefaultContextMenu</enum>
      </property>
      <property name="suffix">
       <string>ms</string>
@@ -781,6 +793,30 @@ to Lyse</string>
       <string>Excitation</string>
      </property>
     </widget>
+   </widget>
+   <widget class="QListView" name="tile_preset_listView">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>560</y>
+      <width>121</width>
+      <height>61</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="tile_preset_label">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>530</y>
+      <width>111</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Presets to Use For
+Tiling:</string>
+    </property>
    </widget>
   </widget>
  </widget>

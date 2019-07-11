@@ -51,6 +51,8 @@ def tl_camera_frame_available_callback(sender, image_buffer, frame_count, metada
 
 
 class PresetManager():
+    tile_with_presets_signal = QtCore.pyqtSignal('PyQt_PyObject')
+
     def __init__(self):
         self.presets = pd.read_csv(preset_loc, index_col='name')
         comment('presets:')
@@ -59,6 +61,8 @@ class PresetManager():
         self.wv_dict = dict(zip(wavelengths, range(len(wavelengths))))
         self.values = None
         self.saving = False
+        self.model = None
+        self.checked_names = None
 
     def select_preset(self, index):
         if self.saving is True:
@@ -68,7 +72,7 @@ class PresetManager():
         window.ui.exposure_doublespin_box.setValue(self.presets['exposure'][name])
         window.ui.brightness_doublespin_box.setValue(self.presets['brightness'][name])
         window.ui.gain_doublespin_box.setValue(self.presets['gain'][name])
-        window.ui.cube_position_combobox.setCurrentIndex(self.presets['cube_position'][name])
+        window.ui.cube_position_combobox.setCurrentIndex(self.presets['cube_position'][name]-1)
         window.ui.intensity_doublespin_box.setValue(self.presets['intensity'][name])
         window.ui.excitation_lamp_on_combobox.setCurrentIndex(self.wv_dict[(str(self.presets['excitation'][name]))])
 
@@ -120,6 +124,30 @@ class PresetManager():
         self.presets = self.presets.drop(name)
         self.presets.to_csv(preset_loc, index=True)
 
+    def setup_tile_preset_list(self, window):
+        self.model = QtGui.QStandardItemModel()
+        for name in self.presets.index:
+            item = QtGui.QStandardItem(name)
+            item.text()
+            # check = Qt.Checked if randint(0, 1) == 1 else Qt.Unchecked
+            # item.setCheckState(check)
+            item.setCheckable(True)
+            self.model.appendRow(item)
+        window.ui.tile_preset_listView.setModel(self.model)
+        self.model.itemChanged.connect(self.manage_checked_presets)
+
+    def manage_checked_presets(self, item):
+        self.checked_names = []
+        i = 0
+        while self.model.item(i):
+            if self.model.item(i).checkState():
+                self.checked_names.append(self.model.item(i).text())
+            i += 1
+        print(self.checked_names)
+
+    def cycle_through_checked_names(self):
+        pass
+        
 
 class ShowVideo(QtCore.QObject):
     VideoSignal = QtCore.pyqtSignal(QtGui.QImage)
@@ -283,6 +311,7 @@ class MainWindow(QMainWindow):
         # self.ui.cells_to_lyse_doublespin_box.valueChanged.connect(self.localizer.set_cells_to_lyse)
         # self.ui.process_well_pushButton.clicked.connect(self.start_localization)
 
+        preset_manager.setup_tile_preset_list(self)
         self.show()
         # print('WIDTH:', self.ui.verticalLayoutWidget.frameGeometry().width())
         # print('HEIGHT:', self.ui.verticalLayoutWidget.frameGeometry().height())
@@ -342,6 +371,7 @@ class MainWindow(QMainWindow):
 
         self.ui.preset_comboBox.addItems(preset_manager.presets.index)
         self.ui.preset_comboBox.currentIndexChanged.connect(preset_manager.select_preset)
+
 
     def send_user_comment(self):
         comment('user comment:{}'.format(self.ui.comment_box.toPlainText()))

@@ -167,12 +167,10 @@ class Localizer(QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def tile_slot(self):
-        # 168 * 2um steps moves us one frame upwards
-        # 128 * 5um steps moves us on frame sideways
         # first get our well center position
         self.well_center = self.get_stage_position()
         print(self.well_center)
-        outward_length = 1
+        outward_length = 2
         self.auto_mode = True
         stitcher = WellStitcher(outward_length, self.image)
         directions = self.get_spiral_directions(outward_length)
@@ -184,8 +182,6 @@ class Localizer(QtCore.QObject):
                 self.move_frame(let)
                 self.wait_for_new_image(self.frame_count)
                 stitcher.add_img(let, self.image)
-                self.delay()
-                self.delay()
         comment('Tiling completed!')
         stitcher.write_well_img()
         self.return_to_original_position(self.well_center)
