@@ -262,7 +262,7 @@ class Ui_MainWindow(object):
         self.exposure_doublespin_box.setSuffix(_translate("MainWindow", "ms"))
         self.brightness_label.setText(_translate("MainWindow", "Brightness"))
         self.acquisition_preset_label.setText(_translate("MainWindow", "Preset"))
-        self.save_preset_pushButton.setText(_translate("MainWindow", "Save/Edit"))
+        self.save_preset_pushButton.setText(_translate("MainWindow", "Save/Overwrite"))
         self.add_preset_pushButton.setText(_translate("MainWindow", "Add Preset"))
         self.remove_preset_pushButton.setText(_translate("MainWindow", "Remove Preset"))
         self.cube_position_label.setText(_translate("MainWindow", "Cube Position"))

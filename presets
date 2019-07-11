@@ -1,3 +1,4 @@
 name,exposure,brightness,gain,cube_position,intensity,excitation
-Default,5,50,45,1,0,Off
-test,10,70,0,-1,30,525
+Default,5,50,45,2,0,Off
+a,5,50,285,2,0,Off
+b,65,50,45,3,0,Off
