@@ -50,10 +50,11 @@ def tl_camera_frame_available_callback(sender, image_buffer, frame_count, metada
     window.vid.VideoSignal.emit(qt_image)
 
 
-class PresetManager():
-    tile_with_presets_signal = QtCore.pyqtSignal('PyQt_PyObject')
+class PresetManager(QtCore.QObject):
+    number_of_checked_presets_signal = QtCore.pyqtSignal('PyQt_PyObject')
 
-    def __init__(self):
+    def __init__(self, parent=None):
+        super(PresetManager, self).__init__(parent)
         self.presets = pd.read_csv(preset_loc, index_col='name')
         comment('presets:')
         comment(str(self.presets))
@@ -62,7 +63,7 @@ class PresetManager():
         self.values = None
         self.saving = False
         self.model = None
-        self.checked_names = None
+        self.checked_names = []
 
     def select_preset(self, index):
         if self.saving is True:
@@ -72,7 +73,7 @@ class PresetManager():
         window.ui.exposure_doublespin_box.setValue(self.presets['exposure'][name])
         window.ui.brightness_doublespin_box.setValue(self.presets['brightness'][name])
         window.ui.gain_doublespin_box.setValue(self.presets['gain'][name])
-        window.ui.cube_position_combobox.setCurrentIndex(self.presets['cube_position'][name]-1)
+        window.ui.cube_position_combobox.setCurrentIndex(self.presets['cube_position'][name] - 1)
         window.ui.intensity_doublespin_box.setValue(self.presets['intensity'][name])
         window.ui.excitation_lamp_on_combobox.setCurrentIndex(self.wv_dict[(str(self.presets['excitation'][name]))])
 
@@ -143,11 +144,16 @@ class PresetManager():
             if self.model.item(i).checkState():
                 self.checked_names.append(self.model.item(i).text())
             i += 1
-        print(self.checked_names)
+        # print(self.checked_names)
 
-    def cycle_through_checked_names(self):
-        pass
-        
+    @QtCore.pyqtSlot()
+    def return_number_of_presets_slot(self):
+        self.number_of_checked_presets_signal.emit(len(self.checked_names))
+
+    @QtCore.pyqtSlot()
+    def cycle_image_channel_slot(self):
+        window.ui.preset_comboBox.setCurrentIndex(window.ui.preset_comboBox.currentIndex() + 1)
+
 
 class ShowVideo(QtCore.QObject):
     VideoSignal = QtCore.pyqtSignal(QtGui.QImage)
@@ -231,7 +237,6 @@ class MainWindow(QMainWindow):
     start_focus_signal = QtCore.pyqtSignal()
     start_localization_signal = QtCore.pyqtSignal()
 
-
     def __init__(self, test_run):
         super(MainWindow, self).__init__()
         self.laser_enable = False
@@ -308,6 +313,11 @@ class MainWindow(QMainWindow):
         self.ui.add_preset_pushButton.clicked.connect(preset_manager.add_preset)
         self.ui.remove_preset_pushButton.clicked.connect(preset_manager.remove_preset)
         self.localizer.localizer_stage_command_signal.connect(asi_controller.localizer_stage_command_slot)
+
+        # signals for getting the number of presets:
+        self.localizer.get_number_of_presets_signal.connect(preset_manager.return_number_of_presets_slot)
+        preset_manager.number_of_checked_presets_signal.connect(self.localizer.number_of_presets_slot)
+        self.localizer.cycle_image_channel_signal.connect(preset_manager.cycle_image_channel_slot)
         # self.ui.cells_to_lyse_doublespin_box.valueChanged.connect(self.localizer.set_cells_to_lyse)
         # self.ui.process_well_pushButton.clicked.connect(self.start_localization)
 
@@ -316,8 +326,6 @@ class MainWindow(QMainWindow):
         # print('WIDTH:', self.ui.verticalLayoutWidget.frameGeometry().width())
         # print('HEIGHT:', self.ui.verticalLayoutWidget.frameGeometry().height())
         comment('finished gui init')
-
-
 
     def get_text(self, text_prompt):
         text, okPressed = QInputDialog.getText(self, 'Experiment Input', text_prompt, QLineEdit.Normal, "")
@@ -371,7 +379,6 @@ class MainWindow(QMainWindow):
 
         self.ui.preset_comboBox.addItems(preset_manager.presets.index)
         self.ui.preset_comboBox.currentIndexChanged.connect(preset_manager.select_preset)
-
 
     def send_user_comment(self):
         comment('user comment:{}'.format(self.ui.comment_box.toPlainText()))
