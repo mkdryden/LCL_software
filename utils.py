@@ -148,6 +148,9 @@ class MeanIoU(object):
 
         return np.mean(iou).astype(np.float32)
 
+# def display_fluorescence_properly(img, stain_list):
+
+
 
 preset_loc = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'presets')
 experiment_name = 'experiment_{}'.format(now())

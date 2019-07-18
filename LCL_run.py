@@ -64,6 +64,8 @@ class PresetManager(QtCore.QObject):
         self.saving = False
         self.model = None
         self.checked_names = []
+        self.current_channel = 0
+        self.number_of_channels = 0
 
     def select_preset(self, index):
         if self.saving is True:
@@ -130,7 +132,6 @@ class PresetManager(QtCore.QObject):
         for name in self.presets.index:
             item = QtGui.QStandardItem(name)
             item.text()
-            # check = Qt.Checked if randint(0, 1) == 1 else Qt.Unchecked
             # item.setCheckState(check)
             item.setCheckable(True)
             self.model.appendRow(item)
@@ -145,6 +146,7 @@ class PresetManager(QtCore.QObject):
                 self.checked_names.append(self.model.item(i).text())
             i += 1
         # print(self.checked_names)
+        self.number_of_channels = len(self.checked_names)
 
     @QtCore.pyqtSlot()
     def return_number_of_presets_slot(self):
@@ -152,8 +154,13 @@ class PresetManager(QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def cycle_image_channel_slot(self):
-        window.ui.preset_comboBox.setCurrentIndex(window.ui.preset_comboBox.currentIndex() + 1)
-
+        # each time this is called, we advance to the next checked channel, until all currently checked channels
+        # have been cycled through. then we repeat
+        print('CYCLE SIGNAL RECEIVED')
+        self.current_channel += 1
+        if self.current_channel == self.number_of_channels: self.current_channel = 0
+        window.ui.preset_comboBox.setCurrentText(self.checked_names[self.current_channel])
+        print(f'CURRENT CHANNEL {self.current_channel}')
 
 class ShowVideo(QtCore.QObject):
     VideoSignal = QtCore.pyqtSignal(QtGui.QImage)
@@ -191,7 +198,7 @@ class ShowVideo(QtCore.QObject):
         print('arming camera...', lib.tl_camera_arm(self.camera_handle, 1))
         print('triggering camera...', lib.tl_camera_issue_software_trigger(self.camera_handle))
         print('setting brightness...', asi_controller.send_receive('7LED X={}'.format(INITIAL_BRIGHTNESS)))
-        print('setting gain...', self.change_gain(45))
+        print('setting gain...', self.change_gain(INITIAL_GAIN))
 
     def change_exposure(self, value):
         comment(f'setting exposure to {value}')

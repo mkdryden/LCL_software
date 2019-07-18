@@ -43,30 +43,34 @@ class WellStitcher():
         self.curr_x = self.center
         self.curr_y = self.center
         # initialize the image
-        self.img_x, self.img_y = 4096 // 4, 2160 // 4
+        self.img_x, self.img_y = 4096 // 3, 2160 // 3
         self.well_img = np.zeros((self.img_y * self.box_size, self.img_x * self.box_size, img_channels), dtype=np.uint8)
-        # self.stitch_img(initial_img)
         self.current_channel = 0
+        self.img_channels = img_channels
 
     def stitch_img(self, img):
+        comment('acquiring image')
         img = cv2.resize(img, (self.img_x, self.img_y))
         self.well_img[self.curr_y * self.img_y:(self.curr_y + 1) * self.img_y,
         self.curr_x * self.img_x:(self.curr_x + 1) * self.img_x, self.current_channel] = img
+        print(self.current_channel)
         self.current_channel += 1
+        # if self.current_channel == self.img_channels: self.current_channel = 0
 
     def add_img(self, let, img):
         if let == 'u': self.curr_y -= 1
         if let == 'd': self.curr_y += 1
         if let == 'l': self.curr_x -= 1
         if let == 'r': self.curr_x += 1
+        self.current_channel = 0
         self.stitch_img(img)
 
     def write_well_img(self):
         experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'well_images')
         save_loc = os.path.join(experiment_folder_location, '{}___{}.tif'.format('well_image', now()))
-        plt.imsave(save_loc, self.well_img, cmap='gray')
-        # cv2.imshow('Stitch', cv2.resize(self.well_img, (int(1351), int(711)), interpolation=cv2.INTER_AREA))
-        # cv2.imshow('Stitch', self.well_img)
+        plt.imsave(save_loc, self.well_img)
+        cv2.imshow('Stitch', cv2.resize(self.well_img, (int(1351), int(711)), interpolation=cv2.INTER_AREA))
+        cv2.imshow('Stitch', self.well_img)
         comment('...well image writing completed')
 
 
@@ -176,24 +180,45 @@ class Localizer(QtCore.QObject):
 
     def cycle_image_channel(self):
         self.cycle_image_channel_signal.emit()
+        print('CYCLE SIGNAL EMITTED')
+        QApplication.processEvents()
+        self.delay()
 
-    def gather_all_channel_images(self, stitcher, img_channels):
-        for _ in range(img_channels):
+    def gather_all_channel_images(self, stitcher, img_channels, let):
+        if let is None:
+            # case where we have not moved at all and we are on the first channel
             self.wait_for_new_image(self.frame_count)
             stitcher.stitch_img(self.image)
             self.cycle_image_channel()
+            for _ in range(img_channels - 1):
+                # all the cases where we want to add the remaining channels
+                self.wait_for_new_image(self.frame_count)
+                stitcher.stitch_img(self.image)
+                self.cycle_image_channel()
+        else:
+            self.wait_for_new_image(self.frame_count)
+            stitcher.add_img(let, self.image)
+            self.cycle_image_channel()
+            for _ in range(img_channels - 1):
+                # all the cases where we want to add the remaining channels
+                self.wait_for_new_image(self.frame_count)
+                stitcher.stitch_img(self.image)
+                self.cycle_image_channel()
+
 
     @QtCore.pyqtSlot()
     def tile_slot(self):
         # first get our well center position
         self.well_center = self.get_stage_position()
-        outward_length = 1
+        outward_length = 2
         self.auto_mode = True
         img_channels = self.get_image_channels()
-        if img_channels == 0: return
+        if img_channels == 0:
+            comment('no presets selected - will not execute tiling')
+            return
         # acquire our initial images:
         stitcher = WellStitcher(outward_length, img_channels)
-        self.gather_all_channel_images(stitcher, img_channels)
+        self.gather_all_channel_images(stitcher, img_channels, None)
         # now start moving a frame at a time and adding them
         directions = self.get_spiral_directions(outward_length)
         self.localizer_stage_command_signal.emit('B X=0.04 Y=0.04')
@@ -202,7 +227,7 @@ class Localizer(QtCore.QObject):
                 if self.auto_mode is False:
                     return
                 self.move_frame(let)
-                self.gather_all_channel_images(stitcher, img_channels)
+                self.gather_all_channel_images(stitcher, img_channels, let)
         comment('Tiling completed!')
         stitcher.write_well_img()
         self.return_to_original_position(self.well_center)

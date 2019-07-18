@@ -289,4 +289,4 @@ class StageController(QtCore.QObject):
 if __name__ == '__main__':
     stage = StageController()
     stage.get_all_positions()
-    stage.send_receive('B X? Y? Z?')
+    # stage.send_receive('P X? Y? Z?')
