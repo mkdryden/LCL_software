@@ -1,4 +1,6 @@
-name,exposure,brightness,gain,cube_position,intensity,excitation
-Default,5,50,45,1,0,Off
-UV,55,0,35,2,100,385nm
-475,5,0,305,2,100,475nm
+name,exposure,brightness,gain,cube_position,intensity,excitation,emission
+Default,5,50,45,2,0,Off,0
+UV,45,0,50,2,100,385nm,400nm
+475,45,0,105,2,100,475nm,500nm
+575,10,0,305,2,100,575nm,500nm
+tdTomato,200,0,170,2,100,475nm,630nm

@@ -1,11 +1,12 @@
 import time
-from utils import comment, now
+from utils import comment, now, display_fluorescence_properly
 from keras.models import load_model
 import os
 from PyQt5 import QtCore
 import cv2
 import numpy as np
 import tensorflow as tf
+import pandas as pd
 
 global graph
 from PyQt5.QtWidgets import QApplication
@@ -36,17 +37,21 @@ def mean_iou(y_true, y_pred):
 
 class WellStitcher():
 
-    def __init__(self, outward_length, img_channels):
+    def __init__(self, outward_length, preset_data):
         # get our inital coordinates
         self.box_size = int(outward_length * 2 + 1)
         self.center = outward_length
         self.curr_x = self.center
         self.curr_y = self.center
         # initialize the image
-        self.img_x, self.img_y = 4096 // 3, 2160 // 3
-        self.well_img = np.zeros((self.img_y * self.box_size, self.img_x * self.box_size, img_channels), dtype=np.uint8)
+        self.img_x, self.img_y = 4096 // 2, 2160 // 2
+        self.img_channels = preset_data.shape[0]
+        self.well_img = np.zeros((self.img_y * self.box_size, self.img_x * self.box_size, self.img_channels),
+                                 dtype=np.uint8)
         self.current_channel = 0
-        self.img_channels = img_channels
+        self.preset_data = preset_data
+        print('DATA:')
+        print(preset_data)
 
     def stitch_img(self, img):
         comment('acquiring image')
@@ -58,6 +63,10 @@ class WellStitcher():
         # if self.current_channel == self.img_channels: self.current_channel = 0
 
     def add_img(self, let, img):
+        if let is None:
+            self.current_channel = 0
+            self.stitch_img(img)
+            return
         if let == 'u': self.curr_y -= 1
         if let == 'd': self.curr_y += 1
         if let == 'l': self.curr_x -= 1
@@ -68,9 +77,10 @@ class WellStitcher():
     def write_well_img(self):
         experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'well_images')
         save_loc = os.path.join(experiment_folder_location, '{}___{}.tif'.format('well_image', now()))
+        self.well_img = display_fluorescence_properly(self.well_img, self.preset_data)
         plt.imsave(save_loc, self.well_img)
-        cv2.imshow('Stitch', cv2.resize(self.well_img, (int(1351), int(711)), interpolation=cv2.INTER_AREA))
-        cv2.imshow('Stitch', self.well_img)
+        # cv2.imshow('Stitch', cv2.resize(self.well_img, (int(1351), int(711)), interpolation=cv2.INTER_AREA))
+        # cv2.imshow('Stitch', self.well_img)
         comment('...well image writing completed')
 
 
@@ -104,6 +114,7 @@ class Localizer(QtCore.QObject):
         self.prev_image = None
         self.frame_count = 0
         self.number_of_presets = None
+        self.selected_preset_data = None
 
     # Lines for testing network output
     # im_loc = os.path.join(experiment_folder_location,'test_img.jpeg')
@@ -169,42 +180,30 @@ class Localizer(QtCore.QObject):
         return
 
     @QtCore.pyqtSlot('PyQt_PyObject')
-    def number_of_presets_slot(self, number):
-        self.number_of_presets = number
+    def number_of_presets_slot(self, data):
+        self.selected_preset_data = data
+        self.number_of_presets = data.shape[0]
 
     def get_image_channels(self):
-        # gets the number of checked preset boxes from the gui
+        # gets the preset data
         self.get_number_of_presets_signal.emit()
         self.delay()
         return self.number_of_presets
 
     def cycle_image_channel(self):
         self.cycle_image_channel_signal.emit()
-        print('CYCLE SIGNAL EMITTED')
         QApplication.processEvents()
         self.delay()
 
     def gather_all_channel_images(self, stitcher, img_channels, let):
-        if let is None:
-            # case where we have not moved at all and we are on the first channel
+        self.wait_for_new_image(self.frame_count)
+        stitcher.add_img(let, self.image)
+        self.cycle_image_channel()
+        for _ in range(img_channels - 1):
+            # all the cases where we want to add the remaining channels
             self.wait_for_new_image(self.frame_count)
             stitcher.stitch_img(self.image)
             self.cycle_image_channel()
-            for _ in range(img_channels - 1):
-                # all the cases where we want to add the remaining channels
-                self.wait_for_new_image(self.frame_count)
-                stitcher.stitch_img(self.image)
-                self.cycle_image_channel()
-        else:
-            self.wait_for_new_image(self.frame_count)
-            stitcher.add_img(let, self.image)
-            self.cycle_image_channel()
-            for _ in range(img_channels - 1):
-                # all the cases where we want to add the remaining channels
-                self.wait_for_new_image(self.frame_count)
-                stitcher.stitch_img(self.image)
-                self.cycle_image_channel()
-
 
     @QtCore.pyqtSlot()
     def tile_slot(self):
@@ -217,7 +216,7 @@ class Localizer(QtCore.QObject):
             comment('no presets selected - will not execute tiling')
             return
         # acquire our initial images:
-        stitcher = WellStitcher(outward_length, img_channels)
+        stitcher = WellStitcher(outward_length, self.selected_preset_data)
         self.gather_all_channel_images(stitcher, img_channels, None)
         # now start moving a frame at a time and adding them
         directions = self.get_spiral_directions(outward_length)

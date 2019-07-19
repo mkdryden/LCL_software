@@ -57,7 +57,7 @@ class PresetManager(QtCore.QObject):
         super(PresetManager, self).__init__(parent)
         self.presets = pd.read_csv(preset_loc, index_col='name')
         comment('presets:')
-        comment(str(self.presets))
+        print(self.presets)
         wavelengths = ['Off', '385nm', '430nm', '475nm', '525nm', '575nm', '630nm', 'Allnm']
         self.wv_dict = dict(zip(wavelengths, range(len(wavelengths))))
         self.values = None
@@ -78,6 +78,13 @@ class PresetManager(QtCore.QObject):
         window.ui.cube_position_combobox.setCurrentIndex(self.presets['cube_position'][name] - 1)
         window.ui.intensity_doublespin_box.setValue(self.presets['intensity'][name])
         window.ui.excitation_lamp_on_combobox.setCurrentIndex(self.wv_dict[(str(self.presets['excitation'][name]))])
+        emission = self.presets['emission'][name]
+        if emission == '0' or emission == '0nm':
+            emission = 0
+        else:
+            emission = emission[:-2]
+        window.ui.emission_doublespin_box.setValue(int(emission))
+
 
     def get_all_current_values(self):
         self.values = []
@@ -87,6 +94,7 @@ class PresetManager(QtCore.QObject):
         self.values.append(window.ui.cube_position_combobox.currentIndex() + 1)
         self.values.append(int(window.ui.intensity_doublespin_box.value()))
         self.values.append(window.ui.excitation_lamp_on_combobox.currentText())
+        self.values.append(window.ui.emission_doublespin_box.text())
 
     def change_preset(self):
         name = window.ui.preset_comboBox.currentText()
@@ -97,6 +105,7 @@ class PresetManager(QtCore.QObject):
         self.presets['cube_position'][name] = self.values[3]
         self.presets['intensity'][name] = self.values[4]
         self.presets['excitation'][name] = window.ui.excitation_lamp_on_combobox.currentText()
+        self.presets['emission'][name] = window.ui.emission_doublespin_box.text()
         self.presets.to_csv(preset_loc, index=True)
         _ = QMessageBox.about(window, 'Notice', f'{name} preset has been saved.')
 
@@ -115,6 +124,7 @@ class PresetManager(QtCore.QObject):
         self.presets.to_csv(preset_loc, index=True)
         window.ui.preset_comboBox.addItem(name)
         window.ui.preset_comboBox.setCurrentText(name)
+        self.setup_tile_preset_list(window)
 
     def remove_preset(self):
         reply = QMessageBox.question(window, 'Remove Preset',
@@ -126,6 +136,7 @@ class PresetManager(QtCore.QObject):
         window.ui.preset_comboBox.removeItem(i)
         self.presets = self.presets.drop(name)
         self.presets.to_csv(preset_loc, index=True)
+        self.setup_tile_preset_list(window)
 
     def setup_tile_preset_list(self, window):
         self.model = QtGui.QStandardItemModel()
@@ -150,17 +161,16 @@ class PresetManager(QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def return_number_of_presets_slot(self):
-        self.number_of_checked_presets_signal.emit(len(self.checked_names))
+        self.number_of_checked_presets_signal.emit(self.presets.loc[self.checked_names])
 
     @QtCore.pyqtSlot()
     def cycle_image_channel_slot(self):
         # each time this is called, we advance to the next checked channel, until all currently checked channels
         # have been cycled through. then we repeat
-        print('CYCLE SIGNAL RECEIVED')
         self.current_channel += 1
         if self.current_channel == self.number_of_channels: self.current_channel = 0
         window.ui.preset_comboBox.setCurrentText(self.checked_names[self.current_channel])
-        print(f'CURRENT CHANNEL {self.current_channel}')
+
 
 class ShowVideo(QtCore.QObject):
     VideoSignal = QtCore.pyqtSignal(QtGui.QImage)
