@@ -26,7 +26,7 @@ assert lib.tl_camera_open_sdk() == 0
 
 SHIFT_AMT = np.array([4], dtype=np.uint8)
 INITIAL_EXPOSURE = 5 * 1000
-INITIAL_BRIGHTNESS = 50
+INITIAL_BRIGHTNESS = 20
 INITIAL_GAIN = 45
 
 
@@ -56,9 +56,8 @@ class PresetManager(QtCore.QObject):
     def __init__(self, parent=None):
         super(PresetManager, self).__init__(parent)
         self.presets = pd.read_csv(preset_loc, index_col='name')
-        comment('presets:')
         print(self.presets)
-        wavelengths = ['Off', '385nm', '430nm', '475nm', '525nm', '575nm', '630nm', 'Allnm']
+        wavelengths = ['Off', '385nm', '430nm', '475nm', '525nm', '575nm', '630nm', 'All']
         self.wv_dict = dict(zip(wavelengths, range(len(wavelengths))))
         self.values = None
         self.saving = False
@@ -84,7 +83,6 @@ class PresetManager(QtCore.QObject):
         else:
             emission = emission[:-2]
         window.ui.emission_doublespin_box.setValue(int(emission))
-
 
     def get_all_current_values(self):
         self.values = []
@@ -316,8 +314,8 @@ class MainWindow(QMainWindow):
 
         # Stage movement buttons
         self.ui.step_size_doublespin_box.valueChanged.connect(asi_controller.set_step_size)
-        # self.ui.repetition_rate_double_spin_box.valueChanged.connect(laser.set_pulse_frequency)
-        # self.ui.burst_count_double_spin_box.valueChanged.connect(laser.set_burst_counter)
+        self.ui.repetition_rate_double_spin_box.valueChanged.connect(laser.set_pulse_frequency)
+        self.ui.burst_count_double_spin_box.valueChanged.connect(laser.set_burst_counter)
         self.setup_comboboxes()
         self.localizer.get_position_signal.connect(asi_controller.get_all_positions)
         asi_controller.position_return_signal.connect(self.localizer.position_return_slot)
@@ -384,7 +382,7 @@ class MainWindow(QMainWindow):
         self.ui.cube_position_combobox.setCurrentIndex(asi_controller.get_cube_position())
         self.ui.cube_position_combobox.currentIndexChanged.connect(asi_controller.change_cube_position)
 
-        self.ui.magnification_combobox.addItems(['20x', '40x', '100x', 'None', 'None'])
+        self.ui.magnification_combobox.addItems(['P1', '40x', 'P3', '60x', 'P5', '20x'])
         self.ui.magnification_combobox.setCurrentIndex(asi_controller.get_objective_position())
         self.ui.magnification_combobox.currentIndexChanged.connect(self.change_magnification)
 
@@ -406,21 +404,23 @@ class MainWindow(QMainWindow):
         time.sleep(1)
         asi_controller.change_magnification(index)
 
-    # @QtCore.pyqtSlot()
-    # def qswitch_screenshot_slot(self):
-    #     if self.laser_enable:
-    #         self.qswitch_screenshot_signal.emit(15)
-    #         comment('stage position during qswitch: {}'.format(asi_controller.get_all_positions()))
-    #         laser.start_burst()
+    @QtCore.pyqtSlot()
+    def qswitch_screenshot_slot(self):
+        if self.laser_enable:
+            self.qswitch_screenshot_signal.emit(30)
+            comment('stage position during qswitch: {}'.format(asi_controller.get_all_positions()))
+            laser.start_burst()
 
     def enable_laser_firing(self):
         if asi_controller.get_cube_position() == 1:
             _ = QMessageBox.about(self, 'Bad!', 'You are trying to fire the laser at the filter!')
             return
+        asi_controller.move_rel_z(440)
         self.ui.laser_groupbox.setTitle('Laser - ARMED')
         self.laser_enable = True
 
     def disable_laser_firing(self):
+        asi_controller.move_rel_z(-440)
         self.ui.laser_groupbox.setTitle('Laser')
         self.laser_enable = False
 
@@ -442,7 +442,7 @@ class MainWindow(QMainWindow):
                 68: asi_controller.move_right,
                 66: asi_controller.move_last,
                 16777249: self.enable_laser_firing,
-                # 70: self.qswitch_screenshot_slot,
+                70: self.qswitch_screenshot_slot,
                 # 81: laser.qswitch_auto,
                 # 73: stage.start_roll_down,
                 # 75:self.autofocuser.roll_backward,
@@ -461,7 +461,7 @@ class MainWindow(QMainWindow):
             # print('key released: {}'.format(event.key()))
             key_control_dict = {
                 16777249: self.disable_laser_firing,
-                # 70: laser.stop_burst
+                70: laser.stop_burst
             }
             if event.key() in key_control_dict.keys():
                 key_control_dict[event.key()]()
@@ -473,10 +473,9 @@ if __name__ == '__main__':
     parser.add_argument('test_run')
     args = parser.parse_args()
     app = QApplication(sys.argv)
-    # laser = LaserController()
+    laser = LaserController()
     asi_controller = StageController()
     excitation = ExcitationController()
     preset_manager = PresetManager()
     window = MainWindow(args.test_run)
-    print(preset_loc)
     comment('exit with code: ' + str(app.exec_()))

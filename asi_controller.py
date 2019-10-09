@@ -19,11 +19,8 @@ class StageController(QtCore.QObject):
         self.step_size = 500
         self.reverse_move_vector = np.zeros(2)
         self.return_from_dmf_vector = np.zeros(2)
-        self.magnification = 4
         self.microns_per_pixel = 100 / 34
         self.calibration_factor = 1.20 * 4
-        # self.lysing_loc = self.get_position_slot()
-        self.lysing = True
         # turning off backlash
         comment(self.send_receive('B X=0 Y=0'))
         # setting TTL low
@@ -32,16 +29,19 @@ class StageController(QtCore.QObject):
         self.down = False
         self.objective_retracted = None
         self.previous_z = None
+        self.previous_magnification = None
         self.objective_slots = {
-            1: 20,
+            1: 'None',
             2: 40,
-            3: 100,
-            4: 'None',
-            5: 'None'
+            3: 'None',
+            4: 60,
+            5: 'None',
+            6: 20
         }
         self.objective_calibration_factors = {
             20: 1,
             40: 0.51,
+            60: .36,
             100: 0.205}
         self.current_magnification = self.objective_slots[self.get_objective_position() + 1]
 
@@ -106,11 +106,11 @@ class StageController(QtCore.QObject):
     def get_is_objective_retracted(self):
         pos = int(self.send_receive('W Z').split(':A ')[1])
         # up is negative. ~95000 is in focus for 20x
-        if pos > -80000:
+        if pos > -50000:
             comment('objective is retracted')
             self.objective_retracted = True
             return True
-        elif pos < -80000:
+        elif pos < -50000:
             comment('objective is down')
             self.objective_retracted = False
             return False
@@ -129,21 +129,40 @@ class StageController(QtCore.QObject):
             time.sleep(.5)
 
     def set_objective_down(self):
-        if self.previous_z is not None:
-            self.move(z=self.previous_z)
-        else:
-            self.move(z=-90000)
+        parfocal_offset = 60000
+        normal_drop_dist = 90000
+        # case for going from non-60 to 60
+        if self.previous_magnification != 60 and self.current_magnification == 60:
+            if self.previous_z is not None:
+                self.move(z=self.previous_z + parfocal_offset)
+            else:
+                self.move(z=-normal_drop_dist + parfocal_offset)
+        # case for going from 60 to non-60
+        if self.previous_magnification == 60 and self.current_magnification != 60:
+            if self.previous_z is not None:
+                self.move(z=self.previous_z - parfocal_offset)
+            else:
+                self.move(z=-normal_drop_dist)
+        # case for going from non-60 to non-60
+        if self.previous_magnification != 60 and self.current_magnification != 60:
+            if self.previous_z is not None:
+                self.move(z=self.previous_z)
+            else:
+                self.move(z=-normal_drop_dist)
+
+
 
     def change_magnification(self, index):
-        # if we are up, stay up, if we are down, pull up, change, then go down
+        self.previous_magnification = self.current_magnification
+        self.current_magnification = self.objective_slots[index + 1]
         up = self.get_is_objective_retracted()
+        # if we are up, stay up, if we are down, pull up, change, then go down
         if up:
             self.send_receive('MOVE O={}'.format(index + 1))
         else:
             self.pull_objective_up()
             self.send_receive('MOVE O={}'.format(index + 1))
             self.set_objective_down()
-        self.current_magnification = self.objective_slots[index + 1]
         comment(f'magnification changed to: {self.current_magnification}')
         # self.compensate_for_objective_offsets(self.magnification, map_dict[index + 1])
 
@@ -192,6 +211,9 @@ class StageController(QtCore.QObject):
     def move_relative(self, move_vector):
         self.reverse_move_vector = -1 * move_vector
         return self.send_receive('R X={} Y={}'.format(move_vector[0], move_vector[1]))
+
+    def move_rel_z(self, z):
+        return self.send_receive(f'R Z={z}')
 
     def move_last(self):
         return self.move_relative(self.reverse_move_vector)
@@ -289,4 +311,4 @@ class StageController(QtCore.QObject):
 if __name__ == '__main__':
     stage = StageController()
     stage.get_all_positions()
-    # stage.send_receive('P X? Y? Z?')
+    stage.send_receive('P X? Y? Z?')

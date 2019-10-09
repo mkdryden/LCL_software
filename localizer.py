@@ -36,6 +36,7 @@ def mean_iou(y_true, y_pred):
 
 
 class WellStitcher():
+    well_move_signal = QtCore.pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
 
     def __init__(self, outward_length, preset_data):
         # get our inital coordinates
@@ -50,6 +51,10 @@ class WellStitcher():
                                  dtype=np.uint8)
         self.current_channel = 0
         self.preset_data = preset_data
+        self.point = ()
+        self.move_key_held = False
+        self.fig = None
+        self.ax = None
         print('DATA:')
         print(preset_data)
 
@@ -79,9 +84,37 @@ class WellStitcher():
         save_loc = os.path.join(experiment_folder_location, '{}___{}.tif'.format('well_image', now()))
         self.well_img = display_fluorescence_properly(self.well_img, self.preset_data)
         plt.imsave(save_loc, self.well_img)
-        # cv2.imshow('Stitch', cv2.resize(self.well_img, (int(1351), int(711)), interpolation=cv2.INTER_AREA))
-        # cv2.imshow('Stitch', self.well_img)
         comment('...well image writing completed')
+        img = cv2.resize(self.well_img, (self.well_img.shape[1]//2, self.well_img.shape[0]//2))
+        self.get_macro_click(img)
+
+    def get_macro_click(self, img):
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(111)
+        plt.imshow(img)
+        cid = self.fig.canvas.mpl_connect('button_press_event', self.__onclick__)
+        self.fig.canvas.mpl_connect('key_press_event', self.press)
+        QApplication.processEvents()
+        self.ax.set_xlabel(f'Move mode: {self.move_key_held}')
+        self.fig.tight_layout()
+        self.ax.set_xticks([])
+        self.ax.set_yticks([])
+        plt.show()
+        return self.point
+
+    def __onclick__(self, click):
+        self.point = (click.xdata, click.ydata)
+        if self.move_key_held:
+            print('moving to point:', self.point)
+        QApplication.processEvents()
+        return self.point
+
+    def press(self, event):
+        if event.key =='m':
+            self.move_key_held = not self.move_key_held
+        self.ax.set_xlabel(f'Move mode: {self.move_key_held}')
+        self.fig.canvas.draw()
+
 
 
 class Localizer(QtCore.QObject):
@@ -146,8 +179,8 @@ class Localizer(QtCore.QObject):
         return self.position
 
     def move_frame(self, direction, relative=True):
-        y_distance = 340 * 10
-        x_distance = 128 * 5 * 10
+        y_distance = 3400 - 25
+        x_distance = 3235*2 - 170
         frame_dir_dict = {
             'u': np.array([0, -y_distance]),
             'd': np.array([0, y_distance]),
@@ -209,7 +242,7 @@ class Localizer(QtCore.QObject):
     def tile_slot(self):
         # first get our well center position
         self.well_center = self.get_stage_position()
-        outward_length = 2
+        outward_length = 1
         self.auto_mode = True
         img_channels = self.get_image_channels()
         if img_channels == 0:
@@ -228,9 +261,11 @@ class Localizer(QtCore.QObject):
                 self.move_frame(let)
                 self.gather_all_channel_images(stitcher, img_channels, let)
         comment('Tiling completed!')
-        stitcher.write_well_img()
         self.return_to_original_position(self.well_center)
+        stitcher.write_well_img()
+        QApplication.processEvents()
         self.localizer_stage_command_signal.emit('B X=0 Y=0')
+        QApplication.processEvents()
 
     def change_type_to_lyse(self, index):
         map_dict = {

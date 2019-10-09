@@ -49,8 +49,10 @@ class screen_shooter(QtCore.QObject):
     def screenshot_slot(self, image):
         self.image = image
         if self.recording:
-            self.movie_file.write(image)
-            return
+            # self.movie_file.write(image)
+            cv2.imwrite(os.path.join(experiment_folder_location,
+                                     'MOVIE_{}___{}.jpeg'.format(self.image_title, now())), self.image)
+            print('writing frame {} to disk'.format(self.image_count))
         self.image_count += 1
         if self.requested_frames > 0:
             cv2.imwrite(os.path.join(experiment_folder_location,
@@ -61,15 +63,15 @@ class screen_shooter(QtCore.QObject):
     @QtCore.pyqtSlot()
     def toggle_recording_slot(self):
         self.recording = not self.recording
-        if self.recording:
-            width = 1024
-            height = 822
-            file_name = os.path.join(experiment_folder_location, 'movie_{}.avi'.format(now()))
-            fourcc = cv2.VideoWriter_fourcc(*'MJPG')  # Be sure to use lower case
-            self.movie_file = cv2.VideoWriter(file_name, fourcc, 10.0, (int(width / 1), int(height / 1)))
-            comment('recording...')
+        # if self.recording:
+        #     frameW = self.image.shape[0]
+        #     frameH = self.image.shape[1]
+        #     file_name = os.path.join(experiment_folder_location, 'movie_{}.mp4'.format(now()))
+        #     fourcc = cv2.VideoWriter_fourcc('a','v','6','4')
+        #     self.movie_file = cv2.VideoWriter(file_name, fourcc, 10.0, (int(frameW), int(frameH)), 1)
+        #     comment('recording...')
         if not self.recording:
-            self.movie_file.release()
+            # self.movie_file.release()
             comment('finished recording...')
 
     @QtCore.pyqtSlot()
@@ -151,7 +153,8 @@ class MeanIoU(object):
 
 
 def display_fluorescence_properly(img, preset_data):
-    new_img = np.zeros(img.shape).astype(np.uint8)
+    new_shape = img.shape[:-1] + (3,)
+    new_img = np.zeros(new_shape ).astype(np.uint8)
     for channel_num in range(preset_data.shape[0]):
         # now map the channels to their respective wavelengths
         channel = preset_data.iloc[channel_num]
@@ -161,12 +164,12 @@ def display_fluorescence_properly(img, preset_data):
             channel_wv = channel_wv[:-2]
         if int(channel_wv) == 0:
             # this is a BF channel
-            for i in range(img.shape[2]):
+            for i in range(3):
                 new_img[:, :, i] = img[:, :, channel_num]
         else:
             # now add proper fluorescence on top
             rgb_val = wav2RGB(channel_wv)
-            new_overlay = np.zeros(img.shape).astype(np.uint8)
+            new_overlay = np.zeros(new_shape).astype(np.uint8)
             for j in range(3):
                 new_overlay[:, :, j] = rgb_val[j] / 255 * img[:, :, channel_num]
             new_img = cv2.addWeighted(new_img, .5, new_overlay, 1, .6)

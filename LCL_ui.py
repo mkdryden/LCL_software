@@ -162,7 +162,7 @@ class Ui_MainWindow(object):
         self.brightness_doublespin_box.setMinimum(0.0)
         self.brightness_doublespin_box.setMaximum(100.0)
         self.brightness_doublespin_box.setSingleStep(10.0)
-        self.brightness_doublespin_box.setProperty("value", 50.0)
+        self.brightness_doublespin_box.setProperty("value", 20.0)
         self.brightness_doublespin_box.setObjectName("brightness_doublespin_box")
         self.gain_label = QtWidgets.QLabel(self.groupBox)
         self.gain_label.setGeometry(QtCore.QRect(10, 120, 131, 16))
