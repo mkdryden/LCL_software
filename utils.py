@@ -110,7 +110,10 @@ class screen_shooter(QtCore.QObject):
         cv2.imwrite(os.path.join(experiment_folder_location,
                                  'before_qswitch___{}.tif'.format(now())), self.image)
         self.image_title = 'during_qswitch_fire'
-        self.requested_frames += num_frames
+        if self.requested_frames >= 30:
+            self.requested_frames = 30
+        else:
+            self.requested_frames += num_frames
 
 
 class MeanIoU(object):

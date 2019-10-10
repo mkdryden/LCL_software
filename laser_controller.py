@@ -31,6 +31,7 @@ class LaserController:
                 ser.write('n'.encode('utf-8'))
                 response = ser.readline()
                 if response == b'18247\r\n':
+                    print("RESPONSE FROM LASER:", response)
                     comment('laser found on {}'.format(com))
                     return ser
             except Exception as e:
@@ -45,10 +46,7 @@ class LaserController:
 
     def get_response(self):
         response = ''
-        while '\n' not in response:
-            piece = self.ser.read()
-            if piece != b'':
-                response += piece.decode('utf-8')
+        response = self.ser.readline()
         comment('response received from laser:{}'.format(response))
         return response
 

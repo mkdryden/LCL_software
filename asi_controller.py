@@ -6,7 +6,7 @@ from PyQt5 import QtCore
 import time
 
 
-# sudo chmod o+rw /dev/ttyUSB0
+
 class StageController(QtCore.QObject):
     position_return_signal = QtCore.pyqtSignal('PyQt_PyObject')
 
@@ -106,11 +106,11 @@ class StageController(QtCore.QObject):
     def get_is_objective_retracted(self):
         pos = int(self.send_receive('W Z').split(':A ')[1])
         # up is negative. ~95000 is in focus for 20x
-        if pos > -50000:
+        if pos > -30000:
             comment('objective is retracted')
             self.objective_retracted = True
             return True
-        elif pos < -50000:
+        elif pos < -30000:
             comment('objective is down')
             self.objective_retracted = False
             return False
@@ -128,33 +128,20 @@ class StageController(QtCore.QObject):
         while 'N' not in self.send_receive('STATUS'):
             time.sleep(.5)
 
-    def set_objective_down(self):
-        parfocal_offset = 60000
-        normal_drop_dist = 90000
-        # case for going from non-60 to 60
-        if self.previous_magnification != 60 and self.current_magnification == 60:
-            if self.previous_z is not None:
-                self.move(z=self.previous_z + parfocal_offset)
-            else:
-                self.move(z=-normal_drop_dist + parfocal_offset)
-        # case for going from 60 to non-60
-        if self.previous_magnification == 60 and self.current_magnification != 60:
-            if self.previous_z is not None:
-                self.move(z=self.previous_z - parfocal_offset)
-            else:
-                self.move(z=-normal_drop_dist)
-        # case for going from non-60 to non-60
-        if self.previous_magnification != 60 and self.current_magnification != 60:
-            if self.previous_z is not None:
-                self.move(z=self.previous_z)
-            else:
-                self.move(z=-normal_drop_dist)
-
-
+    def set_objective_down(self, ):
+        # IF Z is zero at the top of travel:
+        # 60x in focus at -69996
+        # 40x in focus at -126151
+        # 20x in focus at -126151
+        focus_dict = {20: -126151,
+                      40: -126151,
+                      60: -69996}
+        self.move(z=focus_dict[self.current_magnification])
 
     def change_magnification(self, index):
         self.previous_magnification = self.current_magnification
         self.current_magnification = self.objective_slots[index + 1]
+        self.compensate_for_objective_offsets(self.previous_magnification, self.current_magnification)
         up = self.get_is_objective_retracted()
         # if we are up, stay up, if we are down, pull up, change, then go down
         if up:
@@ -164,7 +151,8 @@ class StageController(QtCore.QObject):
             self.send_receive('MOVE O={}'.format(index + 1))
             self.set_objective_down()
         comment(f'magnification changed to: {self.current_magnification}')
-        # self.compensate_for_objective_offsets(self.magnification, map_dict[index + 1])
+
+
 
     @QtCore.pyqtSlot('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
     def reticle_and_center_slot(self, center_x, center_y, reticle_x, reticle_y):
@@ -176,21 +164,20 @@ class StageController(QtCore.QObject):
     def change_cube_position(self, index):
         self.send_receive('MOVE S={}'.format(index + 1))
 
-    # def compensate_for_objective_offsets(self, present_mag, future_mag):
-    #     compensation_dict = {
-    #         4: np.zeros(2),
-    #         20: np.array([-67, -115]),
-    #         40: np.array([-78, -124]),
-    #         60: np.array([-74, -132]),
-    #         100: np.array([-79, -139])
-    #     }
-    #     # get back to 4 first
-    #     move = -1 * compensation_dict[present_mag]
-    #     # now compensate for offsets from 4
-    #     move = move + compensation_dict[future_mag]
-    #     comment('objective offset correction: {}'.format(move))
-    #     self.move_relative(move)
-    #     self.magnification = future_mag
+    def compensate_for_objective_offsets(self, present_mag, future_mag):
+        # from 20 to 40: X=132.192 Y=717.264
+        # X=1157.76 Y=260.928 + X=1157.76 Y=260.928 + X=-77.76 Y=596.16
+        compensation_dict = {
+            20: np.zeros(2),
+            40: np.array([132.192, 717.264]),
+            60: np.array([2237.76, 1118.016]),
+        }
+        # get back to 4 first
+        move = -1 * compensation_dict[present_mag]
+        # now compensate for offsets from 4
+        move = move + compensation_dict[future_mag]
+        comment('objective offset correction: {}'.format(move))
+        self.move_relative(move)
 
     def set_step_size(self, step_size):
         comment('step size changed to: {}'.format(step_size))
@@ -244,7 +231,10 @@ class StageController(QtCore.QObject):
             move_vector = self.scale_move_vector(move_vector)
             self.move_relative(move_vector)
         elif move_relative is False and scale_vector is False:
-            # print(move_vector)
+            print('MOVING')
+            self.move(x=move_vector[0], y=move_vector[1])
+        elif move_relative is False and scale_vector is True:
+            move_vector = self.scale_move_vector(move_vector)
             self.move(x=move_vector[0], y=move_vector[1])
         elif move_relative is True and scale_vector is False:
             self.move_relative(move_vector)
@@ -311,4 +301,5 @@ class StageController(QtCore.QObject):
 if __name__ == '__main__':
     stage = StageController()
     stage.get_all_positions()
-    stage.send_receive('P X? Y? Z?')
+    # stage.send_receive('P X? Y? Z?')
+    # stage.send_receive('HERE Z')

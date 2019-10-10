@@ -52,9 +52,6 @@ class WellStitcher():
         self.current_channel = 0
         self.preset_data = preset_data
         self.point = ()
-        self.move_key_held = False
-        self.fig = None
-        self.ax = None
         print('DATA:')
         print(preset_data)
 
@@ -86,34 +83,10 @@ class WellStitcher():
         plt.imsave(save_loc, self.well_img)
         comment('...well image writing completed')
         img = cv2.resize(self.well_img, (self.well_img.shape[1]//2, self.well_img.shape[0]//2))
-        self.get_macro_click(img)
+        return img
 
-    def get_macro_click(self, img):
-        self.fig = plt.figure()
-        self.ax = self.fig.add_subplot(111)
-        plt.imshow(img)
-        cid = self.fig.canvas.mpl_connect('button_press_event', self.__onclick__)
-        self.fig.canvas.mpl_connect('key_press_event', self.press)
-        QApplication.processEvents()
-        self.ax.set_xlabel(f'Move mode: {self.move_key_held}')
-        self.fig.tight_layout()
-        self.ax.set_xticks([])
-        self.ax.set_yticks([])
-        plt.show()
-        return self.point
 
-    def __onclick__(self, click):
-        self.point = (click.xdata, click.ydata)
-        if self.move_key_held:
-            print('moving to point:', self.point)
-        QApplication.processEvents()
-        return self.point
 
-    def press(self, event):
-        if event.key =='m':
-            self.move_key_held = not self.move_key_held
-        self.ax.set_xlabel(f'Move mode: {self.move_key_held}')
-        self.fig.canvas.draw()
 
 
 
@@ -148,6 +121,10 @@ class Localizer(QtCore.QObject):
         self.frame_count = 0
         self.number_of_presets = None
         self.selected_preset_data = None
+        self.move_key_held = False
+        self.fig = None
+        self.ax = None
+        self.first_click = True
 
     # Lines for testing network output
     # im_loc = os.path.join(experiment_folder_location,'test_img.jpeg')
@@ -262,10 +239,47 @@ class Localizer(QtCore.QObject):
                 self.gather_all_channel_images(stitcher, img_channels, let)
         comment('Tiling completed!')
         self.return_to_original_position(self.well_center)
-        stitcher.write_well_img()
+        macro_img = stitcher.write_well_img()
+        print(macro_img.shape)
         QApplication.processEvents()
         self.localizer_stage_command_signal.emit('B X=0 Y=0')
         QApplication.processEvents()
+        self.localizer_stage_command_signal.emit('HERE X Y')
+        self.get_macro_click(macro_img)
+
+    def get_macro_click(self, img):
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(111)
+        plt.imshow(img)
+        cid = self.fig.canvas.mpl_connect('button_press_event', self.__onclick__)
+        self.fig.canvas.mpl_connect('key_press_event', self.press)
+        QApplication.processEvents()
+        self.ax.set_xlabel(f'Move mode: {self.move_key_held}')
+        self.fig.tight_layout()
+        self.ax.set_xticks([])
+        self.ax.set_yticks([])
+        plt.show()
+        # return self.point
+
+    def __onclick__(self, click):
+        # y_distance = 3400 - 25 stage steps upwards for a full screen
+        # x_distance = 3235 * 2 - 170 stage steps sideways for a full screen
+        # (1620, 3072) shape of our image
+        window_center = (3072//2, 1620//2)
+        mouse_click_location = np.array([click.xdata, click.ydata])
+        pixel_move_vector = mouse_click_location - window_center
+        pixel_move_vector = pixel_move_vector * 3 / 2
+        if self.move_key_held:
+            self.move_key_held = not self.move_key_held
+            print('moving to point:', mouse_click_location)
+            self.localizer_move_signal.emit(pixel_move_vector, False, False, True)
+        QApplication.processEvents()
+
+    def press(self, event):
+        if event.key == 'm' or event.key == 'M':
+            self.move_key_held = not self.move_key_held
+        self.ax.set_xlabel(f'Move mode: {self.move_key_held}')
+        self.fig.canvas.draw()
 
     def change_type_to_lyse(self, index):
         map_dict = {

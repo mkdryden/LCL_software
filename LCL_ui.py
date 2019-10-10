@@ -178,7 +178,7 @@ class Ui_MainWindow(object):
         self.exposure_doublespin_box.setMinimum(1.0)
         self.exposure_doublespin_box.setMaximum(10000.0)
         self.exposure_doublespin_box.setSingleStep(5.0)
-        self.exposure_doublespin_box.setProperty("value", 5.0)
+        self.exposure_doublespin_box.setProperty("value", 2.0)
         self.exposure_doublespin_box.setObjectName("exposure_doublespin_box")
         self.brightness_label = QtWidgets.QLabel(self.groupBox)
         self.brightness_label.setGeometry(QtCore.QRect(10, 70, 131, 16))

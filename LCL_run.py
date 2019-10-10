@@ -25,7 +25,7 @@ assert lib.tl_camera_sdk_dll_initialize() == 0
 assert lib.tl_camera_open_sdk() == 0
 
 SHIFT_AMT = np.array([4], dtype=np.uint8)
-INITIAL_EXPOSURE = 5 * 1000
+INITIAL_EXPOSURE = 2 * 1000
 INITIAL_BRIGHTNESS = 20
 INITIAL_GAIN = 45
 
