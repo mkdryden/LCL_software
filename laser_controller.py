@@ -17,6 +17,7 @@ class LaserController:
         self.send_receive('0x')
         #     stop burst
         self.send_receive('d')
+        self.send_receive('s')
         self.set_pulse_frequency(50)
         self.set_burst_counter(50)
 
@@ -33,8 +34,11 @@ class LaserController:
                 if response == b'18247\r\n':
                     print("RESPONSE FROM LASER:", response)
                     comment('laser found on {}'.format(com))
+                    ser.flushInput()
+                    ser.flushOutput()
                     return ser
             except Exception as e:
+                print(str(e))
                 comment('laser not on COM ' + com)
         comment('could not connect to laser. exiting...')
         sys.exit(1)
@@ -45,7 +49,6 @@ class LaserController:
         self.ser.write(command.encode('utf-8'))
 
     def get_response(self):
-        response = ''
         response = self.ser.readline()
         comment('response received from laser:{}'.format(response))
         return response

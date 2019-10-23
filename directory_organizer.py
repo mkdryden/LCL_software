@@ -6,11 +6,13 @@ experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file
 for name in os.listdir(experiment_folder_location):
 	if 'sd' not in name:
 		files = ''.join(os.listdir(os.path.join(experiment_folder_location,name)))
-		if '.tif' not in files or '.avi' not in files:		
-			response = input('WARNING directory {} found not to have files. Type Y to Delete\n'.format(name))
-			if response == 'Y':
-				shutil.rmtree(os.path.join(experiment_folder_location,name))
-				print('deleting:',name)
+		if '.tif' not in files and '.avi' not in files:		
+			print(f'FILE LIST:{files}')
+			response = input('WARNING directory {} found not to have files. DELETING...\n'.format(name))
+			shutil.rmtree(os.path.join(experiment_folder_location,name))			
+			# if response == 'Y':
+			# 	shutil.rmtree(os.path.join(experiment_folder_location,name))
+			# 	print('deleting:',name)
 
 def get_480mb_worth_of_files(directory):
 	paths_out = []

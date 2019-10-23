@@ -188,7 +188,7 @@ class ShowVideo(QtCore.QObject):
     def draw_reticle(self, image):
         # cv2.circle(image, (self.reticle_x, self.reticle_y),
         #            5, (0, 0, 0), -1)
-        cv2.circle(image, (self.center_x, self.center_y), 50, (0, 0, 0), -1)
+        cv2.circle(image, (self.center_x, self.center_y), 50, (250, 0, 0), -1)
 
     # @staticmethod
     @QtCore.pyqtSlot()
@@ -473,9 +473,9 @@ if __name__ == '__main__':
     parser.add_argument('test_run')
     args = parser.parse_args()
     app = QApplication(sys.argv)
-    laser = LaserController()
     asi_controller = StageController()
     excitation = ExcitationController()
+    laser = LaserController()
     preset_manager = PresetManager()
     window = MainWindow(args.test_run)
     comment('exit with code: ' + str(app.exec_()))
