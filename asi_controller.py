@@ -134,7 +134,7 @@ class StageController(QtCore.QObject):
         # 40x in focus at -126151
         # 20x in focus at -126151
         focus_dict = {20: -126151,
-                      40: -126151,
+                      40: -124000,
                       60: -69996}
         self.move(z=focus_dict[self.current_magnification])
 
@@ -169,8 +169,8 @@ class StageController(QtCore.QObject):
         # X=1157.76 Y=260.928 + X=1157.76 Y=260.928 + X=-77.76 Y=596.16
         compensation_dict = {
             20: np.zeros(2),
-            40: np.array([132.192, 717.264]),
-            60: np.array([2237.76, 1118.016]),
+            40: np.array([849, -335]),
+            60: np.array([2897, 75]),
         }
         # get back to 4 first
         move = -1 * compensation_dict[present_mag]

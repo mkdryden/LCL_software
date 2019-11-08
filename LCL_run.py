@@ -46,6 +46,7 @@ def tl_camera_frame_available_callback(sender, image_buffer, frame_count, metada
     np_data = cv2.resize(np_data, (1352, 712))
     height, width = np_data.shape
     cv2.circle(np_data, (width // 2, height // 2), 5, (0, 0, 0), -1)
+    cv2.circle(np_data, (width // 2 - 30, height // 2 + 85), 5, (250, 250, 250), -1)
     qt_image = QtGui.QImage(np_data.data, width, height, QtGui.QImage.Format_Grayscale8)
     window.vid.VideoSignal.emit(qt_image)
 
@@ -189,6 +190,7 @@ class ShowVideo(QtCore.QObject):
         # cv2.circle(image, (self.reticle_x, self.reticle_y),
         #            5, (0, 0, 0), -1)
         cv2.circle(image, (self.center_x, self.center_y), 50, (250, 0, 0), -1)
+        cv2.circle(image, (self.center_x - 50, self.center_y - 50), 50, (250, 0, 0), -1)
 
     # @staticmethod
     @QtCore.pyqtSlot()
@@ -415,12 +417,12 @@ class MainWindow(QMainWindow):
         if asi_controller.get_cube_position() == 1:
             _ = QMessageBox.about(self, 'Bad!', 'You are trying to fire the laser at the filter!')
             return
-        asi_controller.move_rel_z(440)
+        asi_controller.move_rel_z(283)
         self.ui.laser_groupbox.setTitle('Laser - ARMED')
         self.laser_enable = True
 
     def disable_laser_firing(self):
-        asi_controller.move_rel_z(-440)
+        asi_controller.move_rel_z(-283)
         self.ui.laser_groupbox.setTitle('Laser')
         self.laser_enable = False
 
@@ -479,3 +481,4 @@ if __name__ == '__main__':
     preset_manager = PresetManager()
     window = MainWindow(args.test_run)
     comment('exit with code: ' + str(app.exec_()))
+    sys.exit()

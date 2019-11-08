@@ -31,6 +31,12 @@ def comment(text):
     print(text, threading.current_thread())
 
 
+def save_well_imgs(img, fs_img):
+    save_loc = os.path.join(experiment_folder_location, '{}___{}.tif'.format('well_image', now()))
+    plt.imsave(save_loc, img)
+    np.save(save_loc.replace('.tif', '').replace('well', 'FS_well'), fs_img)
+
+
 class screen_shooter(QtCore.QObject):
     '''
     handles the various different types of screenshots

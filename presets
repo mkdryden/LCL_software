@@ -1,8 +1,11 @@
 name,exposure,brightness,gain,cube_position,intensity,excitation,emission
-Default,31,20,45,1,0,Off,0nm
-UV,45,0,50,2,100,385nm,400nm
+Default,12,20,45,1,0,Off,0nm
+UV,35,0,0,2,100,385nm,490nm
 475,260,0,65,2,100,475nm,530nm
 575,10,0,305,2,100,575nm,500nm
 tdTomato,200,0,170,2,100,475nm,630nm
-alexa647,212,0,95,2,100,630nm,647nm
+alexa647,802,0,105,2,100,630nm,647nm
 tritc,212,0,365,2,100,525nm,555nm
+apc,537,0,125,2,100,575nm,670nm
+GFP,1060,0,8,2,100,475nm,532nm
+gfp fast,400,0,200,2,100,475nm,532nm

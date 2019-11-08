@@ -1,5 +1,5 @@
 import time
-from utils import comment, now, display_fluorescence_properly
+from utils import comment, now, display_fluorescence_properly, save_well_imgs
 from keras.models import load_model
 import os
 from PyQt5 import QtCore
@@ -77,12 +77,10 @@ class WellStitcher():
         self.stitch_img(img)
 
     def write_well_img(self):
-        experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'well_images')
-        save_loc = os.path.join(experiment_folder_location, '{}___{}.tif'.format('well_image', now()))
-        self.well_img = display_fluorescence_properly(self.well_img, self.preset_data)
-        plt.imsave(save_loc, self.well_img)
+        overlay_well_img = display_fluorescence_properly(self.well_img, self.preset_data)
+        save_well_imgs(overlay_well_img, self.well_img)
         comment('...well image writing completed')
-        img = cv2.resize(self.well_img, (self.well_img.shape[1]//2, self.well_img.shape[0]//2))
+        img = cv2.resize(overlay_well_img, (self.well_img.shape[1]//2, self.well_img.shape[0]//2))
         return img
 
 
@@ -268,7 +266,7 @@ class Localizer(QtCore.QObject):
         window_center = (3072//2, 1620//2)
         mouse_click_location = np.array([click.xdata, click.ydata])
         pixel_move_vector = mouse_click_location - window_center
-        pixel_move_vector = pixel_move_vector * 3 / 2
+        pixel_move_vector = pixel_move_vector * 3 / 2.3 # calibration factor (should be 2 analytically)
         if self.move_key_held:
             self.move_key_held = not self.move_key_held
             print('moving to point:', mouse_click_location)

@@ -18,8 +18,8 @@ class LaserController:
         #     stop burst
         self.send_receive('d')
         self.send_receive('s')
-        self.set_pulse_frequency(50)
-        self.set_burst_counter(50)
+        self.set_pulse_frequency(1000)
+        self.set_burst_counter(1)
 
     def get_connection(self):
         possible_coms = range(0,5)

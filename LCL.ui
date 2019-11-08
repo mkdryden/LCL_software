@@ -402,7 +402,7 @@ to Lyse</string>
       <double>1.000000000000000</double>
      </property>
      <property name="value">
-      <double>50.000000000000000</double>
+      <double>1.000000000000000</double>
      </property>
     </widget>
     <widget class="QDoubleSpinBox" name="repetition_rate_double_spin_box">
@@ -427,13 +427,13 @@ to Lyse</string>
       <double>1.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>1100.000000000000000</double>
+      <double>1000.000000000000000</double>
      </property>
      <property name="singleStep">
-      <double>10.000000000000000</double>
+      <double>100.000000000000000</double>
      </property>
      <property name="value">
-      <double>50.000000000000000</double>
+      <double>1000.000000000000000</double>
      </property>
     </widget>
     <widget class="QLabel" name="burst_count_label">
