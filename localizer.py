@@ -2,6 +2,7 @@ import time
 from utils import comment, now, display_fluorescence_properly, save_well_imgs
 from keras.models import load_model
 import os
+from distutils.version import StrictVersion
 from PyQt5 import QtCore
 import cv2
 import numpy as np
@@ -14,10 +15,15 @@ import pickle
 from sklearn.preprocessing import StandardScaler
 from keras import backend as K
 
-graph = tf.get_default_graph()
 import skimage.transform as transform
 import scipy.ndimage as nd
 import matplotlib.pyplot as plt
+
+
+if StrictVersion(tf.version.VERSION) < StrictVersion('2.0.0'):
+    graph = tf.get_default_graph()
+else:
+    graph = tf.compat.v1.get_default_graph()
 
 # TODO fix this stupid redundant reference!
 experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models')
