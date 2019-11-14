@@ -16,3 +16,4 @@ _pi_cffi\.o
 Experiments/
 
 *.pyc
+anaconda/
