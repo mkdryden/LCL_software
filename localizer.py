@@ -106,7 +106,7 @@ class Localizer(QtCore.QObject):
 
     def __init__(self, parent=None):
         super(Localizer, self).__init__(parent)
-        self.localizer_model = load_model(os.path.join(experiment_folder_location, 'model2018-12-06_09_18'),
+        self.localizer_model = load_model(os.path.join(experiment_folder_location, 'model2018-10-18_08_47'),
                                           custom_objects={'mean_iou': mean_iou})
         self.norm = StandardScaler()
         self.localizer_model._make_predict_function()
