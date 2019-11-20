@@ -1,33 +1,44 @@
-import serial, sys
-import numpy as np
-from utils import comment
-from PyQt5 import QtCore
+import sys
 import time
+import logging
+
+import serial
+import numpy as np
+from PyQt5 import QtCore
+
+from controllers import BaseController, ResponseError
+from utils import comment
 
 
+logger = logging.getLogger(__name__)
+serout_logger = logging.getLogger("{}.SER-OUT".format(__name__))
+serin_logger = logging.getLogger("{}.SER-IN".format(__name__))
 
-class StageController(QtCore.QObject):
+
+class StageController(BaseController):
     position_return_signal = QtCore.pyqtSignal('PyQt_PyObject')
 
     def __init__(self, parent=None):
-        '''
-        open the serial port and check the status of the stage
-        '''
-        super(StageController, self).__init__(parent)
-        self.ser = self.get_connection()
+        super().__init__(parent)
+        self.logger = logger
+        self.serout_logger = serout_logger
+        self.serin_logger = serin_logger
+        self.ser_url = "hwgrep://CP2102 USB to UART Bridge Controller"
+        self.ser_settings = {'baudrate': 115200,
+                             'timeout': .25,
+                             'parity': serial.PARITY_NONE}
+        self.command_delimiter = '\r'
+
         self.step_size = 500
         self.reverse_move_vector = np.zeros(2)
         self.return_from_dmf_vector = np.zeros(2)
         self.microns_per_pixel = 100 / 34
         self.calibration_factor = 1.20 * 4
-        # turning off backlash
-        comment(self.send_receive('B X=0 Y=0'))
-        # setting TTL low
-        comment(self.send_receive('7TTL Y=0'))
         self.steps_between_wells = 4400
         self.down = False
         self.objective_retracted = None
         self.previous_z = None
+        self.current_magnification = None
         self.previous_magnification = None
         self.objective_slots = {
             1: 'None',
@@ -42,46 +53,23 @@ class StageController(QtCore.QObject):
             40: 0.51,
             60: .36,
             100: 0.205}
+
+    def start_controller(self):
+        self.send_receive('B X=0 Y=0')  # turn off backlash compensation on XY
+        self.send_receive('7TTL Y=0')  # set TTL low
         self.current_magnification = self.objective_slots[self.get_objective_position() + 1]
 
-    def get_connection(self):
-        possible_coms = range(0, 5)
-        for com in possible_coms:
-            try:
-                com = '/dev/ttyUSB{}'.format(com)
-                parity = serial.PARITY_NONE
-                ser = serial.Serial(com, 115200, timeout=.25,
-                                    parity=parity)
-                ser.write('BU\r'.encode('utf-8'))
-                response = ser.readline()
-                if response == b'TIGER_COMM\r\n':
-                    comment('asi controller found on {}'.format(com))
-                    return ser
-            except Exception as e:
-                print(e)
-                comment('asi controller not on COM ' + com)
-        comment('could not connect to asi controller. exiting...')
-        sys.exit(1)
-
-    def issue_command(self, command, suppress_msg=False):
-        command_string = '{}\r'.format(command)
-        if not suppress_msg:
-            comment('sending command to stage:{}'.format(command_string))
-        self.ser.write(command_string.encode('utf-8'))
-
-    def get_response(self):
-        response = ''
-        while '\r' not in response:
-            piece = self.ser.read()
-            if piece != b'':
-                response += piece.decode('utf-8')
-        comment('response received from stage:{}'.format(response))
-        return response
-
-    def send_receive(self, command, suppress_msg=False):
-        self.issue_command(command, suppress_msg)
-        response = self.get_response()
-        return response
+    def test_connection(self, connection):
+        connection.write('BU\r'.encode('utf-8'))
+        self.serout_logger.debug(repr('BU\r'))
+        response = connection.readline()
+        self.serin_logger.debug(repr(response))
+        if response == b'TIGER_COMM\r\n':
+            self.logger.info('ASI controller found at %s', connection.port)
+        else:
+            raise ResponseError(repr(b'TIGER_COMM\r\n'), repr(response))
+        connection.flushInput()
+        connection.flushOutput()
 
     @QtCore.pyqtSlot()
     def get_all_positions(self):
@@ -150,8 +138,6 @@ class StageController(QtCore.QObject):
             self.send_receive('MOVE O={}'.format(index + 1))
             self.set_objective_down()
         comment(f'magnification changed to: {self.current_magnification}')
-
-
 
     @QtCore.pyqtSlot('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
     def reticle_and_center_slot(self, center_x, center_y, reticle_x, reticle_y):
