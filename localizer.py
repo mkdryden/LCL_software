@@ -1,24 +1,25 @@
 import time
-from utils import comment, now, display_fluorescence_properly, save_well_imgs
-from keras.models import load_model
 import os
+import pickle
 from distutils.version import StrictVersion
+
 from PyQt5 import QtCore
 import cv2
 import numpy as np
 import tensorflow as tf
 import pandas as pd
-
-global graph
-from PyQt5.QtWidgets import QApplication
-import pickle
-from sklearn.preprocessing import StandardScaler
+from keras.models import load_model
 from keras import backend as K
-
+from PyQt5.QtWidgets import QApplication
+from sklearn.preprocessing import StandardScaler
 import skimage.transform as transform
 import scipy.ndimage as nd
 import matplotlib.pyplot as plt
 
+
+from utils import comment, now, display_fluorescence_properly, save_well_imgs
+
+global graph
 
 if StrictVersion(tf.version.VERSION) < StrictVersion('2.0.0'):
     graph = tf.get_default_graph()
@@ -88,9 +89,6 @@ class WellStitcher():
         comment('...well image writing completed')
         img = cv2.resize(overlay_well_img, (self.well_img.shape[1]//2, self.well_img.shape[0]//2))
         return img
-
-
-
 
 
 

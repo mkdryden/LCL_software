@@ -1,25 +1,27 @@
-import sys, logging, os, time, argparse
+import sys
+import logging
+import time
+import argparse
+
 import cv2
 import numpy as np
+import pandas as pd
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from LCL_ui import Ui_MainWindow
 from PyQt5 import QtCore
-import PyQt5.QtCore
 from PyQt5.QtCore import QThread
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
-from utils import screen_shooter, now, comment, preset_loc
-from asi_controller import StageController
-from fluorescence_controller import ExcitationController
-from laser_controller import LaserController
-# import time
-# import threading
 from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox
-# from autofocus import autofocuser
+
+from utils import screen_shooter, comment, preset_loc
+from hardware.asi_controller import StageController
+from hardware.fluorescence_controller import ExcitationController
+from hardware.laser_controller import LaserController
 from localizer import Localizer
-# import matplotlib.pyplot as plt
+
 from _pi_cffi import ffi, lib
-import pandas as pd
+
 
 assert lib.tl_camera_sdk_dll_initialize() == 0
 assert lib.tl_camera_open_sdk() == 0
