@@ -35,7 +35,7 @@ log_formatter = logging.Formatter(
 log_handler.setFormatter(log_formatter)
 
 for log in loggers:
-    log.setLevel(level=logging.DEBUG)
+    log.setLevel(level=logging.INFO)
     log.addHandler(log_handler)
 
 assert lib.tl_camera_sdk_dll_initialize() == 0
