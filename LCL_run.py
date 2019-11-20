@@ -22,6 +22,21 @@ from localizer import Localizer
 
 from _pi_cffi import ffi, lib
 
+# Setup Logging
+logger = logging.getLogger(__name__)
+hardware_logger = logging.getLogger("hardware")
+loggers = [logger, hardware_logger]
+
+log_handler = logging.StreamHandler()
+log_formatter = logging.Formatter(
+                    fmt='%(asctime)s %(levelname)s: [%(name)s] %(message)s',
+                    datefmt='%H:%M:%S'
+                )
+log_handler.setFormatter(log_formatter)
+
+for log in loggers:
+    log.setLevel(level=logging.DEBUG)
+    log.addHandler(log_handler)
 
 assert lib.tl_camera_sdk_dll_initialize() == 0
 assert lib.tl_camera_open_sdk() == 0
