@@ -23,9 +23,9 @@ from _pi_cffi import ffi, lib
 from video import ImageViewer
 
 # Setup Logging
-logger = logging.getLogger(__name__)
-hardware_logger = logging.getLogger("hardware")
-loggers = [logger, hardware_logger]
+to_log = ['__main__', 'hardware', 'utils', 'video']
+loggers = [logging.getLogger(name) for name in to_log]
+logger = loggers[0]
 
 log_handler = logging.StreamHandler()
 log_formatter = logging.Formatter(
@@ -409,7 +409,7 @@ class MainWindow(QMainWindow):
     def qswitch_screenshot_slot(self):
         if self.laser_enable:
             self.qswitch_screenshot_signal.emit(30)
-            comment('stage position during qswitch: {}'.format(asi_controller.get_all_positions()))
+            logger.info("X:%s Y:%s Z:%s", *asi_controller.get_all_positions())
             laser.start_burst()
 
     def enable_laser_firing(self):

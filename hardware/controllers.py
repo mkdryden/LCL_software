@@ -1,5 +1,3 @@
-import logging
-
 import serial
 from PyQt5.QtCore import QObject
 
