@@ -210,12 +210,6 @@ class ShowVideo(QtCore.QObject):
         self.reticle_y = int(self.center_y + 115)
         self.camera_handle = None
 
-    def draw_reticle(self, image):
-        # cv2.circle(image, (self.reticle_x, self.reticle_y),
-        #            5, (0, 0, 0), -1)
-        cv2.circle(image, (self.center_x, self.center_y), 50, (250, 0, 0), -1)
-        cv2.circle(image, (self.center_x - 50, self.center_y - 50), 50, (250, 0, 0), -1)
-
     # @staticmethod
     @QtCore.pyqtSlot()
     def start_video(self):
