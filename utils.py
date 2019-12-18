@@ -1,15 +1,13 @@
 from PyQt5 import QtCore
-import time, os, datetime
+import os, datetime
 import cv2
 import pandas as pd
 import logging
-import time
 import numpy as np
-from PyQt5.QtCore import QThread
 import threading
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from functools import partial
+import ffmpeg
 
 logger = logging.getLogger(__name__)
 
