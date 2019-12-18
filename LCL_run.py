@@ -13,6 +13,7 @@ from PyQt5 import QtGui
 from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 
 from LCL_ui import Ui_MainWindow
+from utils import ScreenShooter, comment, preset_loc
 from hardware.asi_controller import StageController
 from hardware.fluorescence_controller import ExcitationController
 from hardware.laser_controller import LaserController
@@ -217,7 +218,7 @@ class ShowVideo(QtCore.QObject):
 
     # @staticmethod
     @QtCore.pyqtSlot()
-    def startVideo(self):
+    def start_video(self):
         camera_ids = get_camera_ids()
         camera_handle_pointer = ffi.new('void **')
         print('opening camera...', lib.tl_camera_open_camera(camera_ids, camera_handle_pointer))
@@ -266,7 +267,7 @@ class MainWindow(QMainWindow):
 
         # set up the video classes
         self.vid = ShowVideo(self.ui.verticalLayoutWidget.size())
-        self.screen_shooter = screen_shooter()
+        self.screen_shooter = ScreenShooter()
         self.image_viewer = ImageViewer()
         # self.autofocuser = autofocuser()
         self.localizer = Localizer()

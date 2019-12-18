@@ -38,13 +38,13 @@ def save_well_imgs(img, fs_img):
     np.save(save_loc.replace('.tif', '').replace('well', 'FS_well'), fs_img)
 
 
-class screen_shooter(QtCore.QObject):
-    '''
+class ScreenShooter(QtCore.QObject):
+    """
     handles the various different types of screenshots
-    '''
+    """
 
     def __init__(self, parent=None):
-        super(screen_shooter, self).__init__(parent)
+        super(ScreenShooter, self).__init__(parent)
         self.requested_frames = 0
         self.image_count = 0
         self.image_title = ''
