@@ -1,7 +1,7 @@
 from PyQt5 import QtCore
 import os, datetime
 import cv2
-import pandas as pd
+from PIL import Image
 import logging
 import numpy as np
 import threading
@@ -59,11 +59,13 @@ class ScreenShooter(QtCore.QObject):
                                      'MOVIE_{}___{}.jpeg'.format(self.image_title, now())), self.image)
             print('writing frame {} to disk'.format(self.image_count))
         self.image_count += 1
+        # Screenshot
         if self.requested_frames > 0:
-            cv2.imwrite(os.path.join(experiment_folder_location,
-                                     '{}___{}.tif'.format(self.image_title, now())), self.image)
+            im = Image.fromarray(self.image)
+            im.save(os.path.join(experiment_folder_location,
+                                 '{}___{}.tif'.format(self.image_title, now())), format='tiff', compression='LZW')
             self.requested_frames -= 1
-            print('writing frame {} to disk'.format(self.image_count))
+            logger.debug('writing frame %s to disk', self.image_count)
 
     @QtCore.pyqtSlot()
     def toggle_recording_slot(self):
