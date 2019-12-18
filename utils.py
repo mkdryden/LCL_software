@@ -23,7 +23,7 @@ def comment(text):
     splits = text.split()
     text = ''
     for split in splits:
-        text = text + split + ' '
+        text += split + ' '
     now_time = now()
     logging.info('{0}{1}{2}'.format(text,
                                     '.' * (80 - (len(text) + len(now_time))),
@@ -163,7 +163,7 @@ class MeanIoU(object):
 
 def display_fluorescence_properly(img, preset_data):
     new_shape = img.shape[:-1] + (3,)
-    new_img = np.zeros(new_shape ).astype(np.uint8)
+    new_img = np.zeros(new_shape).astype(np.uint8)
     for channel_num in range(preset_data.shape[0]):
         # now map the channels to their respective wavelengths
         channel = preset_data.iloc[channel_num]

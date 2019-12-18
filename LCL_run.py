@@ -7,14 +7,12 @@ import cv2
 import numpy as np
 import pandas as pd
 from PyQt5.QtWidgets import QApplication, QMainWindow
-from LCL_ui import Ui_MainWindow
 from PyQt5 import QtCore
 from PyQt5.QtCore import QThread
-from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 
-from utils import screen_shooter, comment, preset_loc
+from LCL_ui import Ui_MainWindow
 from hardware.asi_controller import StageController
 from hardware.fluorescence_controller import ExcitationController
 from hardware.laser_controller import LaserController
@@ -23,6 +21,7 @@ from localizer import Localizer
 from _pi_cffi import ffi, lib
 
 from video import ImageViewer
+
 # Setup Logging
 logger = logging.getLogger(__name__)
 hardware_logger = logging.getLogger("hardware")
@@ -151,7 +150,8 @@ class PresetManager(QtCore.QObject):
     def remove_preset(self):
         reply = QMessageBox.question(window, 'Remove Preset',
                                      'Are you sure you want to remove the currently selected preset?')
-        if reply == 65536: return
+        if reply == 65536:
+            return
         i = window.ui.preset_comboBox.currentIndex()
         name = window.ui.preset_comboBox.currentText()
         window.ui.preset_comboBox.setCurrentIndex(i - 1)
@@ -254,6 +254,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self, test_run):
         super(MainWindow, self).__init__()
+
         self.laser_enable = False
         # get our experiment variables
         if test_run != 'True':
