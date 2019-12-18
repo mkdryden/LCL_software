@@ -22,6 +22,7 @@ from localizer import Localizer
 
 from _pi_cffi import ffi, lib
 
+from video import ImageViewer
 # Setup Logging
 logger = logging.getLogger(__name__)
 hardware_logger = logging.getLogger("hardware")
@@ -56,16 +57,21 @@ def get_camera_ids():
 
 @ffi.def_extern()
 def tl_camera_frame_available_callback(sender, image_buffer, frame_count, metadata, metadata_size_in_bytes, context):
-    data = ffi.buffer(image_buffer, 2160 * 4096 * 2)
-    np_data = np.right_shift(np.frombuffer(data, np.uint16), SHIFT_AMT).astype(np.uint8)
+    np_data = np.frombuffer(ffi.buffer(image_buffer, 2160 * 4096 * 2), dtype=np.uint16)
     np_data = np_data.reshape((2160, -1))
-    window.vid.vid_process_signal.emit(np_data)
-    np_data = cv2.resize(np_data, (1352, 712))
+    try:
+        window.vid.vid_process_signal.emit(np_data)
+    except NameError:
+        return
+    np_data = np.right_shift(np_data, 4).astype(np.uint8)
+
     height, width = np_data.shape
-    cv2.circle(np_data, (width // 2, height // 2), 5, (0, 0, 0), -1)
-    cv2.circle(np_data, (width // 2 - 30, height // 2 + 85), 5, (250, 250, 250), -1)
-    qt_image = QtGui.QImage(np_data.data, width, height, QtGui.QImage.Format_Grayscale8)
-    window.vid.VideoSignal.emit(qt_image)
+    qt_image = QtGui.QPixmap(QtGui.QImage(np_data.data, width, height, QtGui.QImage.Format_Grayscale8
+                            ).convertToFormat(QtGui.QImage.Format_RGB32))
+    try:
+        window.vid.VideoSignal.emit(qt_image)
+    except NameError:
+        pass
 
 
 class PresetManager(QtCore.QObject):
@@ -189,8 +195,8 @@ class PresetManager(QtCore.QObject):
 
 
 class ShowVideo(QtCore.QObject):
-    VideoSignal = QtCore.pyqtSignal(QtGui.QImage)
-    vid_process_signal = QtCore.pyqtSignal('PyQt_PyObject')
+    VideoSignal = QtCore.pyqtSignal(QtGui.QPixmap)
+    vid_process_signal = QtCore.pyqtSignal(np.ndarray)
     reticle_and_center_signal = QtCore.pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
 
     def __init__(self, window_size, parent=None):
@@ -240,31 +246,6 @@ class ShowVideo(QtCore.QObject):
         asi_controller.send_receive('7LED X={}'.format(value))
 
 
-class ImageViewer(QtWidgets.QWidget):
-    click_move_signal = QtCore.pyqtSignal('PyQt_PyObject', 'PyQt_PyObject')
-
-    def __init__(self, parent=None):
-        super(ImageViewer, self).__init__(parent)
-        self.image = QtGui.QImage()
-        self.setAttribute(QtCore.Qt.WA_OpaquePaintEvent)
-
-    def paintEvent(self, event):
-        painter = QtGui.QPainter(self)
-        painter.drawImage(0, 0, self.image)
-        self.image = QtGui.QImage()
-
-    @QtCore.pyqtSlot(QtGui.QImage)
-    def setImage(self, image):
-        if image.isNull():
-            comment("Viewer Dropped frame!")
-        self.image = image
-        self.update()
-
-    def mousePressEvent(self, QMouseEvent):
-        click_x, click_y = QMouseEvent.pos().x(), QMouseEvent.pos().y()
-        self.click_move_signal.emit(click_x, click_y)
-
-
 class MainWindow(QMainWindow):
     start_video_signal = QtCore.pyqtSignal()
     qswitch_screenshot_signal = QtCore.pyqtSignal('PyQt_PyObject')
@@ -302,7 +283,7 @@ class MainWindow(QMainWindow):
         self.localizer.moveToThread(self.localizer_thread)
 
         # connect the outputs to our signals
-        self.vid.VideoSignal.connect(self.image_viewer.setImage)
+        self.vid.VideoSignal.connect(self.image_viewer.set_image)
         self.vid.vid_process_signal.connect(self.screen_shooter.screenshot_slot)
         self.ui.record_push_button.clicked.connect(self.screen_shooter.toggle_recording_slot)
         # self.vid.vid_process_signal.connect(self.autofocuser.vid_process_slot)
