@@ -298,7 +298,7 @@ class MainWindow(QMainWindow):
                                                 self.vid.reticle_y)
 
         # connect to the video thread and start the video
-        self.start_video_signal.connect(self.vid.startVideo)
+        self.start_video_signal.connect(self.vid.start_video)
         self.start_video_signal.emit()
         self.ui.exposure_doublespin_box.valueChanged.connect(self.vid.change_exposure)
         self.ui.gain_doublespin_box.valueChanged.connect(self.vid.change_gain)
