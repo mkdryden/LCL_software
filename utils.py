@@ -11,6 +11,7 @@ import ffmpeg
 
 logger = logging.getLogger(__name__)
 
+
 def now():
     return datetime.datetime.now().strftime('%d_%m_%Y___%H.%M.%S.%f')
 
@@ -50,36 +51,42 @@ class ScreenShooter(QtCore.QObject):
         self.movie_file = None
         self.image = None
 
-    @QtCore.pyqtSlot('PyQt_PyObject')
+    @QtCore.pyqtSlot(np.ndarray)
     def screenshot_slot(self, image):
         self.image = image
+
+        # Video
         if self.recording:
-            # self.movie_file.write(image)
-            cv2.imwrite(os.path.join(experiment_folder_location,
-                                     'MOVIE_{}___{}.jpeg'.format(self.image_title, now())), self.image)
-            print('writing frame {} to disk'.format(self.image_count))
+            self.ffmpeg.stdin.write(self.image.tobytes())
+            logger.debug('writing frame %s to disk', self.image_count)
         self.image_count += 1
+
         # Screenshot
         if self.requested_frames > 0:
             im = Image.fromarray(self.image)
             im.save(os.path.join(experiment_folder_location,
                                  '{}___{}.tif'.format(self.image_title, now())), format='tiff', compression='LZW')
+
             self.requested_frames -= 1
             logger.debug('writing frame %s to disk', self.image_count)
 
     @QtCore.pyqtSlot()
     def toggle_recording_slot(self):
         self.recording = not self.recording
-        # if self.recording:
-        #     frameW = self.image.shape[0]
-        #     frameH = self.image.shape[1]
-        #     file_name = os.path.join(experiment_folder_location, 'movie_{}.mp4'.format(now()))
-        #     fourcc = cv2.VideoWriter_fourcc('a','v','6','4')
-        #     self.movie_file = cv2.VideoWriter(file_name, fourcc, 10.0, (int(frameW), int(frameH)), 1)
-        #     comment('recording...')
-        if not self.recording:
-            # self.movie_file.release()
-            comment('finished recording...')
+        if self.recording:  # Start Recording
+            self.ffmpeg = (
+                ffmpeg.input('pipe:', format='rawvideo', pix_fmt='gray12le',
+                             s='{}x{}'.format(*reversed(self.image.shape)), framerate=20)
+                      .output(os.path.join(experiment_folder_location, self.image_title + now() + ".mp4"),
+                              crf=21, preset="fast", pix_fmt='yuv420p')
+                      .overwrite_output()
+                      .run_async(pipe_stdin=True)
+            )
+
+        if not self.recording:  # Finish Recording
+            self.ffmpeg.stdin.close()
+            self.ffmpeg.wait()
+            logger.info("Finished saving video %s", self.image_title)
 
     @QtCore.pyqtSlot()
     def save_target_image(self):
@@ -111,11 +118,13 @@ class ScreenShooter(QtCore.QObject):
         takes an initial screenshot of the current frame (before firing)
         and then queues up 4 more pictures to be taken during the firing
         '''
-        if self.recording: return
-        comment('taking qswitch fire pictures')
-        print('writing frame {} to disk'.format(self.image_count))
-        cv2.imwrite(os.path.join(experiment_folder_location,
-                                 'before_qswitch___{}.tif'.format(now())), self.image)
+        if self.recording:
+            return
+        im = Image.fromarray(self.image)
+        logger.info('Taking qswitch fire pictures')
+        logger.debug('writing frame %s to disk', self.image_count)
+        im.save(os.path.join(experiment_folder_location,
+                             'before_qswitch___{}.tif'.format(now())), format="tiff", compression="LZW")
         self.image_title = 'during_qswitch_fire'
         if self.requested_frames >= 30:
             self.requested_frames = 30
@@ -241,5 +250,3 @@ log = logging.getLogger(__name__)
 os.makedirs(experiment_folder_location)
 fn = os.path.join(experiment_folder_location, '{}.log'.format(experiment_name))
 logging.basicConfig(filename=fn, level=logging.INFO)
-
-
