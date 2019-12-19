@@ -28,16 +28,10 @@ to_log = ['__main__', 'hardware', 'utils', 'video']
 loggers = [logging.getLogger(name) for name in to_log]
 logger = loggers[0]
 
-log_handler = logging.StreamHandler()
-log_formatter = logging.Formatter(
-                    fmt='%(asctime)s %(levelname)s: [%(name)s] %(message)s',
-                    datefmt='%H:%M:%S'
-                )
-log_handler.setFormatter(log_formatter)
-
-for log in loggers:
-    log.setLevel(level=logging.INFO)
-    log.addHandler(log_handler)
+logging_choices = {'DEBUG': logging.DEBUG,
+                   'INFO': logging.INFO,
+                   'WARNING': logging.WARNING,
+                   'ERROR': logging.ERROR}
 
 assert lib.tl_camera_sdk_dll_initialize() == 0
 assert lib.tl_camera_open_sdk() == 0
@@ -467,7 +461,20 @@ if __name__ == '__main__':
     # TODO refactor so the gui runs on separate process from "stage"
     parser = argparse.ArgumentParser()
     parser.add_argument('test_run')
+    parser.add_argument('--log-level', choices=logging_choices, default="INFO")
     args = parser.parse_args()
+
+    log_handler = logging.StreamHandler()
+    log_formatter = logging.Formatter(
+        fmt='%(asctime)s %(levelname)s: [%(name)s] %(message)s',
+        datefmt='%H:%M:%S',
+    )
+    log_handler.setFormatter(log_formatter)
+    log_handler.setLevel(logging_choices[args.log_level])
+
+    for log in loggers:
+        log.addHandler(log_handler)
+
     app = QApplication(sys.argv)
     asi_controller = StageController()
     asi_controller.init_controller()
