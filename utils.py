@@ -63,7 +63,7 @@ class ScreenShooter(QtCore.QObject):
         if self.requested_frames > 0:
             im = Image.fromarray(np.left_shift(self.image, 4))
             im.save(os.path.join(experiment_folder_location,
-                                 '{}___{}.tif'.format(self.image_title, now())), format='tiff', compression='LZW')
+                                 '{}___{}.tif'.format(self.image_title, now())), format='tiff', compression='tiff_lzw')
 
             self.requested_frames -= 1
             logger.debug('writing frame %s to disk', self.image_count)
@@ -122,7 +122,7 @@ class ScreenShooter(QtCore.QObject):
         logger.info('Taking qswitch fire pictures')
         logger.debug('writing frame %s to disk', self.image_count)
         im.save(os.path.join(experiment_folder_location,
-                             'before_qswitch___{}.tif'.format(now())), format="tiff", compression="LZW")
+                             'before_qswitch___{}.tif'.format(now())), format="tiff", compression="tiff_lzw")
         self.image_title = 'during_qswitch_fire'
         if self.requested_frames >= 30:
             self.requested_frames = 30
