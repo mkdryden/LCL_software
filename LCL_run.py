@@ -254,14 +254,17 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         # set up the video classes
-        self.vid = ShowVideo(self.ui.verticalLayoutWidget.size())
+        self.vid = ShowVideo(self.ui.centralwidget.size())
         self.screen_shooter = ScreenShooter()
         self.image_viewer = ImageViewer()
+
         # self.autofocuser = autofocuser()
         self.localizer = Localizer()
 
-        # add the viewer to our ui
-        self.ui.verticalLayout.addWidget(self.image_viewer)
+        # add the viewer to our ui and let resize with image aspect
+        aspect_widget = AspectRatioWidget(self.image_viewer)
+        self.image_viewer.aspect_changed_signal.connect(aspect_widget.aspect_changed_slot)
+        self.ui.main_layout.addWidget(aspect_widget)
 
         # create our extra threads
         self.screenshooter_thread = QThread()

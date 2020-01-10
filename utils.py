@@ -1,5 +1,7 @@
 from PyQt5 import QtCore
-import os, datetime
+from PyQt5.QtWidgets import QBoxLayout, QSpacerItem, QWidget
+import os
+import datetime
 import cv2
 from PIL import Image
 import logging
@@ -28,6 +30,56 @@ def comment(text):
                                     '.' * (80 - (len(text) + len(now_time))),
                                     now_time))
     print(text, threading.current_thread())
+
+
+class AspectRatioWidget(QWidget):
+    def __init__(self, widget, parent=None):
+        super().__init__(parent)
+        self.setLayout(QBoxLayout(QBoxLayout.LeftToRight, self))
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.widget = widget
+        self.aspect = 1
+        #  add spacer, then widget, then spacer
+        self.layout().addItem(QSpacerItem(0, 0))
+        self.layout().addWidget(self.widget)
+        self.layout().addItem(QSpacerItem(0, 0))
+
+    @QtCore.pyqtSlot(float)
+    def aspect_changed_slot(self, aspect: float):
+        self.aspect = aspect
+        w = self.width()
+        h = self.height()
+
+        if w / h > self.aspect:  # too wide
+            self.layout().setDirection(QBoxLayout.LeftToRight)
+            widget_stretch = h * self.aspect
+            outer_stretch = (w - widget_stretch) / 2 + 0.5
+        else:  # too tall
+            self.layout().setDirection(QBoxLayout.TopToBottom)
+            widget_stretch = w / self.aspect
+            outer_stretch = (h - widget_stretch) / 2 + 0.5
+
+        self.layout().setStretch(0, outer_stretch)
+        self.layout().setStretch(1, widget_stretch)
+        self.layout().setStretch(2, outer_stretch)
+
+    def resizeEvent(self, e):
+        w = e.size().width()
+        h = e.size().height()
+        self.aspect
+
+        if w / h > self.aspect:  # too wide
+            self.layout().setDirection(QBoxLayout.LeftToRight)
+            widget_stretch = h * self.aspect
+            outer_stretch = (w - widget_stretch) / 2 + 0.5
+        else:  # too tall
+            self.layout().setDirection(QBoxLayout.TopToBottom)
+            widget_stretch = w / self.aspect
+            outer_stretch = (h - widget_stretch) / 2 + 0.5
+
+        self.layout().setStretch(0, outer_stretch)
+        self.layout().setStretch(1, widget_stretch)
+        self.layout().setStretch(2, outer_stretch)
 
 
 def save_well_imgs(img, fs_img):
