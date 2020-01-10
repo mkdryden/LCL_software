@@ -9,6 +9,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import ffmpeg
 
+logger = logging.getLogger(__name__)
 
 def now():
     return datetime.datetime.now().strftime('%d_%m_%Y___%H.%M.%S.%f')
@@ -244,10 +245,3 @@ def wav2RGB(wavelength):
 preset_loc = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'presets')
 experiment_name = 'experiment_{}'.format(now())
 experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Experiments', experiment_name)
-os.makedirs(experiment_folder_location)
-fn = os.path.join(experiment_folder_location, '{}.log'.format(experiment_name))
-logging.basicConfig(filename=fn,
-                    level=logging.INFO,
-                    format='%(asctime)s %(levelname)s: [%(name)s] %(message)s',
-                    datefmt='%H:%M:%S')
-logger = logging.getLogger(__name__)

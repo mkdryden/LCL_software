@@ -1,3 +1,4 @@
+import os
 import sys
 import logging
 import time
@@ -13,7 +14,8 @@ from PyQt5 import QtGui
 from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 
 from LCL_ui import Ui_MainWindow
-from utils import ScreenShooter, comment, preset_loc
+import utils
+from utils import ScreenShooter, comment, preset_loc, AspectRatioWidget
 from hardware.asi_controller import StageController
 from hardware.fluorescence_controller import ExcitationController
 from hardware.laser_controller import LaserController
@@ -24,9 +26,7 @@ from _pi_cffi import ffi, lib
 from video import ImageViewer
 
 # Setup Logging
-to_log = ['__main__', 'hardware', 'utils', 'video']
-loggers = [logging.getLogger(name) for name in to_log]
-logger = loggers[0]
+logger = logging.getLogger(__name__)
 
 logging_choices = {'DEBUG': logging.DEBUG,
                    'INFO': logging.INFO,
@@ -464,16 +464,19 @@ if __name__ == '__main__':
     parser.add_argument('--log-level', choices=logging_choices, default="INFO")
     args = parser.parse_args()
 
-    log_handler = logging.StreamHandler()
+    os.makedirs(utils.experiment_folder_location)
+    fn = os.path.join(utils.experiment_folder_location, '{}.log'.format(utils.experiment_name))
+
+    root_logger = logging.getLogger()
+    log_handlers = [logging.StreamHandler(), logging.FileHandler(fn)]
     log_formatter = logging.Formatter(
         fmt='%(asctime)s %(levelname)s: [%(name)s] %(message)s',
         datefmt='%H:%M:%S',
     )
-    log_handler.setFormatter(log_formatter)
-    log_handler.setLevel(logging_choices[args.log_level])
-
-    for log in loggers:
-        log.addHandler(log_handler)
+    for handler in log_handlers:
+        handler.setFormatter(log_formatter)
+        root_logger.addHandler(handler)
+    root_logger.setLevel(logging_choices[args.log_level])
 
     app = QApplication(sys.argv)
     asi_controller = StageController()

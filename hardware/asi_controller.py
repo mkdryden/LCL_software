@@ -10,19 +10,14 @@ from controllers import BaseController, ResponseError
 from utils import comment
 
 
-logger = logging.getLogger(__name__)
-serout_logger = logging.getLogger("{}.SER-OUT".format(__name__))
-serin_logger = logging.getLogger("{}.SER-IN".format(__name__))
-
-
 class StageController(BaseController):
     position_return_signal = QtCore.pyqtSignal('PyQt_PyObject')
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.logger = logger
-        self.serout_logger = serout_logger
-        self.serin_logger = serin_logger
+        self.logger = logging.getLogger(__name__)
+        self.serout_logger = logging.getLogger("{}.SER-OUT".format(__name__))
+        self.serin_logger = logging.getLogger("{}.SER-IN".format(__name__))
         self.ser_url = "hwgrep://CP2102 USB to UART Bridge Controller"
         self.ser_settings = {'baudrate': 115200,
                              'timeout': .25,

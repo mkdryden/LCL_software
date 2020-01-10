@@ -1,20 +1,15 @@
 import serial
 import logging
 
-from PyQt5 import QtCore
 from controllers import ResponseError, BaseController
-
-logger = logging.getLogger(__name__)
-serout_logger = logging.getLogger("{}.SER-OUT".format(__name__))
-serin_logger = logging.getLogger("{}.SER-IN".format(__name__))
 
 
 class LaserController(BaseController):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.logger = logger
-        self.serout_logger = serout_logger
-        self.serin_logger = serin_logger
+        self.logger = logging.getLogger(__name__)
+        self.serout_logger = logging.getLogger("{}.SER-OUT".format(__name__))
+        self.serin_logger = logging.getLogger("{}.SER-IN".format(__name__))
         self.ready_to_fire = None
         self.ser_url = "hwgrep://FT232R USB UART.*"
         self.ser_settings = {'baudrate': 921600,

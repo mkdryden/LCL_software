@@ -1,5 +1,6 @@
 import serial
 from PyQt5.QtCore import QObject
+import logging
 
 
 class ResponseError(Exception):
@@ -25,9 +26,9 @@ class ResponseError(Exception):
 class BaseController(QObject):
     def __init__(self, parent=None):
         super(BaseController, self).__init__(parent)
-        self.logger = None
-        self.serout_logger = None
-        self.serin_logger = None
+        self.logger = logging.getLogger(__name__)
+        self.serout_logger = logging.getLogger("{}.SER-OUT".format(__name__))
+        self.serin_logger = logging.getLogger("{}.SER-IN".format(__name__))
         self.ser = None
         self.connected = False
         self.ser_url = None
