@@ -3,7 +3,6 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 import time
 import logging
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -29,7 +28,7 @@ class ImageViewer(QtWidgets.QWidget):
         # drawtime = time.perf_counter()
         painter.drawPixmap(0, 0, self.image.scaled(width, height, aspectRatioMode=QtCore.Qt.KeepAspectRatio))
         # logger.debug("Painter drawtime: %s", time.perf_counter() - drawtime)
-        painter.drawEllipse(width//2, height//2, height//30, height//30)
+        painter.drawEllipse(width // 2, height // 2, height // 30, height // 30)
         self.image = None
 
     @QtCore.pyqtSlot(QtGui.QPixmap)
@@ -48,4 +47,3 @@ class ImageViewer(QtWidgets.QWidget):
     def mousePressEvent(self, QMouseEvent):
         click_x, click_y = QMouseEvent.pos().x(), QMouseEvent.pos().y()
         self.click_move_signal.emit(click_x, click_y)
-

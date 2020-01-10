@@ -202,8 +202,8 @@ class StageController(BaseController):
 
     @QtCore.pyqtSlot('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
     def localizer_move_slot(self, move_vector, goto_reticle=False, move_relative=True, scale_vector=True):
-        if move_relative is True and scale_vector == True:
-            if goto_reticle == True:
+        if move_relative and scale_vector:
+            if goto_reticle:
                 center = np.array([self.center_x, self.center_y])
                 reticle = np.array([self.reticle_x, self.reticle_y])
                 center_to_reticle = center - reticle

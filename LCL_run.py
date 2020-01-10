@@ -7,11 +7,10 @@ import argparse
 import cv2
 import numpy as np
 import pandas as pd
-from PyQt5.QtWidgets import QApplication, QMainWindow
-from PyQt5 import QtCore
-from PyQt5.QtCore import QThread
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import QThread, QThreadPool
 from PyQt5 import QtGui
-from PyQt5.QtWidgets import QInputDialog, QLineEdit, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QInputDialog, QLineEdit, QMessageBox
 
 from LCL_ui import Ui_MainWindow
 import utils
@@ -57,11 +56,11 @@ def tl_camera_frame_available_callback(sender, image_buffer, frame_count, metada
         window.vid.vid_process_signal.emit(np_data)
     except NameError:
         return
-    np_data = np.right_shift(np_data, 4).astype(np.uint8)
+    np_data = np.right_shift(np_data, 4).astype(np.uint8)  # Convert to 8-bit
 
     height, width = np_data.shape
     qt_image = QtGui.QPixmap(QtGui.QImage(np_data.data, width, height, QtGui.QImage.Format_Grayscale8
-                            ).convertToFormat(QtGui.QImage.Format_RGB32))
+                                          ).convertToFormat(QtGui.QImage.Format_RGB32))
     try:
         window.vid.VideoSignal.emit(qt_image)
     except NameError:

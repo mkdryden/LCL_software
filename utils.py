@@ -13,6 +13,7 @@ import ffmpeg
 
 logger = logging.getLogger(__name__)
 
+
 def now():
     return datetime.datetime.now().strftime('%d_%m_%Y___%H.%M.%S.%f')
 
@@ -101,6 +102,7 @@ class ScreenShooter(QtCore.QObject):
         self.recording = False
         self.movie_file = None
         self.image = None
+        self.ffmpeg = None
 
     @QtCore.pyqtSlot(np.ndarray)
     def screenshot_slot(self, image):
@@ -137,6 +139,7 @@ class ScreenShooter(QtCore.QObject):
         if not self.recording:  # Finish Recording
             self.ffmpeg.stdin.close()
             self.ffmpeg.wait()
+            self.ffmpeg = None
             logger.info("Finished saving video %s", self.image_title)
 
     @QtCore.pyqtSlot()
