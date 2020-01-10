@@ -462,7 +462,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('test_run')
     parser.add_argument('--log-level', choices=logging_choices, default="INFO")
+    parser.add_argument('--experiment-path', type=str, default=None)
     args = parser.parse_args()
+
+    if args.experiment_path is not None:
+        utils.experiment_folder_location = os.path.join(args.experiment_path,
+                                                        utils.experiment_name)
 
     os.makedirs(utils.experiment_folder_location)
     fn = os.path.join(utils.experiment_folder_location, '{}.log'.format(utils.experiment_name))
