@@ -56,11 +56,11 @@ class ExcitationController(BaseController):
         self.turn_all_off()
         self.lamp_index = index
         self.change_intensity(self.current_intensity)
-        if index == 0:
+        if self.lamp_index == 0:
             self.turn_all_off()
-        elif index in range(1, 7):
-            self.turn_led_on(index)
-        elif index == 7:
+        elif self.lamp_index in range(1, 7):
+            self.turn_led_on(self.lamp_index)
+        elif self.lamp_index == 7:
             self.turn_all_on()
 
     def change_intensity(self, intensity):

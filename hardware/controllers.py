@@ -1,5 +1,5 @@
 import serial
-from PyQt5.QtCore import QObject
+from PyQt5 import QtCore
 import logging
 
 
@@ -23,7 +23,7 @@ class ResponseError(Exception):
         self.message = "Invalid response. Expected: {} Received: {}".format(self.expected, self.response)
 
 
-class BaseController(QObject):
+class BaseController(QtCore.QObject):
     def __init__(self, parent=None):
         super(BaseController, self).__init__(parent)
         self.logger = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ class BaseController(QObject):
         if self.connected:
             self.start_controller()
 
-    def test_connection(connection):
+    def test_connection(self, connection):
         pass
 
     def get_connection(self):

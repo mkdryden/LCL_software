@@ -116,7 +116,7 @@ class ScreenShooter(QtCore.QObject):
 
         # Screenshot
         if self.requested_frames > 0:
-            im = Image.fromarray(np.left_shift(self.image, 4))
+            im = Image.fromarray(np.left_shift(self.image, 4))  # Zero pad 12 to 16 bits
             im.save(os.path.join(experiment_folder_location,
                                  '{}___{}.tif'.format(self.image_title, now())), format='tiff', compression='tiff_lzw')
 

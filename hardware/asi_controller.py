@@ -1,4 +1,3 @@
-import sys
 import time
 import logging
 
@@ -134,12 +133,12 @@ class StageController(BaseController):
             self.set_objective_down()
         comment(f'magnification changed to: {self.current_magnification}')
 
-    @QtCore.pyqtSlot('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
-    def reticle_and_center_slot(self, center_x, center_y, reticle_x, reticle_y):
-        self.center_x = center_x
-        self.center_y = center_y
-        self.reticle_x = reticle_x
-        self.reticle_y = reticle_y
+    # @QtCore.pyqtSlot('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
+    # def reticle_and_center_slot(self, center_x, center_y, reticle_x, reticle_y):
+    #     self.center_x = center_x
+    #     self.center_y = center_y
+    #     self.reticle_x = reticle_x
+    #     self.reticle_y = reticle_y
 
     def change_cube_position(self, index):
         self.send_receive('MOVE S={}'.format(index + 1))
@@ -155,7 +154,7 @@ class StageController(BaseController):
         # get back to 4 first
         move = -1 * compensation_dict[present_mag]
         # now compensate for offsets from 4
-        move = move + compensation_dict[future_mag]
+        move += compensation_dict[future_mag]
         comment('objective offset correction: {}'.format(move))
         self.move_relative(move)
 
