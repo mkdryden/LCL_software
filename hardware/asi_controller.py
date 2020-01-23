@@ -11,6 +11,7 @@ from utils import comment
 
 class StageController(BaseController):
     position_return_signal = QtCore.pyqtSignal('PyQt_PyObject')
+    done_moving_signal = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -23,6 +24,8 @@ class StageController(BaseController):
                              'parity': serial.PARITY_NONE}
         self.command_delimiter = '\r'
 
+        self.status_timer = QtCore.QTimer(self)
+        self.status_timer.timeout.connect(self.is_moving)
         self.step_size = 500
         self.reverse_move_vector = np.zeros(2)
         self.return_from_dmf_vector = np.zeros(2)
@@ -78,6 +81,7 @@ class StageController(BaseController):
         for direction, var in zip(['X', 'Y', 'Z'], [x, y, z]):
             if var is not None:
                 cmd_string += f' {direction}={var}'
+        self.status_timer.start(100)
         self.send_receive(cmd_string)
 
     @QtCore.pyqtSlot('PyQt_PyObject')
@@ -142,6 +146,7 @@ class StageController(BaseController):
 
     def change_cube_position(self, index):
         self.send_receive('MOVE S={}'.format(index + 1))
+        self.status_timer.start(100)
 
     def compensate_for_objective_offsets(self, present_mag, future_mag):
         # from 20 to 40: X=132.192 Y=717.264
@@ -176,7 +181,21 @@ class StageController(BaseController):
 
     def move_relative(self, move_vector):
         self.reverse_move_vector = -1 * move_vector
+        self.status_timer.start(100)
         return self.send_receive('R X={} Y={}'.format(move_vector[0], move_vector[1]))
+
+    def is_moving(self):
+        reply = self.send_receive('/').strip()
+        if reply == 'B':
+            return True
+        elif reply == 'N':
+            self.logger.info("Done move")
+            self.status_timer.stop()
+            self.done_moving_signal.emit()
+            return False
+        else:
+            self.logger.error("Received invalid STATUS response: %s", reply)
+            return None
 
     def move_rel_z(self, z):
         return self.send_receive(f'R Z={z}')
