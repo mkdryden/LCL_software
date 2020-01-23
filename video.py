@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class ImageViewer(QtWidgets.QWidget):
-    click_move_signal = QtCore.pyqtSignal('PyQt_PyObject', 'PyQt_PyObject')
+    click_move_signal = QtCore.pyqtSignal(int, int, int, int)
     aspect_changed_signal = QtCore.pyqtSignal(float)
 
     def __init__(self, parent=None):
@@ -46,4 +46,4 @@ class ImageViewer(QtWidgets.QWidget):
 
     def mousePressEvent(self, QMouseEvent):
         click_x, click_y = QMouseEvent.pos().x(), QMouseEvent.pos().y()
-        self.click_move_signal.emit(click_x, click_y)
+        self.click_move_signal.emit(click_x, click_y, self.width(), self.height())

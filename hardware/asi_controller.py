@@ -190,9 +190,10 @@ class StageController(BaseController):
         return np.round(vector * default_calibration * self.objective_calibration_factors[self.current_magnification],
                         4)
 
-    def click_move_slot(self, click_x, click_y):
+    @QtCore.pyqtSlot(int, int, int, int)
+    def click_move_slot(self, click_x: int, click_y: int, width: int, height: int):
         # center movement:
-        window_center = np.array([1352 / 2, 712 / 2])
+        window_center = np.array([width // 2, height // 2])
         # # reticle movement:
         # window_center = np.array([self.reticle_x * 1352 / 4096, self.reticle_y * 712 / 2160])
         mouse_click_location = np.array([click_x, click_y])
