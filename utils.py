@@ -83,10 +83,15 @@ class AspectRatioWidget(QWidget):
         self.layout().setStretch(2, outer_stretch)
 
 
-def save_well_imgs(img, fs_img):
-    save_loc = os.path.join(experiment_folder_location, '{}___{}.tif'.format('well_image', now()))
-    plt.imsave(save_loc, img)
-    np.save(save_loc.replace('.tif', '').replace('well', 'FS_well'), fs_img)
+def save_well_imgs(img: np.ndarray, fs_img: np.ndarray, names: list):
+    save_loc = os.path.join(experiment_folder_location, '{}___{}'.format('well_image', now()))
+    im = Image.fromarray(img)
+    im.save(save_loc + "-c.jpg", format='jpeg')
+
+    # Save each channel as a separate file
+    for n, name in enumerate(names):
+        fs_im = Image.fromarray(np.left_shift(fs_img[..., n], 4))
+        fs_im.save(save_loc + "-" + name + ".tif", format='tiff', compression='tiff_lzw')
 
 
 class ScreenShooter(QtCore.QObject):
@@ -225,7 +230,8 @@ class MeanIoU(object):
         return np.mean(iou).astype(np.float32)
 
 
-def display_fluorescence_properly(img, preset_data):
+def display_fluorescence_properly(img: np.ndarray, preset_data):
+    img = np.right_shift(img, 4).astype(np.uint8)
     new_shape = img.shape[:-1] + (3,)
     new_img = np.zeros(new_shape).astype(np.uint8)
     for channel_num in range(preset_data.shape[0]):
