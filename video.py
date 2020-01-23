@@ -25,10 +25,9 @@ class ImageViewer(QtWidgets.QWidget):
         painter = QtGui.QPainter(self)
         width = painter.device().width()
         height = painter.device().height()
-        # drawtime = time.perf_counter()
+        scale = width / self.image.width()
         painter.drawPixmap(0, 0, self.image.scaled(width, height, aspectRatioMode=QtCore.Qt.KeepAspectRatio))
-        # logger.debug("Painter drawtime: %s", time.perf_counter() - drawtime)
-        painter.drawEllipse(width // 2, height // 2, height // 30, height // 30)
+        painter.drawRect(width//2 - 150*scale, height//2 - 150*scale, 300*scale, 300*scale)
         self.image = None
 
     @QtCore.pyqtSlot(QtGui.QPixmap)
@@ -47,3 +46,21 @@ class ImageViewer(QtWidgets.QWidget):
     def mousePressEvent(self, QMouseEvent):
         click_x, click_y = QMouseEvent.pos().x(), QMouseEvent.pos().y()
         self.click_move_signal.emit(click_x, click_y, self.width(), self.height())
+
+
+class MagnifiedImageViewer(ImageViewer):
+    def paintEvent(self, event):
+        try:
+            if self.image.isNull():
+                return
+        except AttributeError:
+            return
+        painter = QtGui.QPainter(self)
+        width = painter.device().width()
+        height = painter.device().height()
+        # drawtime = time.perf_counter()
+        painter.drawPixmap(0, 0, self.image,
+                           self.image.width()//2 - width//2, self.image.height()//2 - height//2,
+                           width, height)
+        # logger.debug("Painter drawtime: %s", time.perf_counter() - drawtime)
+        self.image = None
