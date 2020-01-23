@@ -1,13 +1,13 @@
 import time
 import os
-import pickle
 from distutils.version import StrictVersion
+import logging
 
+import typing
 from PyQt5 import QtCore
 import cv2
 import numpy as np
 import tensorflow as tf
-import pandas as pd
 from keras.models import load_model
 from keras import backend as K
 from PyQt5.QtWidgets import QApplication
@@ -16,8 +16,9 @@ import skimage.transform as transform
 import scipy.ndimage as nd
 import matplotlib.pyplot as plt
 
-
-from utils import comment, now, display_fluorescence_properly, save_well_imgs
+from utils import comment, display_fluorescence_properly, save_well_imgs, wait_signal
+from hardware.presets import PresetManager
+from hardware.asi_controller import StageController
 
 global graph
 
@@ -28,6 +29,8 @@ else:
 
 # TODO fix this stupid redundant reference!
 experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models')
+
+logger = logging.getLogger(__name__)
 
 
 def mean_iou(y_true, y_pred):
@@ -55,19 +58,20 @@ class WellStitcher():
         self.img_x, self.img_y = 4096 // 2, 2160 // 2
         self.img_channels = preset_data.shape[0]
         self.well_img = np.zeros((self.img_y * self.box_size, self.img_x * self.box_size, self.img_channels),
-                                 dtype=np.uint8)
+                                 dtype=np.uint16)
         self.current_channel = 0
         self.preset_data = preset_data
         self.point = ()
         print('DATA:')
         print(preset_data)
 
+
     def stitch_img(self, img):
-        comment('acquiring image')
+        logger.info("stitch_img: x=%s y=%s channel=%s", self.curr_x, self.curr_y, self.current_channel)
         img = cv2.resize(img, (self.img_x, self.img_y))
         self.well_img[self.curr_y * self.img_y:(self.curr_y + 1) * self.img_y,
-        self.curr_x * self.img_x:(self.curr_x + 1) * self.img_x, self.current_channel] = img
-        print(self.current_channel)
+                      self.curr_x * self.img_x:(self.curr_x + 1) * self.img_x,
+                      self.current_channel] = img
         self.current_channel += 1
         # if self.current_channel == self.img_channels: self.current_channel = 0
 
@@ -76,20 +80,22 @@ class WellStitcher():
             self.current_channel = 0
             self.stitch_img(img)
             return
-        if let == 'u': self.curr_y -= 1
-        if let == 'd': self.curr_y += 1
-        if let == 'l': self.curr_x -= 1
-        if let == 'r': self.curr_x += 1
+        if let == 'u':
+            self.curr_y -= 1
+        if let == 'd':
+            self.curr_y += 1
+        if let == 'l':
+            self.curr_x -= 1
+        if let == 'r':
+            self.curr_x += 1
         self.current_channel = 0
         self.stitch_img(img)
 
     def write_well_img(self):
         overlay_well_img = display_fluorescence_properly(self.well_img, self.preset_data)
-        save_well_imgs(overlay_well_img, self.well_img)
-        comment('...well image writing completed')
-        img = cv2.resize(overlay_well_img, (self.well_img.shape[1]//2, self.well_img.shape[0]//2))
+        save_well_imgs(overlay_well_img, self.well_img, self.preset_data.index.values.tolist())
+        img = cv2.resize(overlay_well_img, (self.well_img.shape[1] // 2, self.well_img.shape[0] // 2))
         return img
-
 
 
 class Localizer(QtCore.QObject):
@@ -102,14 +108,20 @@ class Localizer(QtCore.QObject):
     qswitch_screenshot_signal = QtCore.pyqtSignal('PyQt_PyObject')
     localizer_stage_command_signal = QtCore.pyqtSignal('PyQt_PyObject')
     get_number_of_presets_signal = QtCore.pyqtSignal()
-    cycle_image_channel_signal = QtCore.pyqtSignal()
+    cycle_image_channel_signal = QtCore.pyqtSignal(str)
+    got_image_signal = QtCore.pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, vid_process_signal: QtCore.pyqtSignal = None,
+                 asi_controller: StageController = None, preset_manager: PresetManager = None):
         super(Localizer, self).__init__(parent)
+        self.preset_manager = preset_manager
+
         self.localizer_model = load_model(os.path.join(experiment_folder_location, 'model2018-10-18_08_47'),
                                           custom_objects={'mean_iou': mean_iou})
         self.norm = StandardScaler()
         self.localizer_model._make_predict_function()
+        self.vid_process_signal = vid_process_signal
+        self.asi_controller = asi_controller
         self.position = np.zeros((1, 2))
         self.well_center = np.zeros((1, 2))
         self.lysed_cell_count = 0
@@ -135,10 +147,16 @@ class Localizer(QtCore.QObject):
     # plt.imshow(img)
     # plt.show()
 
-    @QtCore.pyqtSlot('PyQt_PyObject')
+    @QtCore.pyqtSlot(np.ndarray)
     def vid_process_slot(self, image):
-        self.image = image
-        self.frame_count += 1
+        if self.frame_count > 10:
+            self.vid_process_signal.disconnect(self.vid_process_slot)
+            self.image = image
+            logger.info("Got new image")
+            self.got_image_signal.emit()
+            self.frame_count = 0
+        else:
+            self.frame_count += 1
 
     @QtCore.pyqtSlot('PyQt_PyObject')
     def position_return_slot(self, position):
@@ -159,17 +177,19 @@ class Localizer(QtCore.QObject):
 
     def move_frame(self, direction, relative=True):
         y_distance = 3400 - 25
-        x_distance = 3235*2 - 170
+        x_distance = 3235 * 2 - 170
         frame_dir_dict = {
             'u': np.array([0, -y_distance]),
             'd': np.array([0, y_distance]),
             'l': np.array([-x_distance, 0]),
             'r': np.array([x_distance, 0])
         }
-        self.localizer_move_signal.emit(frame_dir_dict[direction], False, True, False)
+        with wait_signal(self.asi_controller.done_moving_signal):
+            self.localizer_move_signal.emit(frame_dir_dict[direction], False, True, False)
 
     def return_to_original_position(self, position):
-        self.localizer_move_signal.emit(position, False, False, False)
+        with wait_signal(self.asi_controller.done_moving_signal):
+            self.localizer_move_signal.emit(position, False, False, False)
 
     def get_spiral_directions(self, outward_length):
         letters = ['u', 'l', 'd', 'r']
@@ -185,51 +205,31 @@ class Localizer(QtCore.QObject):
         directions = zip(nums, lets)
         return directions
 
-    def wait_for_new_image(self, initial_frame_number):
-        while self.frame_count - initial_frame_number < 15:
-            self.delay()
-            QApplication.processEvents()
-        return
+    def get_next_image(self) -> np.ndarray:
+        with wait_signal(self.got_image_signal):
+            self.vid_process_signal.connect(self.vid_process_slot)
+        return self.image
 
-    @QtCore.pyqtSlot('PyQt_PyObject')
-    def number_of_presets_slot(self, data):
-        self.selected_preset_data = data
-        self.number_of_presets = data.shape[0]
+    def gather_all_channel_images(self, stitcher, img_channels, let, presets):
+        self.cycle_image_channel_signal.connect(self.preset_manager.set_preset)
+        for preset in presets:
+            with wait_signal(self.preset_manager.preset_loaded_signal):
+                self.cycle_image_channel_signal.emit(preset)
+            stitcher.stitch_img(self.get_next_image())
+        self.cycle_image_channel_signal.disconnect(self.preset_manager.set_preset)
 
-    def get_image_channels(self):
-        # gets the preset data
-        self.get_number_of_presets_signal.emit()
-        self.delay()
-        return self.number_of_presets
-
-    def cycle_image_channel(self):
-        self.cycle_image_channel_signal.emit()
-        QApplication.processEvents()
-        self.delay()
-
-    def gather_all_channel_images(self, stitcher, img_channels, let):
-        self.wait_for_new_image(self.frame_count)
-        stitcher.add_img(let, self.image)
-        self.cycle_image_channel()
-        for _ in range(img_channels - 1):
-            # all the cases where we want to add the remaining channels
-            self.wait_for_new_image(self.frame_count)
-            stitcher.stitch_img(self.image)
-            self.cycle_image_channel()
-
-    @QtCore.pyqtSlot()
-    def tile_slot(self):
+    @QtCore.pyqtSlot(list)
+    def tile_slot(self, presets: typing.Sequence[str]):
         # first get our well center position
         self.well_center = self.get_stage_position()
         outward_length = 1
         self.auto_mode = True
-        img_channels = self.get_image_channels()
-        if img_channels == 0:
-            comment('no presets selected - will not execute tiling')
+        if len(presets) == 0:
+            logger.warning('No presets selected—will not execute tiling')
             return
         # acquire our initial images:
         stitcher = WellStitcher(outward_length, self.selected_preset_data)
-        self.gather_all_channel_images(stitcher, img_channels, None)
+        self.gather_all_channel_images(stitcher, img_channels, None, presets)
         # now start moving a frame at a time and adding them
         directions = self.get_spiral_directions(outward_length)
         self.localizer_stage_command_signal.emit('B X=0.04 Y=0.04')
@@ -239,10 +239,10 @@ class Localizer(QtCore.QObject):
                     return
                 self.move_frame(let)
                 self.gather_all_channel_images(stitcher, img_channels, let)
-        comment('Tiling completed!')
+        logger.info('Tiling completed!')
         self.return_to_original_position(self.well_center)
         macro_img = stitcher.write_well_img()
-        print(macro_img.shape)
+        logger.debug("Final macro_img shape: %s", macro_img.shape)
         QApplication.processEvents()
         self.localizer_stage_command_signal.emit('B X=0 Y=0')
         QApplication.processEvents()
@@ -267,10 +267,10 @@ class Localizer(QtCore.QObject):
         # y_distance = 3400 - 25 stage steps upwards for a full screen
         # x_distance = 3235 * 2 - 170 stage steps sideways for a full screen
         # (1620, 3072) shape of our image
-        window_center = (3072//2, 1620//2)
+        window_center = (3072 // 2, 1620 // 2)
         mouse_click_location = np.array([click.xdata, click.ydata])
         pixel_move_vector = mouse_click_location - window_center
-        pixel_move_vector = pixel_move_vector * 3 / 2.3 # calibration factor (should be 2 analytically)
+        pixel_move_vector = pixel_move_vector * 3 / 2.3  # calibration factor (should be 2 analytically)
         if self.move_key_held:
             self.move_key_held = not self.move_key_held
             print('moving to point:', mouse_click_location)

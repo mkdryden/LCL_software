@@ -116,56 +116,6 @@
         <bool>false</bool>
        </property>
        <layout class="QGridLayout" name="gridLayout">
-        <item row="5" column="2">
-         <widget class="QDoubleSpinBox" name="intensity_doublespin_box">
-          <property name="focusPolicy">
-           <enum>Qt::ClickFocus</enum>
-          </property>
-          <property name="suffix">
-           <string>%</string>
-          </property>
-          <property name="decimals">
-           <number>0</number>
-          </property>
-          <property name="minimum">
-           <double>0.000000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>100.000000000000000</double>
-          </property>
-          <property name="singleStep">
-           <double>10.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>0.000000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="2">
-         <widget class="QDoubleSpinBox" name="gain_doublespin_box">
-          <property name="focusPolicy">
-           <enum>Qt::ClickFocus</enum>
-          </property>
-          <property name="suffix">
-           <string/>
-          </property>
-          <property name="decimals">
-           <number>0</number>
-          </property>
-          <property name="minimum">
-           <double>0.000000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>480.000000000000000</double>
-          </property>
-          <property name="singleStep">
-           <double>10.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>45.000000000000000</double>
-          </property>
-         </widget>
-        </item>
         <item row="5" column="0">
          <widget class="QLabel" name="intensity_label">
           <property name="text">
@@ -193,34 +143,6 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="2">
-         <widget class="QDoubleSpinBox" name="exposure_doublespin_box">
-          <property name="focusPolicy">
-           <enum>Qt::ClickFocus</enum>
-          </property>
-          <property name="contextMenuPolicy">
-           <enum>Qt::DefaultContextMenu</enum>
-          </property>
-          <property name="suffix">
-           <string>ms</string>
-          </property>
-          <property name="decimals">
-           <number>0</number>
-          </property>
-          <property name="minimum">
-           <double>1.000000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>10000.000000000000000</double>
-          </property>
-          <property name="singleStep">
-           <double>5.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>2.000000000000000</double>
-          </property>
-         </widget>
-        </item>
         <item row="1" column="0">
          <widget class="QLabel" name="brightness_label">
           <property name="text">
@@ -232,31 +154,6 @@
          <widget class="QLabel" name="exposure_label">
           <property name="text">
            <string>Exposure</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QDoubleSpinBox" name="brightness_doublespin_box">
-          <property name="focusPolicy">
-           <enum>Qt::ClickFocus</enum>
-          </property>
-          <property name="suffix">
-           <string>%</string>
-          </property>
-          <property name="decimals">
-           <number>0</number>
-          </property>
-          <property name="minimum">
-           <double>0.000000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>100.000000000000000</double>
-          </property>
-          <property name="singleStep">
-           <double>10.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>20.000000000000000</double>
           </property>
          </widget>
         </item>
@@ -287,31 +184,6 @@
          <widget class="QLabel" name="acquisition_preset_label">
           <property name="text">
            <string>Preset</string>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="2">
-         <widget class="QDoubleSpinBox" name="emission_doublespin_box">
-          <property name="focusPolicy">
-           <enum>Qt::ClickFocus</enum>
-          </property>
-          <property name="suffix">
-           <string> nm</string>
-          </property>
-          <property name="decimals">
-           <number>0</number>
-          </property>
-          <property name="minimum">
-           <double>0.000000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>850.000000000000000</double>
-          </property>
-          <property name="singleStep">
-           <double>1.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>0.000000000000000</double>
           </property>
          </widget>
         </item>
@@ -347,6 +219,98 @@
          <widget class="QPushButton" name="add_preset_pushButton">
           <property name="text">
            <string>Add Preset</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QSpinBox" name="exposure_spin_box">
+          <property name="focusPolicy">
+           <enum>Qt::ClickFocus</enum>
+          </property>
+          <property name="contextMenuPolicy">
+           <enum>Qt::DefaultContextMenu</enum>
+          </property>
+          <property name="buttonSymbols">
+           <enum>QAbstractSpinBox::UpDownArrows</enum>
+          </property>
+          <property name="suffix">
+           <string> ms</string>
+          </property>
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>5000</number>
+          </property>
+          <property name="displayIntegerBase">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QSpinBox" name="brightness_spin_box">
+          <property name="focusPolicy">
+           <enum>Qt::ClickFocus</enum>
+          </property>
+          <property name="suffix">
+           <string notr="true"> %</string>
+          </property>
+          <property name="maximum">
+           <number>100</number>
+          </property>
+          <property name="singleStep">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="2">
+         <widget class="QSpinBox" name="gain_spin_box">
+          <property name="focusPolicy">
+           <enum>Qt::ClickFocus</enum>
+          </property>
+          <property name="maximum">
+           <number>480</number>
+          </property>
+          <property name="singleStep">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="2">
+         <widget class="QSpinBox" name="intensity_spin_box">
+          <property name="focusPolicy">
+           <enum>Qt::ClickFocus</enum>
+          </property>
+          <property name="suffix">
+           <string> %</string>
+          </property>
+          <property name="maximum">
+           <number>100</number>
+          </property>
+          <property name="singleStep">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="2">
+         <widget class="QSpinBox" name="emission_spin_box">
+          <property name="focusPolicy">
+           <enum>Qt::ClickFocus</enum>
+          </property>
+          <property name="suffix">
+           <string> nm</string>
+          </property>
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>850</number>
+          </property>
+          <property name="singleStep">
+           <number>10</number>
+          </property>
+          <property name="value">
+           <number>0</number>
           </property>
          </widget>
         </item>
@@ -407,7 +371,11 @@ Tiling:</string>
        </property>
        <layout class="QVBoxLayout" name="comment_layout">
         <item>
-         <widget class="QTextEdit" name="comment_box"/>
+         <widget class="QPlainTextEdit" name="comment_box">
+          <property name="backgroundVisible">
+           <bool>false</bool>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="user_comment_button">
@@ -483,7 +451,7 @@ Tiling:</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>238</width>
+          <width>226</width>
           <height>898</height>
          </rect>
         </property>
