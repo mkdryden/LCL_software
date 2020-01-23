@@ -6,6 +6,7 @@ import numpy as np
 from PyQt5 import QtCore
 
 from controllers import BaseController, ResponseError
+from presets import SettingValue
 from utils import comment
 
 
@@ -50,6 +51,15 @@ class StageController(BaseController):
             40: 0.51,
             60: .36,
             100: 0.205}
+
+    def setup(self):
+        settings = [SettingValue("brightness", default_value=10,
+                                 changed_call=self.change_brightness),
+                    SettingValue("cube_position", default_value=1,
+                                 changed_call=self.change_cube_position,
+                                 change_done_signal=self.done_moving_signal)
+                    ]
+        self.settings = {i.name: i for i in settings}
 
     def start_controller(self):
         self.send_receive('B X=0 Y=0')  # turn off backlash compensation on XY
@@ -166,6 +176,10 @@ class StageController(BaseController):
     def set_step_size(self, step_size):
         comment('step size changed to: {}'.format(step_size))
         self.step_size = step_size * 10
+
+    def change_brightness(self, value):
+        self.logger.info('setting brightness to %s', value)
+        self.send_receive('7LED X={}'.format(value))
 
     def move_up(self):
         return self.send_receive('R Y=-{}'.format(self.step_size))

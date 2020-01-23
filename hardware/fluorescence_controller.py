@@ -4,8 +4,13 @@ from PyQt5 import QtCore
 import serial
 
 from controllers import ResponseError, BaseController
+from presets import SettingValue
 
 DEFAULT_INTENSITY = 50
+
+wavelengths = ["Off", "385 nm", "430 nm", "475 nm", "525 nm", "575 nm", "630 nm", "All"]
+wl_to_idx = {i: n for n, i in enumerate(wavelengths)}
+idx_to_wl = {n: i for n, i in enumerate(wavelengths)}
 
 
 class ExcitationController(BaseController):
@@ -23,6 +28,17 @@ class ExcitationController(BaseController):
                              'timeout': .25,
                              'parity': serial.PARITY_NONE}
         self.command_delimiter = '\r'
+
+    def setup(self):
+        settings = [SettingValue("excitation",
+                                 default_value=0,
+                                 changed_call=self.change_fluorescence),
+                    SettingValue("emission", default_value="0 nm"),
+                    SettingValue("intensity",
+                                 default_value=0,
+                                 changed_call=self.change_intensity)
+                    ]
+        self.settings = {i.name: i for i in settings}
 
     def start_controller(self):
         self.send_receive('lh?')

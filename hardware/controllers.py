@@ -24,6 +24,11 @@ class ResponseError(Exception):
 
 
 class BaseController(QtCore.QObject):
+    """
+    Base class for serial-driven controllers.
+    """
+    changed_setting_signal = QtCore.pyqtSignal()
+
     def __init__(self, parent=None):
         super(BaseController, self).__init__(parent)
         self.logger = logging.getLogger(__name__)
@@ -36,6 +41,14 @@ class BaseController(QtCore.QObject):
                              'timeout': .25,
                              'parity': serial.PARITY_NONE}
         self.command_delimiter = "\n"
+        self.settings = {}
+        self.setup()
+
+    def setup(self):
+        pass
+
+    # def connect_to_signal(self, slot: QtCore.pyqtSlot):
+    #     self.changed_setting_signal
 
     def start_controller(self):
         pass

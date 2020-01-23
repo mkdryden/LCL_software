@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QBoxLayout, QSpacerItem, QWidget
 import os
 import datetime
 import cv2
+from contextlib import contextmanager
 from PIL import Image
 import logging
 import numpy as np
@@ -31,6 +32,26 @@ def comment(text):
                                     '.' * (80 - (len(text) + len(now_time))),
                                     now_time))
     print(text, threading.current_thread())
+
+
+@contextmanager
+def wait_signal(signal: QtCore.pyqtSignal = None, timeout=10000):
+    """Block loop until signal emitted, or timeout (ms) elapses."""
+    loop = QtCore.QEventLoop()
+
+    if signal and timeout is None:
+        logger.error("Cannot call wait_signal with both signal and timeout as None.")
+        return
+
+    if signal is not None:
+        signal.connect(loop.quit)
+
+    yield
+
+    if timeout is not None:
+        QtCore.QTimer.singleShot(timeout, loop.quit)
+
+    loop.exec_()
 
 
 class AspectRatioWidget(QWidget):
@@ -303,6 +324,6 @@ def wav2RGB(wavelength):
     return [int(SSS * R), int(SSS * G), int(SSS * B)]
 
 
-preset_loc = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'presets')
+preset_loc = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'presets.yaml')
 experiment_name = 'experiment_{}'.format(now())
 experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Experiments', experiment_name)
