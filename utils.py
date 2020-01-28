@@ -144,7 +144,8 @@ class ScreenShooter(QtCore.QObject):
         if self.requested_frames > 0:
             im = Image.fromarray(np.left_shift(self.image, 4))  # Zero pad 12 to 16 bits
             im.save(os.path.join(experiment_folder_location,
-                                 '{}___{}.tif'.format(self.image_title, now())), format='tiff', compression='tiff_lzw')
+                                 '{}___{}.tif'.format(self.image_title, now())),
+                    format='tiff', compression='tiff_lzw')
 
             self.requested_frames -= 1
             logger.debug('writing frame %s to disk', self.image_count)
@@ -156,10 +157,10 @@ class ScreenShooter(QtCore.QObject):
             self.ffmpeg = (
                 ffmpeg.input('pipe:', format='rawvideo', pix_fmt='gray12le',
                              s='{}x{}'.format(*reversed(self.image.shape)), framerate=20)
-                      .output(os.path.join(experiment_folder_location, self.image_title + now() + ".mp4"),
-                              crf=21, preset="fast", pix_fmt='yuv420p')
-                      .overwrite_output()
-                      .run_async(pipe_stdin=True)
+                    .output(os.path.join(experiment_folder_location, self.image_title + now() + ".mp4"),
+                            crf=21, preset="fast", pix_fmt='yuv420p')
+                    .overwrite_output()
+                    .run_async(pipe_stdin=True)
             )
 
         if not self.recording:  # Finish Recording
@@ -268,7 +269,7 @@ def display_fluorescence_properly(img: np.ndarray, preset_data):
                 new_img[:, :, i] = img[:, :, channel_num]
         else:
             # now add proper fluorescence on top
-            rgb_val = wav2RGB(channel_wv)
+            rgb_val = wl_to_rbg(wl)
             new_overlay = np.zeros(new_shape).astype(np.uint8)
             for j in range(3):
                 new_overlay[:, :, j] = rgb_val[j] / 255 * img[:, :, channel_num]
@@ -277,31 +278,31 @@ def display_fluorescence_properly(img: np.ndarray, preset_data):
 
 
 # stolen from: http://codingmess.blogspot.com/2009/05/conversion-of-wavelength-in-nanometers.html
-def wav2RGB(wavelength):
+def wl_to_rbg(wavelength: typing.SupportsInt) -> typing.Tuple[int, int, int]:
     w = int(wavelength)
 
     # colour
-    if w >= 380 and w < 440:
+    if 380 <= w < 440:
         R = -(w - 440.) / (440. - 350.)
         G = 0.0
         B = 1.0
-    elif w >= 440 and w < 490:
+    elif 440 <= w < 490:
         R = 0.0
         G = (w - 440.) / (490. - 440.)
         B = 1.0
-    elif w >= 490 and w < 510:
+    elif 490 <= w < 510:
         R = 0.0
         G = 1.0
         B = -(w - 510.) / (510. - 490.)
-    elif w >= 510 and w < 580:
+    elif 510 <= w < 580:
         R = (w - 510.) / (580. - 510.)
         G = 1.0
         B = 0.0
-    elif w >= 580 and w < 645:
+    elif 580 <= w < 645:
         R = 1.0
         G = -(w - 645.) / (645. - 580.)
         B = 0.0
-    elif w >= 645 and w <= 780:
+    elif 645 <= w <= 780:
         R = 1.0
         G = 0.0
         B = 0.0
@@ -311,17 +312,17 @@ def wav2RGB(wavelength):
         B = 0.0
 
     # intensity correction
-    if w >= 380 and w < 420:
+    if 380 <= w < 420:
         SSS = 0.3 + 0.7 * (w - 350) / (420 - 350)
-    elif w >= 420 and w <= 700:
+    elif 420 <= w <= 700:
         SSS = 1.0
-    elif w > 700 and w <= 780:
+    elif 700 < w <= 780:
         SSS = 0.3 + 0.7 * (780 - w) / (780 - 700)
     else:
         SSS = 0.0
     SSS *= 255
 
-    return [int(SSS * R), int(SSS * G), int(SSS * B)]
+    return int(SSS * R), int(SSS * G), int(SSS * B)
 
 
 preset_loc = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'presets.yaml')

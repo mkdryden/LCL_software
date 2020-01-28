@@ -16,7 +16,7 @@ import skimage.transform as transform
 import scipy.ndimage as nd
 import matplotlib.pyplot as plt
 
-from utils import comment, display_fluorescence_properly, save_well_imgs, wait_signal
+from utils import comment, channels_to_rgb_img, wait_signal
 from hardware.presets import PresetManager
 from hardware.asi_controller import StageController
 
@@ -92,7 +92,7 @@ class WellStitcher():
         self.stitch_img(img)
 
     def write_well_img(self):
-        overlay_well_img = display_fluorescence_properly(self.well_img, self.preset_data)
+        overlay_well_img = channels_to_rgb_img(self.well_img, self.preset_data)
         save_well_imgs(overlay_well_img, self.well_img, self.preset_data.index.values.tolist())
         img = cv2.resize(overlay_well_img, (self.well_img.shape[1] // 2, self.well_img.shape[0] // 2))
         return img
