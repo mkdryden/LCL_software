@@ -11,6 +11,7 @@ import threading
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import ffmpeg
+from appdirs import AppDirs
 
 logger = logging.getLogger(__name__)
 
@@ -325,6 +326,6 @@ def wl_to_rbg(wavelength: typing.SupportsInt) -> typing.Tuple[int, int, int]:
     return int(SSS * R), int(SSS * G), int(SSS * B)
 
 
-preset_loc = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'presets.yaml')
+appdirs = AppDirs("LCL-interface", "Wheeler Lab")
 experiment_name = 'experiment_{}'.format(now())
 experiment_folder_location = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Experiments', experiment_name)

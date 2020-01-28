@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 import argparse
+import pathlib
 
 from PyQt5.QtWidgets import QApplication
 
@@ -30,16 +31,19 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.experiment_path is not None:
-        utils.experiment_folder_location = os.path.join(args.experiment_path,
+        utils.experiment_folder_location = os.path.join(os.path.expanduser(args.experiment_path),
                                                         utils.experiment_name)
 
-    os.makedirs(utils.experiment_folder_location)
-    fn = os.path.join(utils.experiment_folder_location, '{}.log'.format(utils.experiment_name))
+    # Make sure paths exist
+    pathlib.Path(utils.experiment_folder_location).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(utils.appdirs.user_config_dir).mkdir(parents=True, exist_ok=True)
 
+    # Logging
+    logfile = os.path.join(utils.experiment_folder_location, '{}.log'.format(utils.experiment_name))
     root_logger = logging.getLogger()
     for handler in logging.root.handlers[:]:
         logging.root.removeHandler(handler)
-    log_handlers = [logging.StreamHandler(), logging.FileHandler(fn)]
+    log_handlers = [logging.StreamHandler(), logging.FileHandler(logfile)]
     log_formatter = logging.Formatter(
         fmt='%(asctime)s %(levelname)s: [%(name)s] %(message)s',
         datefmt='%H:%M:%S',
