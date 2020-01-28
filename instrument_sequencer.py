@@ -86,12 +86,12 @@ class InstrumentSequencer(QtCore.QObject):
         logger.info("Relative move frames: %s %s", x, y)
 
         if x is not None:
-            x_rel = round(x * self.objectives.current_objective.field_dimx * .9)
+            x_rel = round(x * self.objectives.current_objective.field_dimx)
         else:
             x_rel = None
 
         if y is not None:
-            y_rel = round(y * self.objectives.current_objective.field_dimy * .9)
+            y_rel = round(y * self.objectives.current_objective.field_dimy)
         else:
             y_rel = None
 
