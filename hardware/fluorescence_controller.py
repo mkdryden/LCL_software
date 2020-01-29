@@ -33,7 +33,8 @@ class ExcitationController(BaseController):
         settings = [SettingValue("excitation",
                                  default_value=0,
                                  changed_call=self.change_fluorescence),
-                    SettingValue("emission", default_value="0 nm"),
+                    SettingValue("emission",
+                                 default_value=0),
                     SettingValue("intensity",
                                  default_value=0,
                                  changed_call=self.change_intensity)
