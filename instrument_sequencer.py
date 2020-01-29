@@ -106,6 +106,7 @@ class InstrumentSequencer(QtCore.QObject):
 
     @QtCore.pyqtSlot(list, int, int)
     def tile(self, preset_list: typing.Sequence, columns: int = 3, rows: int = 3):
+        start_preset = self.presets.preset
         start_x, start_y, _ = self.stage.get_position()
 
         x_grid = [x - (columns-1)/2. for x in range(columns)]
@@ -127,6 +128,8 @@ class InstrumentSequencer(QtCore.QObject):
         with wait_signal(self.stage.done_moving_signal):
             logger.info("Returning to start location")
             self.stage.move(x=start_x, y=start_y)
+
+        self.cycle_image_channel_signal.emit(start_preset)
 
         self.tile_done_signal.emit(output_images,
                                    [(preset, self.presets.presets[preset]['emission'])
