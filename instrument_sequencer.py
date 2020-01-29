@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 class InstrumentSequencer(QtCore.QObject):
     done_init_signal = QtCore.pyqtSignal()
-    cycle_image_channel_signal = QtCore.pyqtSignal(str)
     tile_done_signal = QtCore.pyqtSignal(list, list)
     got_image_signal = QtCore.pyqtSignal()
 
@@ -55,7 +54,6 @@ class InstrumentSequencer(QtCore.QObject):
         self.done_init_signal.emit()
 
     def setup_signals(self):
-        self.cycle_image_channel_signal.connect(self.presets.set_preset)
         self.tile_done_signal.connect(self.screenshooter.save_well_imgs)
 
     @QtCore.pyqtSlot(np.ndarray)
@@ -78,9 +76,8 @@ class InstrumentSequencer(QtCore.QObject):
         images = []
         for preset in preset_list:
             if preset != self.presets.preset:
-                with wait_signal(self.presets.preset_loaded_signal):
-                    logger.info("Cycling preset to %s", preset)
-                    self.cycle_image_channel_signal.emit(preset)
+                logger.info("Cycling preset to %s", preset)
+                self.presets.set_preset(preset)
             images.append(self.get_next_image())
         return np.dstack(images)
 
