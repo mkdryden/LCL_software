@@ -1,15 +1,14 @@
 import logging
 import typing
-import time
+import os
 
-from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import QObject
-from PyQt5.QtWidgets import QWidget, QMessageBox, QInputDialog, QLineEdit
+from PyQt5 import QtCore
 import yaml
 
-from utils import preset_loc, wait_signal
+from utils import appdirs, wait_signal
 
 logger = logging.getLogger(__name__)
+preset_loc = os.path.join(appdirs.user_config_dir, 'presets.yaml')
 
 
 class SettingValue(object):
@@ -55,27 +54,38 @@ class SettingValue(object):
         self.value = self.default_value
 
 
-class PresetManager(QtCore.QObject):
+class SettingManager(QtCore.QObject):
+    def __init__(self, parent=None):
+        super(SettingManager, self).__init__(parent)
+        self._settings = {}
+
+    def add_setting(self, setting: SettingValue):
+        self._settings[setting.name] = setting
+
+    def change_value(self, key: str, value):
+        if key not in self._settings:
+            logger.warning("Invalid setting key: %s", key)
+            return
+        self._settings[key].value = value
+
+    @QtCore.pyqtSlot(dict)
+    def change_values(self, values: typing.Mapping):
+        for key, value in values.items():
+            self.change_value(key, value)
+
+    def get_values(self):
+        return {setting.name: setting.value for setting in self._settings.values()}
+
+
+class PresetManager(SettingManager):
     number_of_checked_presets_signal = QtCore.pyqtSignal('PyQt_PyObject')
     preset_loaded_signal = QtCore.pyqtSignal(dict)
     presets_changed_signal = QtCore.pyqtSignal(list)
 
-    def __init__(self, parent=None, window=None):
-        super(PresetManager, self).__init__(parent)
+    def __init__(self, parent=None):
+        super(PresetManager, self).__init__(parent=parent)
         self.presets = {}
         self.preset = None
-
-        self._settings = {}
-        self.saving = False
-        self.model = None
-        self.checked_names = []
-        self.current_channel = 0
-        self.number_of_channels = 0
-        self.window = window
-
-    def add_setting(self, setting: SettingValue):
-        self._settings[setting.name] = setting
-        setting.set_default()
 
     @QtCore.pyqtSlot(str)
     def set_preset(self, preset: str):
@@ -88,20 +98,7 @@ class PresetManager(QtCore.QObject):
             self.preset = preset
             self.preset_loaded_signal.emit(self.get_values())
 
-    @QtCore.pyqtSlot(dict)
-    def change_values(self, values: typing.Mapping):
-        for key, value in values.items():
-            self.change_value(key, value)
-
-    def change_value(self, key: str, value):
-        # try:
-            self._settings[key].value = value
-        # except KeyError:
-        #     logger.warning("Invalid setting key: %s", key)
-
-    def get_values(self):
-        return {setting.name: setting.value for setting in self._settings.values()}
-
+    @QtCore.pyqtSlot(str)
     def load_presets(self, preset_file=None):
         try:
             if preset_file is None:
