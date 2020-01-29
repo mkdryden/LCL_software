@@ -40,6 +40,7 @@ class InstrumentSequencer(QtCore.QObject):
         """
         self.stage.init_controller()
         self.objectives = objectives.Objectives(self.stage)
+        self.objectives.load_yaml()
         self.laser.init_controller()
         self.excitation.init_controller()
         QtCore.QMetaObject.invokeMethod(self.camera, 'start_video')
