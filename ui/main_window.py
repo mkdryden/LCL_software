@@ -162,8 +162,9 @@ class MainWindow(QMainWindow):
         self.ui.emission_spin_box.valueChanged.connect(
             partial(self.preset_manager.change_value, 'emission'))
 
-        self.ui.magnification_combobox.addItems(['P1', '40x', 'P3', '60x', 'P5', '20x'])
-        # self.ui.magnification_combobox.setCurrentIndex(self.asi_controller.get_objective_position())
+        self.ui.magnification_combobox.addItems(
+            [f"{n}: {str(i)}" for n, i in self.sequencer.objectives.objectives.items()])
+        self.ui.magnification_combobox.setCurrentIndex(self.sequencer.objectives.current_index - 1)
         self.ui.magnification_combobox.currentIndexChanged.connect(self.change_magnification)
 
         self.ui.cell_type_to_lyse_comboBox.addItems(['red', 'green'])
