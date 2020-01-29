@@ -27,7 +27,7 @@ class SettingValue(object):
         self.name = name
         self.changed = changed_call
         self.default_value = default_value
-        self._value = default_value
+        self._value = None  # Make sure state is correct at start
         self.signal = change_done_signal
         self.delay_ms = delay_ms
 
