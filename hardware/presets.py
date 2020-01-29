@@ -38,9 +38,9 @@ class SettingValue(object):
     @value.setter
     def value(self, value):
         if (self.changed is not None) and (self._value != value):
+            logger.info("Setting %s to %s", self.name, value)
             if self.signal is not None:
                 with wait_signal(self.signal, timeout=3000):
-                    logger.info("Setting %s to %s", self.name, value)
                     self.changed(value)
             elif self.delay_ms is not None:
                 self.changed(value)
