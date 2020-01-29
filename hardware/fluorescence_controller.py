@@ -25,7 +25,7 @@ class ExcitationController(BaseController):
         self.current_intensity = None
         self.ser_url = "hwgrep://X-Cite.*"
         self.ser_settings = {'baudrate': 19200,
-                             'timeout': .25,
+                             'timeout': .1,
                              'parity': serial.PARITY_NONE}
         self.command_delimiter = '\r'
 
