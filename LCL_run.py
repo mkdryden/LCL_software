@@ -6,12 +6,8 @@ import pathlib
 
 from PyQt5.QtWidgets import QApplication
 
-from presets import PresetManager
 import utils
 from ui.main_window import MainWindow
-from hardware.asi_controller import StageController
-from hardware.fluorescence_controller import ExcitationController
-from hardware.laser_controller import LaserController
 
 # Setup Logging
 logger = logging.getLogger(__name__)
@@ -23,7 +19,6 @@ logging_choices = {'DEBUG': logging.DEBUG,
 
 
 if __name__ == '__main__':
-    # TODO refactor so the gui runs on separate process from "stage"
     parser = argparse.ArgumentParser()
     parser.add_argument('--test-run', action='store_true')
     parser.add_argument('--log-level', choices=logging_choices, default="INFO")
@@ -54,14 +49,7 @@ if __name__ == '__main__':
     root_logger.setLevel(logging_choices[args.log_level])
 
     app = QApplication(sys.argv)
-    asi_controller = StageController()
-    asi_controller.init_controller()
-    excitation = ExcitationController()
-    excitation.init_controller()
-    laser = LaserController()
-    laser.init_controller()
-    preset_manager = PresetManager()
-    window = MainWindow(args.test_run, asi_controller=asi_controller, laser_controller=laser,
-                        excitation=excitation, preset_manager=preset_manager)
+
+    window = MainWindow(args.test_run)
     logger.info('QApplication exit with code: %s', str(app.exec_()))
     sys.exit()

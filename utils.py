@@ -1,15 +1,16 @@
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QBoxLayout, QSpacerItem, QWidget
 import os
 import datetime
-import cv2
-from contextlib import contextmanager
-from PIL import Image
-import logging
-import numpy as np
 import threading
+import typing
+import logging
+from contextlib import contextmanager
+
+from PyQt5 import QtCore
+from PyQt5.QtWidgets import QBoxLayout, QSpacerItem, QWidget
+import cv2
+from PIL import Image
+import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
 import ffmpeg
 from appdirs import AppDirs
 
@@ -105,17 +106,6 @@ class AspectRatioWidget(QWidget):
         self.layout().setStretch(2, outer_stretch)
 
 
-def save_well_imgs(img: np.ndarray, fs_img: np.ndarray, names: list):
-    save_loc = os.path.join(experiment_folder_location, '{}___{}'.format('well_image', now()))
-    im = Image.fromarray(img)
-    im.save(save_loc + "-c.jpg", format='jpeg')
-
-    # Save each channel as a separate file
-    for n, name in enumerate(names):
-        fs_im = Image.fromarray(np.left_shift(fs_img[..., n], 4))
-        fs_im.save(save_loc + "-" + name + ".tif", format='tiff', compression='tiff_lzw')
-
-
 class ScreenShooter(QtCore.QObject):
     """
     handles the various different types of screenshots
@@ -169,6 +159,28 @@ class ScreenShooter(QtCore.QObject):
             self.ffmpeg.wait()
             self.ffmpeg = None
             logger.info("Finished saving video %s", self.image_title)
+
+    @QtCore.pyqtSlot(list, list)
+    def save_well_imgs(self, imgs: typing.List[typing.List[np.ndarray]],
+                       presets: typing.Sequence[typing.Tuple[str, int]]):
+        """
+
+        :param imgs: Nested list of 3D ndarrays of images.
+        :param presets: List of name, wavelength tuples with same length as 3rd dimension of imgs.
+        :return:
+        """
+        save_loc = os.path.join(experiment_folder_location, '{}___{}'.format('well_image', now()))
+
+        for x, i in enumerate(imgs):
+            for y, img in enumerate(i):
+                # noinspection PyTypeChecker
+                im = Image.fromarray(channels_to_rgb_img(img, [preset[1] for preset in presets]))
+                im.save(save_loc + f"-{x}_{y}-c.jpg", format='jpeg')
+
+                for n, preset in enumerate(presets):
+                    fs_im = Image.fromarray(np.left_shift(img[..., n], 4))
+                    fs_im.save(save_loc + f"-{x}_{y}-" + preset[0] + ".tif",
+                               format='tiff', compression='tiff_lzw')
 
     @QtCore.pyqtSlot()
     def save_target_image(self):
@@ -253,27 +265,21 @@ class MeanIoU(object):
         return np.mean(iou).astype(np.float32)
 
 
-def display_fluorescence_properly(img: np.ndarray, preset_data):
-    img = np.right_shift(img, 4).astype(np.uint8)
+def channels_to_rgb_img(img: np.ndarray, wavelengths: typing.Sequence[int]):
+    img = np.right_shift(img, 4).astype(np.uint8)  # Convert to 8-bit
     new_shape = img.shape[:-1] + (3,)
     new_img = np.zeros(new_shape).astype(np.uint8)
-    for channel_num in range(preset_data.shape[0]):
-        # now map the channels to their respective wavelengths
-        channel = preset_data.iloc[channel_num]
-        print(f'processing {channel}')
-        channel_wv = channel['emission']
-        if 'nm' in channel_wv:
-            channel_wv = channel_wv[:-2]
-        if int(channel_wv) == 0:
+    for n, wl in enumerate(wavelengths):
+        if int(wl) == 0:
             # this is a BF channel
             for i in range(3):
-                new_img[:, :, i] = img[:, :, channel_num]
+                new_img[:, :, i] = img[:, :, n]
         else:
             # now add proper fluorescence on top
             rgb_val = wl_to_rbg(wl)
             new_overlay = np.zeros(new_shape).astype(np.uint8)
             for j in range(3):
-                new_overlay[:, :, j] = rgb_val[j] / 255 * img[:, :, channel_num]
+                new_overlay[:, :, j] = rgb_val[j] / 255 * img[:, :, n]
             new_img = cv2.addWeighted(new_img, .5, new_overlay, 1, .6)
     return new_img
 

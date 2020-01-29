@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1406</width>
-    <height>944</height>
+    <width>1646</width>
+    <height>1035</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -68,8 +68,8 @@
   <widget class="QDockWidget" name="acquisition_dockwidget">
    <property name="minimumSize">
     <size>
-     <width>237</width>
-     <height>944</height>
+     <width>269</width>
+     <height>1006</height>
     </size>
    </property>
    <property name="floating">
@@ -322,8 +322,59 @@
        <property name="title">
         <string>Imaging</string>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="2" column="0" colspan="2">
+         <widget class="QLabel" name="tile_preset_label">
+          <property name="text">
+           <string>Presets to Use For
+Tiling:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0" colspan="4">
+         <widget class="QListView" name="tile_preset_listView"/>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="tile_cols_label">
+          <property name="text">
+           <string>Columns</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QSpinBox" name="tile_cols_spinBox">
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="minimum">
+           <number>1</number>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="2">
+         <widget class="QSpinBox" name="tile_rows_spinBox">
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="minimum">
+           <number>1</number>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="3">
+         <widget class="QLabel" name="tile_rows_label">
+          <property name="text">
+           <string>Rows</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="4">
          <widget class="QPushButton" name="misc_screenshot_button">
           <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
@@ -333,7 +384,7 @@
           </property>
          </widget>
         </item>
-        <item>
+        <item row="1" column="0" colspan="4">
          <widget class="QPushButton" name="record_push_button">
           <property name="text">
            <string>Record</string>
@@ -343,18 +394,7 @@
           </property>
          </widget>
         </item>
-        <item>
-         <widget class="QLabel" name="tile_preset_label">
-          <property name="text">
-           <string>Presets to Use For
-Tiling:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QListView" name="tile_preset_listView"/>
-        </item>
-        <item>
+        <item row="5" column="0" colspan="4">
          <widget class="QPushButton" name="tile_and_navigate_pushbutton">
           <property name="text">
            <string>Tile</string>
@@ -452,7 +492,7 @@ Tiling:</string>
           <x>0</x>
           <y>0</y>
           <width>226</width>
-          <height>898</height>
+          <height>989</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout">
@@ -643,12 +683,19 @@ Tiling:</string>
             <item>
              <widget class="QLabel" name="z_offset_label">
               <property name="text">
-               <string>Z offset (steps)</string>
+               <string>Z offset (0.1 µm)</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QDoubleSpinBox" name="z_offset_doubleSpinBox"/>
+             <widget class="QSpinBox" name="z_offset_spinBox">
+              <property name="minimum">
+               <number>-1000</number>
+              </property>
+              <property name="maximum">
+               <number>1000</number>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>

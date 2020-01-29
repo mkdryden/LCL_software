@@ -8,15 +8,12 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import QThread
 from PyQt5.QtWidgets import QMainWindow, QInputDialog, QLineEdit, QMessageBox
 
-from camera import ShowVideo
-from localizer import Localizer
 from ui.LCL_ui import Ui_MainWindow
-from utils import ScreenShooter, AspectRatioWidget
+from utils import ScreenShooter, AspectRatioWidget, wait_signal
 from video import ImageViewer, MagnifiedImageViewer
-from hardware.fluorescence_controller import wl_to_idx, idx_to_wl, ExcitationController
-from hardware.laser_controller import LaserController
-from hardware.asi_controller import StageController
-from hardware.presets import SettingValue, PresetManager
+from hardware.fluorescence_controller import wl_to_idx
+from hardware.presets import SettingValue
+from instrument_sequencer import InstrumentSequencer
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +34,7 @@ class CatchKeys(QtCore.QObject):
 
 
 class MainWindow(QMainWindow):
+    start_sequencer_signal = QtCore.pyqtSignal()
     start_video_signal = QtCore.pyqtSignal()
     qswitch_screenshot_signal = QtCore.pyqtSignal('PyQt_PyObject')
     start_focus_signal = QtCore.pyqtSignal()
@@ -45,17 +43,10 @@ class MainWindow(QMainWindow):
     add_preset_signal = QtCore.pyqtSignal('PyQt_PyObject')
     modify_preset_signal = QtCore.pyqtSignal('PyQt_PyObject')
     remove_preset_signal = QtCore.pyqtSignal(str)
-    start_tiling_signal = QtCore.pyqtSlot(list)
+    start_tiling_signal = QtCore.pyqtSignal(list, int, int)
 
-    def __init__(self, test_run: bool, asi_controller: StageController,
-                 laser_controller: LaserController, excitation: ExcitationController,
-                 preset_manager: PresetManager):
+    def __init__(self, test_run: bool):
         super(MainWindow, self).__init__()
-        self.preset_manager = preset_manager
-        self.excitation = excitation
-        self.laser = laser_controller
-        self.asi_controller = asi_controller
-        self.vid = ShowVideo()
 
         self.laser_enable = False
         # get our experiment variables
@@ -69,6 +60,10 @@ class MainWindow(QMainWindow):
         # set up the video classes
         self.screen_shooter = ScreenShooter()
         self.image_viewer = ImageViewer()
+
+        self.sequencer = InstrumentSequencer(screenshooter=self.screen_shooter)
+        self.preset_manager = self.sequencer.presets
+        self.vid = self.sequencer.camera
 
         self.zoom_window = QtWidgets.QDockWidget(parent=self)
         self.zoom_window.setMinimumSize(300, 300)
@@ -85,51 +80,41 @@ class MainWindow(QMainWindow):
         self.zoom_window.setWidget(self.zoom_image_viewer)
         self.addDockWidget(QtCore.Qt.DockWidgetArea(QtCore.Qt.LeftDockWidgetArea), self.zoom_window)
 
-        # self.autofocuser = autofocuser()
-        self.localizer = Localizer(vid_process_signal=self.vid.vid_process_signal,
-                                   asi_controller=self.asi_controller)
-
         # add the viewer to our ui and let resize with image aspect
         aspect_widget = AspectRatioWidget(self.image_viewer)
         self.image_viewer.aspect_changed_signal.connect(aspect_widget.aspect_changed_slot)
         self.ui.main_layout.addWidget(aspect_widget)
 
-        # create our extra threads
-        self.vid_thread = QThread()
-        self.vid_thread.start()
-        self.vid.moveToThread(self.vid_thread)
-
+        # Threads
         self.screenshooter_thread = QThread()
         self.screenshooter_thread.start()
         self.screen_shooter.moveToThread(self.screenshooter_thread)
 
-        self.localizer_thread = QThread()
-        self.localizer_thread.start()
-        self.localizer.moveToThread(self.localizer_thread)
+        self.sequencer_thread = QThread()
+        self.sequencer_thread.start()
+        self.sequencer.moveToThread(self.sequencer_thread)
+        self.start_sequencer_signal.connect(self.sequencer.initialize_instruments)
+        with wait_signal(self.sequencer.done_init_signal, timeout=None):
+            self.start_sequencer_signal.emit()  # Need to do it this way for threading
 
         # connect the outputs to our signals
         self.vid.VideoSignal.connect(self.image_viewer.set_image)
         self.vid.VideoSignal.connect(self.zoom_image_viewer.set_image)
         self.vid.vid_process_signal.connect(self.screen_shooter.screenshot_slot)
         self.ui.record_push_button.clicked.connect(self.screen_shooter.toggle_recording_slot)
-        # self.vid.vid_process_signal.connect(self.autofocuser.vid_process_slot)
-        # self.vid.vid_process_signal.connect(self.localizer.vid_process_slot)
         self.qswitch_screenshot_signal.connect(self.screen_shooter.save_qswitch_fire_slot)
-        self.localizer.qswitch_screenshot_signal.connect(self.screen_shooter.save_qswitch_fire_slot)
-        # self.start_focus_signal.connect(self.autofocuser.autofocus)
-        # self.start_localization_signal.connect(self.localizer.localize)
-        self.ui.tile_and_navigate_pushbutton.clicked.connect(self.start_tiling)
-        # self.autofocuser.position_and_variance_signal.connect(self.plot_variance_and_position)
-        self.image_viewer.click_move_signal.connect(self.asi_controller.click_move_slot)
-        self.localizer.localizer_move_signal.connect(self.asi_controller.localizer_move_slot)
-        self.localizer.ai_fire_qswitch_signal.connect(self.ai_fire_qswitch_slot)
-        # self.vid.reticle_and_center_signal.connect(self.asi_controller.reticle_and_center_slot)
-        # self.vid.reticle_and_center_signal.emit(self.vid.center_x, self.vid.center_y, self.vid.reticle_x,
-        #                                         self.vid.reticle_y)
 
-        # connect to the video thread and start the video
-        self.start_video_signal.connect(self.vid.start_video)
-        self.start_video_signal.emit()
+        self.image_viewer.click_move_signal.connect(self.sequencer.move_rel_frame)
+
+        # Tiling
+        self.ui.tile_and_navigate_pushbutton.clicked.connect(self.start_tiling)
+        self.start_tiling_signal.connect(self.sequencer.tile)
+        self.sequencer.tile_done_signal.connect(self.stop_tiling)
+
+        # self.autofocuser.position_and_variance_signal.connect(self.plot_variance_and_position)
+
+        # self.localizer.localizer_move_signal.connect(self.asi_controller.localizer_move_slot)
+        # self.localizer.ai_fire_qswitch_signal.connect(self.ai_fire_qswitch_slot)
 
         # Screenshot and comment buttons
         self.ui.misc_screenshot_button.clicked.connect(self.screen_shooter.save_misc_image)
@@ -138,17 +123,14 @@ class MainWindow(QMainWindow):
         self.ui.user_comment_button.clicked.connect(self.send_user_comment)
 
         # Stage movement buttons
-        self.ui.step_size_doublespin_box.valueChanged.connect(self.asi_controller.set_step_size)
-        self.ui.repetition_rate_double_spin_box.valueChanged.connect(self.laser.set_pulse_frequency)
-        self.ui.burst_count_double_spin_box.valueChanged.connect(self.laser.set_burst_counter)
-        self.localizer.get_position_signal.connect(self.asi_controller.get_all_positions)
-        self.asi_controller.position_return_signal.connect(self.localizer.position_return_slot)
+        # TODO: self.ui.step_size_doublespin_box.valueChanged.connect(self.asi_controller.set_step_size)
+        # TODO: self.ui.repetition_rate_double_spin_box.valueChanged.connect(self.laser.set_pulse_frequency)
+        # TODO: self.ui.burst_count_double_spin_box.valueChanged.connect(self.laser.set_burst_counter)
+        # self.localizer.get_position_signal.connect(self.asi_controller.get_position)
+        # self.asi_controller.position_return_signal.connect(self.localizer.position_return_slot)
 
         # Settings
         self.ui.autofocus_checkbox.stateChanged.connect(self.autofocus_toggle)
-        self.ui.retract_objective_checkbox.setChecked(self.asi_controller.get_is_objective_retracted())
-        self.ui.retract_objective_checkbox.stateChanged.connect(self.asi_controller.toggle_objective_retraction)
-        self.ui.calibrate_af_pushbutton.clicked.connect(self.asi_controller.calibrate_af)
 
         # Preset Manager
         self.ui.save_preset_pushButton.clicked.connect(self.modify_preset)
@@ -159,15 +141,9 @@ class MainWindow(QMainWindow):
         self.preset_model = QtGui.QStandardItemModel()
         self.ui.tile_preset_listView.setModel(self.preset_model)
         self.ui.remove_preset_pushButton.clicked.connect(self.remove_preset)
-        self.localizer.localizer_stage_command_signal.connect(self.asi_controller.localizer_stage_command_slot)
-
-        for i in [self.vid, self.asi_controller, self.laser, self.excitation]:
-            for d in i.settings:
-                self.preset_manager.add_setting(i.settings[d])
 
         self.setup_comboboxes()
 
-        self.preset_manager.load_presets()
         self.show()
 
         logger.info('finished gui init')
@@ -183,9 +159,11 @@ class MainWindow(QMainWindow):
             partial(self.preset_manager.change_value, 'cube_position'))
         self.ui.intensity_spin_box.valueChanged.connect(
             partial(self.preset_manager.change_value, 'intensity'))
+        self.ui.emission_spin_box.valueChanged.connect(
+            partial(self.preset_manager.change_value, 'emission'))
 
         self.ui.magnification_combobox.addItems(['P1', '40x', 'P3', '60x', 'P5', '20x'])
-        self.ui.magnification_combobox.setCurrentIndex(self.asi_controller.get_objective_position())
+        # self.ui.magnification_combobox.setCurrentIndex(self.asi_controller.get_objective_position())
         self.ui.magnification_combobox.currentIndexChanged.connect(self.change_magnification)
 
         self.ui.cell_type_to_lyse_comboBox.addItems(['red', 'green'])
@@ -215,6 +193,23 @@ class MainWindow(QMainWindow):
     #          'excitation': self.ui.excitation_lamp_on_combobox.currentText(),
     #          'emission': strip_letters(self.ui.emission_doublespin_box.text())
     #          })
+
+    @QtCore.pyqtSlot()
+    def start_tiling(self):
+        cols = self.ui.tile_cols_spinBox.value()
+        rows = self.ui.tile_rows_spinBox.value()
+        self.set_ui_state(False)
+        logger.info("Starting tiling")
+        self.start_tiling_signal.emit(self._get_checked_presets(), cols, rows)
+
+    @QtCore.pyqtSlot(list, list)
+    def stop_tiling(self, *args):
+        logger.info("Finished tiling")
+        self.set_ui_state(True)
+
+    def set_ui_state(self, activate: bool):
+        self.ui.acquisition_dockwidget.setEnabled(activate)
+        self.ui.instrument_dockwidget.setEnabled(activate)
 
     @QtCore.pyqtSlot(dict)
     def update_settings(self, settings: typing.Mapping[str, SettingValue]) -> None:
@@ -266,24 +261,12 @@ class MainWindow(QMainWindow):
         self.ui.preset_comboBox.removeItem(i)
         self.remove_preset_signal.emit(name)
 
-    def get_checked_presets(self) -> typing.Sequence[str]:
+    def _get_checked_presets(self) -> typing.Sequence[str]:
         return [self.preset_model.item(i).text()
                 for i in range(self.preset_model.rowCount())
                 if self.preset_model.item(i).checkState()]
 
-    @QtCore.pyqtSlot()
-    def start_tiling(self) -> None:
-        checked = self.get_checked_presets()
-        presets = self.preset_manager.presets
-        self.start_tiling_signal.emit({k: presets[k] for k in checked if k in presets})
-
-    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
-        self.zoom_window.close()
-        self.screenshooter_thread.quit()
-        self.localizer_thread.quit()
-        self.vid_thread.quit()
-
-    def get_text(self, text_prompt):
+    def _get_text(self, text_prompt):
         text, okPressed = QInputDialog.getText(self, 'Experiment Input', text_prompt, QLineEdit.Normal, "")
         if okPressed and text is not None:
             return text
@@ -297,49 +280,46 @@ class MainWindow(QMainWindow):
         for key, value in var_dict.items():
             good_entry = False
             while good_entry is not True:
-                user_input = self.get_text(var_dict[key])
+                user_input = self._get_text(var_dict[key])
                 val = user_input.lower()
                 if any(vowel in val for vowel in checks):
                     logger.info('%s %s', key, user_input)
                     good_entry = True
 
-    # def start_localization(self):
-    #     self.start_localization_signal.emit()
-
     def autofocus_toggle(self):
         logger.info('toggling autofocus')
-        self.autofocusing = not self.autofocusing
-        if self.autofocusing:
-            self.asi_controller.turn_on_autofocus()
-        else:
-            self.asi_controller.turn_off_autofocus()
 
     def send_user_comment(self):
         logger.info('user comment: %s', self.ui.comment_box.toPlainText())
         self.ui.comment_box.clear()
 
     def change_magnification(self, index):
+        pass
         _ = QMessageBox.about(self, 'Notice', 'Wait for objective to reposition before continuing.')
         time.sleep(1)
-        self.asi_controller.change_magnification(index)
+        # self.asi_controller.set_objective_position(index)
 
     @QtCore.pyqtSlot()
     def qswitch_screenshot_slot(self):
         if self.laser_enable:
             self.qswitch_screenshot_signal.emit(30)
-            logger.info("X:%s Y:%s Z:%s", *self.asi_controller.get_all_positions())
+            # logger.info("X:%s Y:%s Z:%s", *self.asi_controller.get_position())
             self.laser.start_burst()
 
     def enable_laser_firing(self):
-        if self.asi_controller.get_cube_position() == 1:
-            _ = QMessageBox.about(self, 'Bad!', 'You are trying to fire the laser at the filter!')
-            return
-        self.asi_controller.move_rel_z(152)  # 283
+        # if self.asi_controller.get_cube_position() == 1:
+        #     _ = QMessageBox.about(self, 'Bad!', 'You are trying to fire the laser at the filter!')
+        #     return
+        z = self.ui.z_offset_spinBox.value()
+        # if z != 0:
+            # self.asi_controller.move_rel(z=z)
         self.ui.laser_groupbox.setTitle('Laser - ARMED')
         self.laser_enable = True
 
     def disable_laser_firing(self):
-        self.asi_controller.move_rel_z(-152)
+        z = self.ui.z_offset_spinBox.value()
+        # if z != 0:
+            # self.asi_controller.move_rel(z=-z)
         self.ui.laser_groupbox.setTitle('Laser')
         self.laser_enable = False
 
@@ -355,11 +335,11 @@ class MainWindow(QMainWindow):
         if not event.isAutoRepeat():
             # print('key pressed {}'.format(event.key()))
             key_control_dict = {
-                87: self.asi_controller.move_up,
-                65: self.asi_controller.move_left,
-                83: self.asi_controller.move_down,
-                68: self.asi_controller.move_right,
-                66: self.asi_controller.move_last,
+                # 87: self.asi_controller.move_up,
+                # 65: self.asi_controller.move_left,
+                # 83: self.asi_controller.move_down,
+                # 68: self.asi_controller.move_right,
+                # 66: self.asi_controller.move_last,
                 16777249: self.enable_laser_firing,
                 70: self.qswitch_screenshot_slot,
                 # 81: laser.qswitch_auto,
@@ -380,8 +360,12 @@ class MainWindow(QMainWindow):
             # logger.info('key released: %s', event.key())
             key_control_dict = {
                 16777249: self.disable_laser_firing,
-                70: self.laser.stop_burst
+                # 70: self.laser.stop_burst
             }
             if event.key() in key_control_dict.keys():
                 key_control_dict[event.key()]()
 
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        self.zoom_window.close()
+        self.screenshooter_thread.quit()
+        self.sequencer_thread.quit()

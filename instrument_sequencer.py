@@ -11,24 +11,22 @@ logger = logging.getLogger(__name__)
 
 
 class InstrumentSequencer(QtCore.QObject):
+    done_init_signal = QtCore.pyqtSignal()
     cycle_image_channel_signal = QtCore.pyqtSignal(str)
     tile_done_signal = QtCore.pyqtSignal(list, list)
     got_image_signal = QtCore.pyqtSignal()
 
-    def __init__(self,
-                 # stage: asi_controller.StageController,
-                 laser: laser_controller.LaserController,
-                 excitation: fluorescence_controller.ExcitationController,
-                 camera: camera.ShowVideo,
-                 presets: presets.PresetManager,
-                 screenshooter: ScreenShooter,
-                 frameskip: int = 5):
+    def __init__(self, screenshooter: ScreenShooter, frameskip: int = 2):
         super(InstrumentSequencer, self).__init__()
         self.screenshooter = screenshooter
-        self.presets = presets
-        self.camera = camera
-        self.excitation = excitation
-        self.laser = laser
+        self.presets = presets.PresetManager(parent=self)
+        self.camera = camera.ShowVideo()
+        self.camera_thread = QtCore.QThread()
+        self.camera_thread.start()
+        self.camera.moveToThread(self.camera_thread)
+
+        self.excitation = fluorescence_controller.ExcitationController(parent=self)
+        self.laser = laser_controller.LaserController(parent=self)
         self.stage = asi_controller.StageController(parent=self)
         self.objectives = None
 
@@ -43,8 +41,18 @@ class InstrumentSequencer(QtCore.QObject):
         """
         self.stage.init_controller()
         self.objectives = objectives.Objectives(self.stage)
+        self.laser.init_controller()
+        self.excitation.init_controller()
+        QtCore.QMetaObject.invokeMethod(self.camera, 'start_video')
+
+        for i in [self.camera, self.stage, self.laser, self.excitation]:
+            for d in i.settings:
+                self.presets.add_setting(i.settings[d])
+
+        self.presets.load_presets()
+
         self.setup_signals()
-        # QtCore.QMetaObject.invokeMethod(self.stage, 'init_controller')
+        self.done_init_signal.emit()
 
     def setup_signals(self):
         self.cycle_image_channel_signal.connect(self.presets.set_preset)
