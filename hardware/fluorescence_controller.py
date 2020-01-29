@@ -79,9 +79,13 @@ class ExcitationController(BaseController):
 
     def change_intensity(self, intensity):
         self.current_intensity = intensity
-        if self.lamp_index == 0: return
+        if self.lamp_index == 0:
+            return
         intensity *= 10
-        cmd_string = 'ip=' + ',' * (self.lamp_index - 1) + str(int(intensity))
+        if self.lamp_index == 7:
+            cmd_string = 'ip=' + ','.join([str(self.current_intensity) for _ in range(6)])
+        else:
+            cmd_string = 'ip=' + ',' * (self.lamp_index - 1) + str(int(intensity))
         self.send_receive(cmd_string)
 
     def turn_all_on(self):
