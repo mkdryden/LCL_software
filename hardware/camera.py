@@ -14,8 +14,8 @@ class ShowVideo(QtCore.QObject):
     VideoSignal = QtCore.pyqtSignal(QtGui.QPixmap)
     vid_process_signal = QtCore.pyqtSignal(np.ndarray)
 
-    def __init__(self):
-        super(ShowVideo, self).__init__(None)
+    def __init__(self, parent=None):
+        super(ShowVideo, self).__init__(parent=parent)
         self.timer = QtCore.QTimer(self)
         self.sdk = None
         self.camera = None
