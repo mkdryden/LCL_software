@@ -74,7 +74,6 @@ class ShowVideo(QtCore.QObject):
         Sets camera exposure in ms
         :param ms: Exposure time in ms
         """
-        logger.info('setting exposure to %s', ms)
         self.camera.exposure_time_us = int(ms * 1000)
 
     @QtCore.pyqtSlot()
@@ -83,7 +82,6 @@ class ShowVideo(QtCore.QObject):
         Sets camera gain.
         :param gain: gain
         """
-        logger.info('setting gain to %s', gain)
         self.camera.gain = int(gain)
 
     def deleteLater(self) -> None:
