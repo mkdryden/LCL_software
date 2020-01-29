@@ -110,9 +110,8 @@ class PresetManager(QtCore.QObject):
                 self.presets = yaml.load(f, Loader=yaml.SafeLoader)
         except FileNotFoundError:
             logger.warning("Presets file not found, populating with default.")
-            self.presets = {'Default': {'exposure': 2, 'brightness': 100, 'gain': 45,
-                                        'cube_position': 0, 'intensity': 0, 'excitation': 0,
-                                        'emission': "0 nm"}}
+            self.presets = {'Default': {name: setting.value
+                                        for name, setting in self._settings.items()}}
 
         if 'Default' in self.presets.keys():
             self.set_preset('Default')
