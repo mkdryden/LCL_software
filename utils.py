@@ -40,8 +40,14 @@ def comment(text):
 def wait_signal(signal: QtCore.pyqtSignal = None, timeout=10000):
     """Block loop until signal emitted, or timeout (ms) elapses."""
     loop = QtCore.QEventLoop()
+    timer = QtCore.QTimer()
+    timer.setSingleShot(True)
 
-    if signal and timeout is None:
+    def timed_out():
+        logger.warning("Timed out while waiting for %s", signal)
+        loop.quit()
+
+    if signal is None and timeout is None:
         logger.error("Cannot call wait_signal with both signal and timeout as None.")
         return
 
@@ -51,7 +57,8 @@ def wait_signal(signal: QtCore.pyqtSignal = None, timeout=10000):
     yield
 
     if timeout is not None:
-        QtCore.QTimer.singleShot(timeout, loop.quit)
+        timer.timeout.connect(timed_out)
+        timer.start(timeout)
 
     loop.exec_()
 
