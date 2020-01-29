@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class ImageViewer(QtWidgets.QWidget):
-    click_move_signal = QtCore.pyqtSignal(int, int, int, int)
+    click_move_signal = QtCore.pyqtSignal(float, float)
     aspect_changed_signal = QtCore.pyqtSignal(float)
 
     def __init__(self, parent=None):
@@ -43,9 +43,12 @@ class ImageViewer(QtWidgets.QWidget):
             self.aspect_changed_signal.emit(self.aspect)
         self.update()
 
-    def mousePressEvent(self, QMouseEvent):
-        click_x, click_y = QMouseEvent.pos().x(), QMouseEvent.pos().y()
-        self.click_move_signal.emit(click_x, click_y, self.width(), self.height())
+    def mousePressEvent(self, event: QtGui.QMouseEvent):
+        """
+        Emits click_move_signal with relative mouse position to centre of window.
+        """
+        click_x, click_y = event.pos().x(), event.pos().y()
+        self.click_move_signal.emit(click_x/self.width() - 0.5, click_y/self.height() - 0.5)
 
 
 class MagnifiedImageViewer(ImageViewer):
