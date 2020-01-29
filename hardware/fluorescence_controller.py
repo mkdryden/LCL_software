@@ -62,12 +62,9 @@ class ExcitationController(BaseController):
 
     def turn_led_on(self, led):
         self.send_receive('on=' + str(led))
-        self.send_receive('on?')
-        self.send_receive('ip?')
 
     def turn_all_off(self):
         self.send_receive('of=a')
-        self.send_receive('on?')
 
     def change_fluorescence(self, index):
         self.turn_all_off()
@@ -86,12 +83,10 @@ class ExcitationController(BaseController):
         intensity *= 10
         cmd_string = 'ip=' + ',' * (self.lamp_index - 1) + str(int(intensity))
         self.send_receive(cmd_string)
-        self.send_receive('ip?')
 
     def turn_all_on(self):
         self.send_receive('ip=' + ','.join([str(self.current_intensity) for _ in range(6)]))
         self.send_receive('on=a')
-        self.send_receive('on?')
 
 
 if __name__ == '__main__':
