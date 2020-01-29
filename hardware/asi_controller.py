@@ -1,4 +1,5 @@
 import time
+import typing
 import logging
 
 import serial
@@ -25,8 +26,9 @@ class StageController(BaseController):
                              'parity': serial.PARITY_NONE}
         self.command_delimiter = '\r'
 
-        self.status_timer = QtCore.QTimer(self)
-        self.status_timer.timeout.connect(self.is_moving)
+        self.position = None
+        self.status_timer = None
+
         self.step_size = 500
         self.reverse_move_vector = np.zeros(2)
         self.return_from_dmf_vector = np.zeros(2)
@@ -62,9 +64,13 @@ class StageController(BaseController):
         self.settings = {i.name: i for i in settings}
 
     def start_controller(self):
+        self.status_timer = QtCore.QTimer(self)
+        self.status_timer.timeout.connect(self.is_moving)
+
         self.send_receive('B X=0 Y=0')  # turn off backlash compensation on XY
         self.send_receive('7TTL Y=0')  # set TTL low
-        self.current_magnification = self.objective_slots[self.get_objective_position() + 1]
+        self.serin_logger.info(self.send_receive("AFMOVE Y=1"))  # Enable safe objective switching
+        self.get_position()
 
     def test_connection(self, connection):
         connection.write('BU\r'.encode('utf-8'))
@@ -79,124 +85,12 @@ class StageController(BaseController):
         connection.flushOutput()
 
     @QtCore.pyqtSlot()
-    def get_all_positions(self):
+    def get_position(self) -> typing.Tuple[int, int, int]:
         positions = self.send_receive('W X Y Z')
         cleaned = positions.replace('\r', '').split(' ')[1:-1]
-        self.x, self.y, self.z = [int(x) for x in cleaned]
-        self.position_return_signal.emit(np.array([self.x, self.y]))
-        return self.x, self.y, self.z
-
-    def move(self, x=None, y=None, z=None):
-        cmd_string = 'M'
-        for direction, var in zip(['X', 'Y', 'Z'], [x, y, z]):
-            if var is not None:
-                cmd_string += f' {direction}={var}'
-        self.status_timer.start(100)
-        self.send_receive(cmd_string)
-
-    @QtCore.pyqtSlot('PyQt_PyObject')
-    def localizer_stage_command_slot(self, command):
-        self.send_receive(command)
-
-    def get_is_objective_retracted(self):
-        pos = int(self.send_receive('W Z').split(':A ')[1])
-        # up is negative. ~95000 is in focus for 20x
-        if pos > -30000:
-            comment('objective is retracted')
-            self.objective_retracted = True
-            return True
-        elif pos < -30000:
-            comment('objective is down')
-            self.objective_retracted = False
-            return False
-
-    def toggle_objective_retraction(self):
-        if self.objective_retracted:
-            self.set_objective_down()
-        elif not self.objective_retracted:
-            self.pull_objective_up()
-        self.objective_retracted = not self.objective_retracted
-
-    def pull_objective_up(self):
-        _, _, self.previous_z = self.get_all_positions()
-        self.move(z=0)
-        while 'N' not in self.send_receive('STATUS'):
-            time.sleep(.5)
-
-    def set_objective_down(self, ):
-        # IF Z is zero at the top of travel:
-        # 60x in focus at -69996
-        # 40x in focus at -126151
-        # 20x in focus at -126151
-        focus_dict = {20: -126151,
-                      40: -124000,
-                      60: -69996}
-        self.move(z=focus_dict[self.current_magnification])
-
-    def change_magnification(self, index):
-        self.previous_magnification = self.current_magnification
-        self.current_magnification = self.objective_slots[index + 1]
-        self.compensate_for_objective_offsets(self.previous_magnification, self.current_magnification)
-        up = self.get_is_objective_retracted()
-        # if we are up, stay up, if we are down, pull up, change, then go down
-        if up:
-            self.send_receive('MOVE O={}'.format(index + 1))
-        else:
-            self.pull_objective_up()
-            self.send_receive('MOVE O={}'.format(index + 1))
-            self.set_objective_down()
-        comment(f'magnification changed to: {self.current_magnification}')
-
-    # @QtCore.pyqtSlot('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
-    # def reticle_and_center_slot(self, center_x, center_y, reticle_x, reticle_y):
-    #     self.center_x = center_x
-    #     self.center_y = center_y
-    #     self.reticle_x = reticle_x
-    #     self.reticle_y = reticle_y
-
-    def change_cube_position(self, index):
-        self.send_receive('MOVE S={}'.format(index + 1))
-        self.status_timer.start(100)
-
-    def compensate_for_objective_offsets(self, present_mag, future_mag):
-        # from 20 to 40: X=132.192 Y=717.264
-        # X=1157.76 Y=260.928 + X=1157.76 Y=260.928 + X=-77.76 Y=596.16
-        compensation_dict = {
-            20: np.zeros(2),
-            40: np.array([849, -335]),
-            60: np.array([2897, 75]),
-        }
-        # get back to 4 first
-        move = -1 * compensation_dict[present_mag]
-        # now compensate for offsets from 4
-        move += compensation_dict[future_mag]
-        comment('objective offset correction: {}'.format(move))
-        self.move_relative(move)
-
-    def set_step_size(self, step_size):
-        comment('step size changed to: {}'.format(step_size))
-        self.step_size = step_size * 10
-
-    def change_brightness(self, value):
-        self.logger.info('setting brightness to %s', value)
-        self.send_receive('7LED X={}'.format(value))
-
-    def move_up(self):
-        return self.send_receive('R Y=-{}'.format(self.step_size))
-
-    def move_down(self):
-        return self.send_receive('R Y={}'.format(self.step_size))
-
-    def move_right(self):
-        return self.send_receive('R X={}'.format(self.step_size))
-
-    def move_left(self):
-        return self.send_receive('R X=-{}'.format(self.step_size))
-
-    def move_relative(self, move_vector):
-        self.reverse_move_vector = -1 * move_vector
-        self.status_timer.start(100)
-        return self.send_receive('R X={} Y={}'.format(move_vector[0], move_vector[1]))
+        self.position = (int(x) for x in cleaned)
+        self.position_return_signal.emit(self.position)
+        return self.position
 
     def is_moving(self):
         reply = self.send_receive('/').strip()
@@ -205,33 +99,72 @@ class StageController(BaseController):
         elif reply == 'N':
             self.logger.info("Done move")
             self.status_timer.stop()
+            self.get_position()
             self.done_moving_signal.emit()
             return False
         else:
             self.logger.error("Received invalid STATUS response: %s", reply)
             return None
 
-    def move_rel_z(self, z):
-        return self.send_receive(f'R Z={z}')
+    def move(self, x: int = None, y: int = None, z: int = None, check_status: bool = True):
+        """
+        Move to absolute coordinates in tenths of um.
+        :param x: x position
+        :param y: y position
+        :param z: z position
+        :param check_status: If True, will call is_moving to check controller status.
+        :return:
+        """
+        cmd_string = 'M'
+        for direction, var in zip(['X', 'Y', 'Z'], [x, y, z]):
+            if var is not None:
+                cmd_string += f' {direction}={var}'
+        self.send_receive(cmd_string)
+        if check_status:
+            self.status_timer.start(100)
 
-    def move_last(self):
-        return self.move_relative(self.reverse_move_vector)
+    def move_rel(self, x: int = None, y: int = None, z: int = None, check_status: bool = True):
+        """
+        Move to relative coordinates in tenths of um.
+        :param x: x position
+        :param y: y position
+        :param z: z position
+        :param check_status: If True, will call is_moving to check controller status.
+        :return:
+        """
+        cmd_string = 'R'
+        for direction, var in zip(['X', 'Y', 'Z'], [x, y, z]):
+            if var is not None:
+                cmd_string += f' {direction}={var}'
+        self.send_receive(cmd_string)
+        if check_status:
+            self.status_timer.start(100)
 
-    def scale_move_vector(self, vector):
-        default_calibration = 4.8
-        return np.round(vector * default_calibration * self.objective_calibration_factors[self.current_magnification],
-                        4)
+    def set_objective_position(self, index: int):
+        """
+        Set objective by index (0-indexed)
+        :param index: 0-indexed objective position
+        """
+        self.send_receive('M O={}'.format(index + 1))
+        self.status_timer.start(100)
 
-    @QtCore.pyqtSlot(int, int, int, int)
-    def click_move_slot(self, click_x: int, click_y: int, width: int, height: int):
-        # center movement:
-        window_center = np.array([width // 2, height // 2])
-        # # reticle movement:
-        # window_center = np.array([self.reticle_x * 1352 / 4096, self.reticle_y * 712 / 2160])
-        mouse_click_location = np.array([click_x, click_y])
-        pixel_move_vector = mouse_click_location - window_center
-        step_move_vector = self.scale_move_vector(pixel_move_vector)
-        return self.move_relative(step_move_vector)
+    def get_objective_position(self) -> int:
+        """
+        Returns 0-indexed objective position
+        :return: 0-indexed objective position
+        """
+        pos = self.send_receive('W O')
+        pos = pos.split('A ')[1]
+        return int(pos) - 1
+
+    def change_cube_position(self, index):
+        self.send_receive('MOVE S={}'.format(index + 1))
+        self.status_timer.start(100)
+
+    def change_brightness(self, value):
+        self.logger.info('setting brightness to %s', value)
+        self.send_receive('7LED X={}'.format(value))
+
 
     @QtCore.pyqtSlot('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
     def localizer_move_slot(self, move_vector, goto_reticle=False, move_relative=True, scale_vector=True):
@@ -266,11 +199,6 @@ class StageController(BaseController):
 
     def move_left_one_well_slot(self):
         self.move_relative(np.array([-self.steps_between_wells, 0]))
-
-    def get_objective_position(self):
-        pos = self.send_receive('W O')
-        pos = pos.split('A ')[1]
-        return int(pos) - 1
 
     def get_cube_position(self):
         pos = self.send_receive('W S')
@@ -313,6 +241,6 @@ class StageController(BaseController):
 
 if __name__ == '__main__':
     stage = StageController()
-    stage.get_all_positions()
+    stage.get_position()
     # stage.send_receive('P X? Y? Z?')
     # stage.send_receive('HERE Z')
