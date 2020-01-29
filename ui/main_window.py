@@ -177,6 +177,10 @@ class MainWindow(QMainWindow):
         self.preset_manager.preset_loaded_signal.connect(self.update_settings)
         self.preset_manager.presets_changed_signal.connect(self.update_presets)
 
+        # Fetch initial values
+        self.update_settings(self.preset_manager.get_values())
+        self.update_presets(list(self.preset_manager.presets.keys()))
+
         self.ui.exposure_spin_box.valueChanged.connect(partial(self.preset_manager.change_value, 'exposure'))
         self.ui.gain_spin_box.valueChanged.connect(partial(self.preset_manager.change_value, 'gain'))
         self.ui.brightness_spin_box.valueChanged.connect(
