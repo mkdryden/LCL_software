@@ -226,10 +226,10 @@ class ScreenShooter(QtCore.QObject):
 
     @QtCore.pyqtSlot('PyQt_PyObject')
     def save_qswitch_fire_slot(self, num_frames):
-        '''
+        """
         takes an initial screenshot of the current frame (before firing)
         and then queues up 4 more pictures to be taken during the firing
-        '''
+        """
         if self.recording:
             return
         im = Image.fromarray(np.left_shift(self.image, 4))

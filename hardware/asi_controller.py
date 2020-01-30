@@ -165,7 +165,6 @@ class StageController(BaseController):
         self.logger.info('setting brightness to %s', value)
         self.send_receive('7LED X={}'.format(value))
 
-
     @QtCore.pyqtSlot('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
     def localizer_move_slot(self, move_vector, goto_reticle=False, move_relative=True, scale_vector=True):
         if move_relative and scale_vector:
