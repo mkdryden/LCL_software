@@ -59,8 +59,8 @@ class Objectives(QtCore.QObject):
                 loaded = yaml.load(f, Loader=yaml.FullLoader)
                 self.objectives.update(loaded)
         except FileNotFoundError as e:
-            logger.warning("Objective file not found")
-            raise e
+            logger.warning("Objective file not found, creating from defaults")
+            self.save_yaml()
 
         self.objectives_changed.emit([obj.name for obj in self.objectives.values()])
 
