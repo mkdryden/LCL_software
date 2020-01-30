@@ -276,17 +276,20 @@ def channels_to_rgb_img(img: np.ndarray, wavelengths: typing.Sequence[int]):
     img = np.right_shift(img, 4).astype(np.uint8)  # Convert to 8-bit
     new_shape = img.shape[:-1] + (3,)
     new_img = np.zeros(new_shape).astype(np.uint8)
-    for n, wl in enumerate(wavelengths):
+
+    channels = {wl: n for n, wl in enumerate(wavelengths)}
+
+    for wl in sorted(wavelengths):  # Sort so that BF channel goes first
         if int(wl) == 0:
             # this is a BF channel
             for i in range(3):
-                new_img[:, :, i] = img[:, :, n]
+                new_img[:, :, i] = img[:, :, channels[wl]]
         else:
             # now add proper fluorescence on top
             rgb_val = wl_to_rbg(wl)
             new_overlay = np.zeros(new_shape).astype(np.uint8)
             for j in range(3):
-                new_overlay[:, :, j] = rgb_val[j] / 255 * img[:, :, n]
+                new_overlay[:, :, j] = rgb_val[j] / 255 * img[:, :, channels[wl]]
             new_img = cv2.addWeighted(new_img, .5, new_overlay, 1, .6)
     return new_img
 
