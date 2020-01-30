@@ -130,7 +130,7 @@ class InstrumentSequencer(QtCore.QObject):
             logger.info("Returning to start location")
             self.stage.move(x=start_x, y=start_y)
 
-        self.cycle_image_channel_signal.emit(start_preset)
+        self.presets.set_preset(start_preset)
 
         self.tile_done_signal.emit(output_images,
                                    [(preset, self.presets.presets[preset]['emission'])
