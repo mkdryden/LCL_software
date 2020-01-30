@@ -216,8 +216,12 @@ class MainWindow(QMainWindow):
 
     @QtCore.pyqtSlot(list)
     def update_presets(self, presets: typing.Sequence):
+        # Need to disconnect TextChanged signal to prevent accidentally changing preset
+        self.ui.preset_comboBox.currentTextChanged.disconnect(self.preset_manager.set_preset)
         self.ui.preset_comboBox.clear()
         self.ui.preset_comboBox.addItems(presets)
+        self.ui.preset_comboBox.currentTextChanged.connect(self.preset_manager.set_preset)
+        self.ui.preset_comboBox.setCurrentText(self.sequencer.presets.preset)
         self.preset_model.clear()
         for name in presets:
             item = QtGui.QStandardItem(name)
