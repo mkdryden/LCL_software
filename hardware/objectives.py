@@ -38,7 +38,7 @@ class Objectives(QtCore.QObject):
     def __init__(self, controller: StageController = None):
         super(Objectives, self).__init__()
         self.controller = controller
-        self.objectives = {n: Objective("Empty", 1) for n in range(1, 7)}
+        self.objectives = {n: Objective("Empty", 1) for n in range(6)}
         if self.controller is not None:
             if self.controller.connected:
                 self.current_index = self.controller.get_objective_position()
@@ -76,6 +76,7 @@ class Objectives(QtCore.QObject):
         else:
             logger.error("Invalid objective position: %s", position)
 
+    @QtCore.pyqtSlot(int)
     def change_objective(self, position: int):
         if position not in self.objectives:
             logger.error("Invalid objective position: %s", position)

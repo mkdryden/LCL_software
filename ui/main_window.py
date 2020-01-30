@@ -164,8 +164,9 @@ class MainWindow(QMainWindow):
 
         self.ui.magnification_combobox.addItems(
             [f"{n}: {str(i)}" for n, i in self.sequencer.objectives.objectives.items()])
-        self.ui.magnification_combobox.setCurrentIndex(self.sequencer.objectives.current_index - 1)
-        self.ui.magnification_combobox.currentIndexChanged.connect(self.change_magnification)
+        self.ui.magnification_combobox.setCurrentIndex(self.sequencer.objectives.current_index)
+        self.ui.magnification_combobox.currentIndexChanged.connect(
+            self.sequencer.objectives.change_objective)
 
         self.ui.cell_type_to_lyse_comboBox.addItems(['red', 'green'])
         # self.ui.cell_type_to_lyse_comboBox.currentIndexChanged.connect(self.localizer.change_type_to_lyse)
