@@ -174,7 +174,6 @@ class MainWindow(QMainWindow):
         # self.ui.lysis_mode_comboBox.currentIndexChanged.connect(self.localizer.change_lysis_mode)
 
         self.ui.preset_comboBox.currentTextChanged.connect(self.preset_manager.set_preset)
-
         self.preset_manager.preset_loaded_signal.connect(self.update_settings)
         self.preset_manager.presets_changed_signal.connect(self.update_presets)
 
@@ -186,18 +185,6 @@ class MainWindow(QMainWindow):
         self.ui.gain_spin_box.valueChanged.connect(partial(self.preset_manager.change_value, 'gain'))
         self.ui.brightness_spin_box.valueChanged.connect(
             partial(self.preset_manager.change_value, 'brightness'))
-
-    # @QtCore.pyqtSlot()
-    # def get_settings_dict(self):
-    #     self.settings_changed_signal.emit(
-    #         {'exposure': strip_letters(self.ui.exposure_spin_box.value()),
-    #          'brightness': strip_letters(self.ui.brightness_doublespin_box.value()),
-    #          'gain': strip_letters(self.ui.gain_doublespin_box.value()),
-    #          'cube_position': self.ui.cube_position_combobox.currentIndex() + 1,
-    #          'intensity': strip_letters(self.ui.intensity_doublespin_box.value()),
-    #          'excitation': self.ui.excitation_lamp_on_combobox.currentText(),
-    #          'emission': strip_letters(self.ui.emission_doublespin_box.text())
-    #          })
 
     @QtCore.pyqtSlot()
     def start_tiling(self):
@@ -297,12 +284,6 @@ class MainWindow(QMainWindow):
     def send_user_comment(self):
         logger.info('user comment: %s', self.ui.comment_box.toPlainText())
         self.ui.comment_box.clear()
-
-    def change_magnification(self, index):
-        pass
-        _ = QMessageBox.about(self, 'Notice', 'Wait for objective to reposition before continuing.')
-        time.sleep(1)
-        # self.asi_controller.set_objective_position(index)
 
     @QtCore.pyqtSlot()
     def qswitch_screenshot_slot(self):
