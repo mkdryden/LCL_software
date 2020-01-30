@@ -81,11 +81,19 @@ class Objectives(QtCore.QObject):
         if position not in self.objectives:
             logger.error("Invalid objective position: %s", position)
             return
+        _, _, z = self.controller.get_position()
+        logger.info("Previous objective %s:%s", self.current_index, self.current_objective)
+        previous_offset = self.current_objective.z_offset
         with wait_signal(self.controller.done_moving_signal, timeout=15000):
             self.controller.move(z=0)
         with wait_signal(self.controller.done_moving_signal, timeout=15000):
             self.controller.set_objective_position(position)
+
         self.current_index = position
+        logger.info("Current objective %s:%s", self.current_index, self.current_objective)
+        # Return to z position
+        with wait_signal(self.controller.done_moving_signal, timeout=15000):
+            self.controller.move(z=z+(self.current_objective.z_offset-previous_offset))
 
 
 if __name__ == "__main__":
