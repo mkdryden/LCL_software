@@ -177,17 +177,28 @@ class ScreenShooter(QtCore.QObject):
         :return:
         """
         save_loc = os.path.join(experiment_folder_location, '{}___{}'.format('well_image', now()))
+        im_list = []
 
         for x, i in enumerate(imgs):
+            im_list.append([])
             for y, img in enumerate(i):
                 # noinspection PyTypeChecker
                 im = Image.fromarray(channels_to_rgb_img(img, [preset[1] for preset in presets]))
-                im.save(save_loc + f"-{x}_{y}-c.jpg", format='jpeg')
+                im_list[x].append(im)
 
                 for n, preset in enumerate(presets):
                     fs_im = Image.fromarray(np.left_shift(img[..., n], 4))
                     fs_im.save(save_loc + f"-{x}_{y}-" + preset[0] + ".tif",
                                format='tiff', compression='tiff_lzw')
+
+        im_width, im_height = im_list[0][0].size
+        stitched_im = Image.new('RGB', (im_width*len(im_list), im_height*len(im_list[0])))
+
+        for x, i in enumerate(im_list):
+            for y, img in enumerate(i):
+                stitched_im.paste(img, box=(x*im_width, y*im_height))
+
+        stitched_im.save(save_loc + "-stitched-c.jpg", format='jpeg')
 
     @QtCore.pyqtSlot()
     def save_target_image(self):
