@@ -239,7 +239,21 @@ class StageController(BaseController):
 
 
 if __name__ == '__main__':
+    root_logger = logging.getLogger()
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+    log_handlers = [logging.StreamHandler()]
+    log_formatter = logging.Formatter(
+        fmt='%(asctime)s %(levelname)s: [%(name)s] %(message)s',
+        datefmt='%H:%M:%S',
+    )
+    for handler in log_handlers:
+        handler.setFormatter(log_formatter)
+        root_logger.addHandler(handler)
+    root_logger.setLevel(logging.DEBUG)
     stage = StageController()
+    stage.init_controller()
     stage.get_position()
+    stage.send_receive('HERE S=0 O=0')  # Zeros objective and filter cube to position 1
     # stage.send_receive('P X? Y? Z?')
     # stage.send_receive('HERE Z')
