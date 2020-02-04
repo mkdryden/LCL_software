@@ -2,6 +2,7 @@ import serial
 import logging
 
 from controllers import ResponseError, BaseController
+from presets import SettingValue
 
 
 class LaserController(BaseController):
@@ -16,6 +17,14 @@ class LaserController(BaseController):
                              'timeout': .25,
                              'parity': serial.PARITY_NONE}
         self.command_delimiter = ''
+
+    def setup(self):
+        settings = [SettingValue("laser_rep", default_value=1,
+                                 changed_call=self.set_pulse_frequency),
+                    SettingValue("laser_burst", default_value=1,
+                                 changed_call=self.set_burst_counter)
+                    ]
+        self.vol_settings = {i.name: i for i in settings}
 
     def start_controller(self):
         self.ser.flushInput()
