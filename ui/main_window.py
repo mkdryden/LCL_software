@@ -37,6 +37,10 @@ class MainWindow(QMainWindow):
     start_sequencer_signal = QtCore.pyqtSignal()
     start_video_signal = QtCore.pyqtSignal()
     qswitch_screenshot_signal = QtCore.pyqtSignal('PyQt_PyObject')
+    laser_arm_signal = QtCore.pyqtSignal()
+    laser_disarm_signal = QtCore.pyqtSignal()
+    laser_fire_signal = QtCore.pyqtSignal(bool, bool, int)
+    laser_stop_signal = QtCore.pyqtSignal()
     start_focus_signal = QtCore.pyqtSignal()
     start_localization_signal = QtCore.pyqtSignal()
     setting_changed_signal = QtCore.pyqtSignal(str, 'PyQt_PyObject')
@@ -146,10 +150,21 @@ class MainWindow(QMainWindow):
         self.ui.remove_preset_pushButton.clicked.connect(self.remove_preset)
 
         self.setup_comboboxes()
+        self.setup_laser_ui()
 
         self.show()
 
         logger.info('finished gui init')
+
+    def setup_laser_ui(self):
+        self.ui.repetition_rate_double_spin_box.valueChanged.connect(
+            partial(self.change_nv_setting, "laser_rep"))
+        self.ui.burst_count_double_spin_box.valueChanged.connect(
+            partial(self.change_nv_setting, "laser_burst"))
+        self.laser_arm_signal.connect(self.sequencer.laser_arm)
+        self.laser_disarm_signal.connect(self.sequencer.laser_disarm)
+        self.laser_fire_signal.connect(self.sequencer.laser_fire)
+        self.laser_stop_signal.connect(self.sequencer.laser_stop)
 
     def setup_comboboxes(self):
         self.ui.excitation_lamp_on_combobox.addItems(wl_to_idx.keys())
@@ -301,49 +316,30 @@ class MainWindow(QMainWindow):
         logger.info('user comment: %s', self.ui.comment_box.toPlainText())
         self.ui.comment_box.clear()
 
-    @QtCore.pyqtSlot()
-    def qswitch_screenshot_slot(self):
-        if self.laser_enable:
-            self.qswitch_screenshot_signal.emit(30)
-            # logger.info("X:%s Y:%s Z:%s", *self.asi_controller.get_position())
-            self.laser.start_burst()
-
-    def enable_laser_firing(self):
-        # if self.asi_controller.get_cube_position() == 1:
-        #     _ = QMessageBox.about(self, 'Bad!', 'You are trying to fire the laser at the filter!')
-        #     return
-        z = self.ui.z_offset_spinBox.value()
-        # if z != 0:
-            # self.asi_controller.move_rel(z=z)
+    def laser_arm(self):
         self.ui.laser_groupbox.setTitle('Laser - ARMED')
-        self.laser_enable = True
+        self.laser_arm_signal.emit()
 
-    def disable_laser_firing(self):
-        z = self.ui.z_offset_spinBox.value()
-        # if z != 0:
-            # self.asi_controller.move_rel(z=-z)
+    @QtCore.pyqtSlot()
+    def laser_fire(self):
+        self.laser_fire_signal.emit(self.ui.laser_image_checkbox.isChecked(),
+                                    self.ui.laser_video_checkbox.isChecked(),
+                                    self.ui.z_offset_spinBox.value())
+
+    def laser_disarm(self):
         self.ui.laser_groupbox.setTitle('Laser')
-        self.laser_enable = False
-
-    @QtCore.pyqtSlot('PyQt_PyObject')
-    def ai_fire_qswitch_slot(self, auto_fire):
-        logger.info('automated firing from localizer!')
-        # if auto_fire == True:
-        #     laser.qswitch_auto()
-        # else:
-        #     laser.fire_qswitch()
+        self.laser_disarm_signal.emit()
 
     def keyPressEvent(self, event):
         if not event.isAutoRepeat():
-            # print('key pressed {}'.format(event.key()))
             key_control_dict = {
                 # 87: self.asi_controller.move_up,
                 # 65: self.asi_controller.move_left,
                 # 83: self.asi_controller.move_down,
                 # 68: self.asi_controller.move_right,
                 # 66: self.asi_controller.move_last,
-                16777249: self.enable_laser_firing,
-                70: self.qswitch_screenshot_slot,
+                QtCore.Qt.Key_Control: self.laser_arm,
+                QtCore.Qt.Key_F: self.laser_fire,
                 # 81: laser.qswitch_auto,
                 # 73: stage.start_roll_down,
                 # 75:self.autofocuser.roll_backward,
@@ -351,23 +347,27 @@ class MainWindow(QMainWindow):
                 # 71:self.toggle_dmf_or_lysis,
                 # 84: stage.move_left_one_well_slot,
                 # 89: stage.move_right_one_well_slot,
-                96: self.screen_shooter.save_target_image,
-                # 16777216: self.localizer.stop_auto_mode
+                # 96: self.screen_shooter.save_target_image,
             }
-            if event.key() in key_control_dict.keys():
+            try:
                 key_control_dict[event.key()]()
+            except KeyError:
+                pass
 
     def keyReleaseEvent(self, event):
         if not event.isAutoRepeat():
             # logger.info('key released: %s', event.key())
             key_control_dict = {
-                16777249: self.disable_laser_firing,
-                # 70: self.laser.stop_burst
+                QtCore.Qt.Key_Control: self.laser_disarm,
+                QtCore.Qt.Key_F: self.laser_stop_signal.emit
             }
-            if event.key() in key_control_dict.keys():
+            try:
                 key_control_dict[event.key()]()
+            except KeyError:
+                pass
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.zoom_window.close()
+        self.screen_shooter.set_recording_state(False)
         self.screenshooter_thread.quit()
         self.sequencer_thread.quit()

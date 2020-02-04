@@ -14,6 +14,8 @@ class InstrumentSequencer(QtCore.QObject):
     done_init_signal = QtCore.pyqtSignal()
     tile_done_signal = QtCore.pyqtSignal(list, list)
     got_image_signal = QtCore.pyqtSignal()
+    save_image_signal = QtCore.pyqtSignal(np.ndarray, str)
+    set_record_signal = QtCore.pyqtSignal(bool)
 
     def __init__(self, screenshooter: ScreenShooter, frameskip: int = 2):
         super(InstrumentSequencer, self).__init__()
@@ -25,11 +27,17 @@ class InstrumentSequencer(QtCore.QObject):
         self.camera_thread = QtCore.QThread()
         self.camera_thread.start()
         self.camera.moveToThread(self.camera_thread)
-
         self.excitation = fluorescence_controller.ExcitationController(parent=self)
         self.laser = laser_controller.LaserController(parent=self)
         self.stage = asi_controller.StageController(parent=self)
         self.objectives = None
+
+        self.laser_armed = False
+        self.laser_firing = False
+        self.take_laser_image = False
+        self.take_laser_video = False
+        self.laser_z_offset = 0
+        self.laser_last_filter_cube = None
 
         self.image = np.ndarray([0])
         self.frameskip = frameskip
@@ -62,11 +70,13 @@ class InstrumentSequencer(QtCore.QObject):
 
     def setup_signals(self):
         self.tile_done_signal.connect(self.screenshooter.save_well_imgs)
+        self.save_image_signal.connect(self.screenshooter.save_named_image)
+        self.set_record_signal.connect(self.screenshooter.set_recording_state)
 
     @QtCore.pyqtSlot(np.ndarray)
-    def vid_process_slot(self, image):
+    def _vid_process_slot(self, image):
         if self.frame_count > self.frameskip:
-            self.camera.vid_process_signal.disconnect(self.vid_process_slot)
+            self.camera.vid_process_signal.disconnect(self._vid_process_slot)
             self.image = image
             logger.info("Got new image")
             self.got_image_signal.emit()
@@ -74,9 +84,9 @@ class InstrumentSequencer(QtCore.QObject):
         else:
             self.frame_count += 1
 
-    def get_next_image(self) -> np.ndarray:
+    def _get_next_image(self) -> np.ndarray:
         with wait_signal(self.got_image_signal):
-            self.camera.vid_process_signal.connect(self.vid_process_slot)
+            self.camera.vid_process_signal.connect(self._vid_process_slot)
         return self.image
 
     def gather_all_channel_images(self, preset_list: typing.Sequence[str]) -> np.ndarray:
@@ -85,7 +95,7 @@ class InstrumentSequencer(QtCore.QObject):
             if preset != self.presets.preset:
                 logger.info("Cycling preset to %s", preset)
                 self.presets.set_preset(preset)
-            images.append(self.get_next_image())
+            images.append(self._get_next_image())
         return np.dstack(images)
 
     @QtCore.pyqtSlot(float, float)
@@ -110,6 +120,64 @@ class InstrumentSequencer(QtCore.QObject):
         with wait_signal(self.stage.done_moving_signal):
             logger.info("Relative move µm: %s %s", x_rel/10, y_rel/10)
             self.stage.move_rel(x=x_rel, y=y_rel)
+
+    @QtCore.pyqtSlot()
+    def laser_arm(self):
+        logger.info("laser_arm")
+        if self.laser_armed:
+            return
+        if self.laser.connected:
+            self.laser_last_filter_cube = self.presets.get_values()['cube_position']
+            if self.laser_last_filter_cube != 0:
+                self.presets.change_value('cube_position', 0)
+            self.laser_armed = True
+        else:
+            logger.warning("Cannot arm laser, controller not connected")
+
+    @QtCore.pyqtSlot()
+    def laser_disarm(self):
+        logger.info("laser_disarm")
+        if self.laser.connected:
+            self.laser_stop()
+            if self.laser_last_filter_cube != 0:
+                self.presets.change_value('cube_position', self.laser_last_filter_cube)
+        self.laser_armed = False
+
+    @QtCore.pyqtSlot(bool, bool, int)
+    def laser_fire(self, take_image: bool, take_video: bool, z_offset: typing.SupportsInt):
+        if self.laser_firing:
+            return
+        logger.info("laser_fire")
+        if self.laser_armed:
+            self.take_laser_image = take_image
+            self.take_laser_video = take_video
+            if take_image:
+                self.save_image_signal.emit(self._get_next_image(), "laser-before")
+            if take_video:
+                self.set_record_signal.emit(True)
+            self.laser_firing = True
+            if z_offset != 0:
+                with wait_signal(self.stage.done_moving_signal):
+                    self.stage.move_rel(z=z_offset)
+                self.laser_z_offset = z_offset
+            logger.info("Laser fired at coordinates: %s", self.stage.position)
+            self.laser.start_burst()
+
+    @QtCore.pyqtSlot()
+    def laser_stop(self):
+        if self.laser_firing:
+            self.laser.stop_burst()
+            if self.laser_z_offset != 0:
+                with wait_signal(self.stage.done_moving_signal):
+                    self.stage.move_rel(z=-self.laser_z_offset)
+                self.laser_z_offset = 0
+            if self.take_laser_image:
+                self.save_image_signal.emit(self._get_next_image(), "laser-after")
+                self.take_laser_image = False
+            if self.take_laser_video:
+                self.set_record_signal.emit(False)
+                self.take_laser_video = False
+            self.laser_firing = False
 
     @QtCore.pyqtSlot(list, int, int)
     def tile(self, preset_list: typing.Sequence, columns: int = 3, rows: int = 3):
