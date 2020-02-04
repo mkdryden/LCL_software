@@ -42,6 +42,7 @@ class BaseController(QtCore.QObject):
                              'parity': serial.PARITY_NONE}
         self.command_delimiter = "\n"
         self.settings = {}
+        self.vol_settings = {}
         self.setup()
 
     def setup(self):

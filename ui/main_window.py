@@ -39,7 +39,8 @@ class MainWindow(QMainWindow):
     qswitch_screenshot_signal = QtCore.pyqtSignal('PyQt_PyObject')
     start_focus_signal = QtCore.pyqtSignal()
     start_localization_signal = QtCore.pyqtSignal()
-    settings_changed_signal = QtCore.pyqtSignal(dict)
+    setting_changed_signal = QtCore.pyqtSignal(str, 'PyQt_PyObject')
+    nvsetting_changed_signal = QtCore.pyqtSignal(str, 'PyQt_PyObject')
     add_preset_signal = QtCore.pyqtSignal('PyQt_PyObject')
     modify_preset_signal = QtCore.pyqtSignal('PyQt_PyObject')
     remove_preset_signal = QtCore.pyqtSignal(str)
@@ -151,16 +152,18 @@ class MainWindow(QMainWindow):
     def setup_comboboxes(self):
         self.ui.excitation_lamp_on_combobox.addItems(wl_to_idx.keys())
         self.ui.excitation_lamp_on_combobox.activated.connect(
-            partial(self.preset_manager.change_value, 'excitation'))
+            partial(self.change_setting, 'excitation'))
 
         self.ui.cube_position_combobox.addItems(['0', '1', '2', '3'])
-        self.ui.cube_position_combobox.setCurrentIndex(self.preset_manager.get_values()['cube_position'])
-        self.ui.cube_position_combobox.currentIndexChanged.connect(
-            partial(self.preset_manager.change_value, 'cube_position'))
+        self.ui.cube_position_combobox.setCurrentIndex(
+            self.preset_manager.get_values()['cube_position'])
+        self.ui.cube_position_combobox.activated.connect(
+            partial(self.change_setting, 'cube_position'))
+
         self.ui.intensity_spin_box.valueChanged.connect(
-            partial(self.preset_manager.change_value, 'intensity'))
+            partial(self.change_setting, 'intensity'))
         self.ui.emission_spin_box.valueChanged.connect(
-            partial(self.preset_manager.change_value, 'emission'))
+            partial(self.change_setting, 'emission'))
 
         self.ui.magnification_combobox.addItems(
             [f"{n}: {str(i)}" for n, i in self.sequencer.objectives.objectives.items()])
@@ -178,14 +181,17 @@ class MainWindow(QMainWindow):
         self.preset_manager.preset_loaded_signal.connect(self.update_settings)
         self.preset_manager.presets_changed_signal.connect(self.update_presets)
 
+        self.ui.exposure_spin_box.valueChanged.connect(partial(self.change_setting, 'exposure'))
+        self.ui.gain_spin_box.valueChanged.connect(partial(self.change_setting, 'gain'))
+        self.ui.brightness_spin_box.valueChanged.connect(
+            partial(self.change_setting, 'brightness'))
+
         # Fetch initial values
         self.update_settings(self.preset_manager.get_values())
         self.update_presets(list(self.preset_manager.presets.keys()))
 
-        self.ui.exposure_spin_box.valueChanged.connect(partial(self.preset_manager.change_value, 'exposure'))
-        self.ui.gain_spin_box.valueChanged.connect(partial(self.preset_manager.change_value, 'gain'))
-        self.ui.brightness_spin_box.valueChanged.connect(
-            partial(self.preset_manager.change_value, 'brightness'))
+    def change_setting(self, key: str, value):
+        self.setting_changed_signal.emit(key, value)
 
     @QtCore.pyqtSlot()
     def start_tiling(self):
