@@ -45,7 +45,7 @@ class InstrumentSequencer(QtCore.QObject):
         self.excitation.init_controller()
         QtCore.QMetaObject.invokeMethod(self.camera, 'start_video')
 
-        for i in [self.camera, self.stage, self.laser, self.excitation]:
+        for i in [self.camera, self.stage, self.excitation]:
             for d in i.settings:
                 self.presets.add_setting(i.settings[d])
 
