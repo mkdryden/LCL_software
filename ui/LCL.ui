@@ -697,6 +697,26 @@ Tiling:</string>
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QCheckBox" name="laser_image_checkbox">
+              <property name="text">
+               <string>Record images</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="laser_video_checkbox">
+              <property name="text">
+               <string>Record video</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
