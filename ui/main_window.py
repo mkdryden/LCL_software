@@ -198,12 +198,7 @@ class MainWindow(QMainWindow):
     def change_nv_setting(self, key: str, value):
         self.nvsetting_changed_signal.emit(key, value)
 
-    @QtCore.pyqtSlot(list, list)
-    def stop_tiling(self, *args):
-        logger.info("Finished tiling")
-        self.set_ui_state(True)
-
-    def set_ui_state(self, activate: bool):
+    def set_ui_enabled(self, activate: bool):
         self.ui.acquisition_dockwidget.setEnabled(activate)
         self.ui.instrument_dockwidget.setEnabled(activate)
 
@@ -285,6 +280,19 @@ class MainWindow(QMainWindow):
                 if any(vowel in val for vowel in checks):
                     logger.info('%s %s', key, user_input)
                     good_entry = True
+
+    @QtCore.pyqtSlot()
+    def start_tiling(self):
+        cols = self.ui.tile_cols_spinBox.value()
+        rows = self.ui.tile_rows_spinBox.value()
+        self.set_ui_enabled(False)
+        logger.info("Starting tiling")
+        self.start_tiling_signal.emit(self._get_checked_presets(), cols, rows)
+
+    @QtCore.pyqtSlot(list, list)
+    def stop_tiling(self, *args):
+        logger.info("Finished tiling")
+        self.set_ui_enabled(True)
 
     def autofocus_toggle(self):
         logger.info('toggling autofocus')
