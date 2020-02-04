@@ -132,6 +132,8 @@ class MainWindow(QMainWindow):
 
         # Settings
         self.ui.autofocus_checkbox.stateChanged.connect(self.autofocus_toggle)
+        self.setting_changed_signal.connect(self.sequencer.presets.change_value)
+        self.nvsetting_changed_signal.connect(self.sequencer.vol_settings.change_value)
 
         # Preset Manager
         self.ui.save_preset_pushButton.clicked.connect(self.modify_preset)
@@ -193,13 +195,8 @@ class MainWindow(QMainWindow):
     def change_setting(self, key: str, value):
         self.setting_changed_signal.emit(key, value)
 
-    @QtCore.pyqtSlot()
-    def start_tiling(self):
-        cols = self.ui.tile_cols_spinBox.value()
-        rows = self.ui.tile_rows_spinBox.value()
-        self.set_ui_state(False)
-        logger.info("Starting tiling")
-        self.start_tiling_signal.emit(self._get_checked_presets(), cols, rows)
+    def change_nv_setting(self, key: str, value):
+        self.nvsetting_changed_signal.emit(key, value)
 
     @QtCore.pyqtSlot(list, list)
     def stop_tiling(self, *args):
