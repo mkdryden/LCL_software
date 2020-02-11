@@ -36,7 +36,6 @@ class CatchKeys(QtCore.QObject):
 class MainWindow(QMainWindow):
     start_sequencer_signal = QtCore.pyqtSignal()
     start_video_signal = QtCore.pyqtSignal()
-    qswitch_screenshot_signal = QtCore.pyqtSignal('PyQt_PyObject')
     laser_arm_signal = QtCore.pyqtSignal()
     laser_disarm_signal = QtCore.pyqtSignal()
     laser_fire_signal = QtCore.pyqtSignal(bool, bool, int)
@@ -107,7 +106,7 @@ class MainWindow(QMainWindow):
         self.vid.VideoSignal.connect(self.zoom_image_viewer.set_image)
         self.vid.vid_process_signal.connect(self.screen_shooter.screenshot_slot)
         self.ui.record_push_button.clicked.connect(self.screen_shooter.toggle_recording_slot)
-        self.qswitch_screenshot_signal.connect(self.screen_shooter.save_qswitch_fire_slot)
+        self.ui.imagelabel_lineEdit.textChanged.connect(self.change_image_label)
 
         self.image_viewer.click_move_signal.connect(self.sequencer.move_rel_frame)
 
@@ -116,23 +115,16 @@ class MainWindow(QMainWindow):
         self.start_tiling_signal.connect(self.sequencer.tile)
         self.sequencer.tile_done_signal.connect(self.stop_tiling)
 
-        # self.autofocuser.position_and_variance_signal.connect(self.plot_variance_and_position)
-
-        # self.localizer.localizer_move_signal.connect(self.asi_controller.localizer_move_slot)
-        # self.localizer.ai_fire_qswitch_signal.connect(self.ai_fire_qswitch_slot)
-
         # Screenshot and comment buttons
-        self.ui.misc_screenshot_button.clicked.connect(self.screen_shooter.save_misc_image)
+        self.ui.misc_screenshot_button.clicked.connect(self.take_image)
+
+        # Filter out key releases in comment box
         self.catchkeys = CatchKeys()
         self.ui.comment_box.installEventFilter(self.catchkeys)
         self.ui.user_comment_button.clicked.connect(self.send_user_comment)
 
         # Stage movement buttons
         # TODO: self.ui.step_size_doublespin_box.valueChanged.connect(self.asi_controller.set_step_size)
-        # TODO: self.ui.repetition_rate_double_spin_box.valueChanged.connect(self.laser.set_pulse_frequency)
-        # TODO: self.ui.burst_count_double_spin_box.valueChanged.connect(self.laser.set_burst_counter)
-        # self.localizer.get_position_signal.connect(self.asi_controller.get_position)
-        # self.asi_controller.position_return_signal.connect(self.localizer.position_return_slot)
 
         # Settings
         self.ui.autofocus_checkbox.stateChanged.connect(self.autofocus_toggle)
@@ -295,6 +287,14 @@ class MainWindow(QMainWindow):
                 if any(vowel in val for vowel in checks):
                     logger.info('%s %s', key, user_input)
                     good_entry = True
+
+    @QtCore.pyqtSlot()
+    def take_image(self):
+        self.screen_shooter.requested_frames.appendleft(self.ui.imagelabel_lineEdit.text())
+
+    @QtCore.pyqtSlot(str)
+    def change_image_label(self, label: str):
+        self.screen_shooter.image_title = label
 
     @QtCore.pyqtSlot()
     def start_tiling(self):

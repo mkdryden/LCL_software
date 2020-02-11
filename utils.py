@@ -3,6 +3,7 @@ import datetime
 import threading
 import typing
 import logging
+from collections import deque
 from contextlib import contextmanager
 
 from PyQt5 import QtCore
@@ -117,12 +118,12 @@ class ScreenShooter(QtCore.QObject):
     """
     handles the various different types of screenshots
     """
+    screenshot_done_signal = QtCore.pyqtSignal(str)
 
     def __init__(self, parent=None):
         super(ScreenShooter, self).__init__(parent)
-        self.requested_frames = 0
-        self.image_count = 0
-        self.image_title = ''
+        self.requested_frames = deque()
+        self.image_title = ""
         self.recording = False
         self.movie_file = None
         self.image = None
@@ -135,37 +136,52 @@ class ScreenShooter(QtCore.QObject):
         # Video
         if self.recording:
             self.ffmpeg.stdin.write(self.image.tobytes())
-            logger.debug('writing frame %s to disk', self.image_count)
-        self.image_count += 1
 
         # Screenshot
-        if self.requested_frames > 0:
-            im = Image.fromarray(np.left_shift(self.image, 4))  # Zero pad 12 to 16 bits
-            im.save(os.path.join(experiment_folder_location,
-                                 '{}___{}.tif'.format(self.image_title, now())),
-                    format='tiff', compression='tiff_lzw')
+        try:
+            name = self.requested_frames.pop()
+        except IndexError:
+            return
+        im = Image.fromarray(np.left_shift(self.image, 4))  # Zero pad 12 to 16 bits
+        im.save(os.path.join(experiment_folder_location,
+                             '{}_{}.tif'.format(name, now())),
+                format='tiff', compression='tiff_lzw')
 
-            self.requested_frames -= 1
-            logger.debug('writing frame %s to disk', self.image_count)
+    @QtCore.pyqtSlot(np.ndarray, str)
+    def save_named_image(self, image: np.ndarray, name: str):
+        self.image = image
+        im = Image.fromarray(np.left_shift(self.image, 4))  # Zero pad 12 to 16 bits
+        im.save(os.path.join(experiment_folder_location, '{}_{}.tif'.format(name, now())),
+                format='tiff', compression='tiff_lzw')
 
-    @QtCore.pyqtSlot()
-    def toggle_recording_slot(self):
-        self.recording = not self.recording
-        if self.recording:  # Start Recording
+    @QtCore.pyqtSlot(bool)
+    def set_recording_state(self, state: bool):
+        """
+        Set recording on or off.
+        :param state: If true, starts recording (if not already), otherwise stops.
+        """
+        if state and not self.recording:
             self.ffmpeg = (
                 ffmpeg.input('pipe:', format='rawvideo', pix_fmt='gray12le',
                              s='{}x{}'.format(*reversed(self.image.shape)), framerate=20)
-                    .output(os.path.join(experiment_folder_location, self.image_title + now() + ".mp4"),
-                            crf=21, preset="fast", pix_fmt='yuv420p')
-                    .overwrite_output()
-                    .run_async(pipe_stdin=True)
+                      .output(os.path.join(experiment_folder_location,
+                                           self.image_title + "-" + now() + ".mp4"),
+                              crf=21, preset="fast", pix_fmt='yuv420p')
+                      .overwrite_output()
+                      .run_async(pipe_stdin=True)
             )
-
-        if not self.recording:  # Finish Recording
+            self.recording = True
+            return
+        if not state and self.recording:  # Finish Recording
             self.ffmpeg.stdin.close()
             self.ffmpeg.wait()
             self.ffmpeg = None
             logger.info("Finished saving video %s", self.image_title)
+            self.recording = False
+
+    @QtCore.pyqtSlot()
+    def toggle_recording_slot(self):
+        self.set_recording_state(not self.recording)
 
     @QtCore.pyqtSlot(list, list)
     def save_well_imgs(self, imgs: typing.List[typing.List[np.ndarray]],
@@ -192,56 +208,13 @@ class ScreenShooter(QtCore.QObject):
                                format='tiff', compression='tiff_lzw')
 
         im_width, im_height = im_list[0][0].size
-        stitched_im = Image.new('RGB', (im_width*len(im_list), im_height*len(im_list[0])))
+        stitched_im = Image.new('RGB', (im_width * len(im_list), im_height * len(im_list[0])))
 
         for x, i in enumerate(im_list):
             for y, img in enumerate(i):
-                stitched_im.paste(img, box=(x*im_width, y*im_height))
+                stitched_im.paste(img, box=(x * im_width, y * im_height))
 
         stitched_im.save(save_loc + "-stitched-c.jpg", format='jpeg')
-
-    @QtCore.pyqtSlot()
-    def save_target_image(self):
-        comment('taking target picture')
-        self.image_title = 'target'
-        self.requested_frames += 1
-
-    @QtCore.pyqtSlot()
-    def save_non_target_image(self):
-        comment('taking non-target picture')
-        self.image_title = 'non_target'
-        self.requested_frames += 1
-
-    @QtCore.pyqtSlot()
-    def save_misc_image(self):
-        comment('taking miscellaneous picture')
-        self.image_title = 'miscellaneous'
-        self.requested_frames += 1
-
-    @QtCore.pyqtSlot()
-    def save_lysed_screenshot(self):
-        comment('taking lysed picture')
-        self.image_title = 'lysed'
-        self.requested_frames += 1
-
-    @QtCore.pyqtSlot('PyQt_PyObject')
-    def save_qswitch_fire_slot(self, num_frames):
-        """
-        takes an initial screenshot of the current frame (before firing)
-        and then queues up 4 more pictures to be taken during the firing
-        """
-        if self.recording:
-            return
-        im = Image.fromarray(np.left_shift(self.image, 4))
-        logger.info('Taking qswitch fire pictures')
-        logger.debug('writing frame %s to disk', self.image_count)
-        im.save(os.path.join(experiment_folder_location,
-                             'before_qswitch___{}.tif'.format(now())), format="tiff", compression="tiff_lzw")
-        self.image_title = 'during_qswitch_fire'
-        if self.requested_frames >= 30:
-            self.requested_frames = 30
-        else:
-            self.requested_frames += num_frames
 
 
 class MeanIoU(object):

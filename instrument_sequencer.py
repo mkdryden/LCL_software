@@ -152,7 +152,7 @@ class InstrumentSequencer(QtCore.QObject):
             self.take_laser_image = take_image
             self.take_laser_video = take_video
             if take_image:
-                self.save_image_signal.emit(self._get_next_image(), "laser-before")
+                self.screenshooter.requested_frames.appendleft("laser-before")
             if take_video:
                 self.set_record_signal.emit(True)
             self.laser_firing = True
@@ -172,7 +172,7 @@ class InstrumentSequencer(QtCore.QObject):
                     self.stage.move_rel(z=-self.laser_z_offset)
                 self.laser_z_offset = 0
             if self.take_laser_image:
-                self.save_image_signal.emit(self._get_next_image(), "laser-after")
+                self.screenshooter.requested_frames.appendleft("laser-after")
                 self.take_laser_image = False
             if self.take_laser_video:
                 self.set_record_signal.emit(False)
