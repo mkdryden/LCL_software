@@ -56,8 +56,8 @@ class ImageViewer(QtWidgets.QWidget):
                             self.objective.laser_r * self.scale)  # ry
         laser_spot = QtCore.QPointF(self.objective.laser_spot_x, self.objective.laser_spot_y)
         laser_spot *= self.scale
-        lines = [QtCore.QLineF(-20, -20, 20, 20).translated(laser_spot),
-                 QtCore.QLineF(20, -20, -20, 20).translated(laser_spot)]
+        lines = [QtCore.QLineF(-10, -10, 10, 10).translated(laser_spot),
+                 QtCore.QLineF(10, -10, -10, 10).translated(laser_spot)]
         painter.setPen(QtGui.QPen(QtCore.Qt.red, 2))
         painter.drawLines(lines)
 
