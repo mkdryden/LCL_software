@@ -68,8 +68,8 @@
   <widget class="QDockWidget" name="acquisition_dockwidget">
    <property name="minimumSize">
     <size>
-     <width>269</width>
-     <height>1006</height>
+     <width>271</width>
+     <height>1015</height>
     </size>
    </property>
    <property name="floating">
@@ -323,7 +323,7 @@
         <string>Imaging</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="2" column="0" colspan="2">
+        <item row="3" column="0" colspan="2">
          <widget class="QLabel" name="tile_preset_label">
           <property name="text">
            <string>Presets to Use For
@@ -331,10 +331,10 @@ Tiling:</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="0" colspan="4">
+        <item row="4" column="0" colspan="4">
          <widget class="QListView" name="tile_preset_listView"/>
         </item>
-        <item row="4" column="0">
+        <item row="5" column="0">
          <widget class="QLabel" name="tile_cols_label">
           <property name="text">
            <string>Columns</string>
@@ -344,7 +344,7 @@ Tiling:</string>
           </property>
          </widget>
         </item>
-        <item row="4" column="1">
+        <item row="5" column="1">
          <widget class="QSpinBox" name="tile_cols_spinBox">
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -354,7 +354,7 @@ Tiling:</string>
           </property>
          </widget>
         </item>
-        <item row="4" column="2">
+        <item row="5" column="2">
          <widget class="QSpinBox" name="tile_rows_spinBox">
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -364,7 +364,7 @@ Tiling:</string>
           </property>
          </widget>
         </item>
-        <item row="4" column="3">
+        <item row="5" column="3">
          <widget class="QLabel" name="tile_rows_label">
           <property name="text">
            <string>Rows</string>
@@ -374,7 +374,7 @@ Tiling:</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="0" colspan="4">
+        <item row="1" column="0" colspan="4">
          <widget class="QPushButton" name="misc_screenshot_button">
           <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
@@ -384,7 +384,7 @@ Tiling:</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="0" colspan="4">
+        <item row="2" column="0" colspan="4">
          <widget class="QPushButton" name="record_push_button">
           <property name="text">
            <string>Record</string>
@@ -394,10 +394,33 @@ Tiling:</string>
           </property>
          </widget>
         </item>
-        <item row="5" column="0" colspan="4">
+        <item row="6" column="0" colspan="4">
          <widget class="QPushButton" name="tile_and_navigate_pushbutton">
           <property name="text">
            <string>Tile</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2" colspan="2">
+         <widget class="QLineEdit" name="imagelabel_lineEdit">
+          <property name="acceptDrops">
+           <bool>false</bool>
+          </property>
+          <property name="maxLength">
+           <number>255</number>
+          </property>
+          <property name="placeholderText">
+           <string/>
+          </property>
+          <property name="clearButtonEnabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="2">
+         <widget class="QLabel" name="imagelabel_label">
+          <property name="text">
+           <string>Image Label</string>
           </property>
          </widget>
         </item>
