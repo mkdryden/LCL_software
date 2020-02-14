@@ -12,7 +12,6 @@ from utils import comment
 
 
 class StageController(BaseController):
-    position_return_signal = QtCore.pyqtSignal('PyQt_PyObject')
     done_moving_signal = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
@@ -89,7 +88,6 @@ class StageController(BaseController):
         positions = self.send_receive('W X Y Z')
         cleaned = positions.replace('\r', '').split(' ')[1:-1]
         self.position = tuple(int(x) for x in cleaned)
-        self.position_return_signal.emit(self.position)
         return self.position
 
     def is_moving(self):
