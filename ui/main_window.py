@@ -63,12 +63,13 @@ class MainWindow(QMainWindow):
 
         # set up the video classes
         self.screen_shooter = ScreenShooter()
-        self.image_viewer = ImageViewer()
 
         self.sequencer = InstrumentSequencer(screenshooter=self.screen_shooter)
+        self.image_viewer = ImageViewer()
         self.preset_manager = self.sequencer.presets
         self.vid = self.sequencer.camera
 
+        # 100% view widget
         self.zoom_window = QtWidgets.QDockWidget(parent=self)
         self.zoom_window.setMinimumSize(300, 300)
         self.zoom_window.setSizePolicy(
@@ -102,6 +103,7 @@ class MainWindow(QMainWindow):
             self.start_sequencer_signal.emit()  # Need to do it this way for threading
 
         # connect the outputs to our signals
+        self.image_viewer.objectives = self.sequencer.objectives
         self.vid.VideoSignal.connect(self.image_viewer.set_image)
         self.vid.VideoSignal.connect(self.zoom_image_viewer.set_image)
         self.vid.vid_process_signal.connect(self.screen_shooter.screenshot_slot)

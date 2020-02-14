@@ -16,16 +16,27 @@ class Objective(yaml.YAMLObject):
     yaml_tag = "!Objective"
 
     def __init__(self, name: str, mag: int, z_offset: int = 0,
-                 field_dimx: int = 6411, field_dimy: int = 3397):
+                 field_dimx: int = 6411, field_dimy: int = 3397,
+                 laser_x: int = 1000, laser_y: int = 1000,
+                 laser_r: int = 10, laser_spot_x: int = 1000,
+                 laser_spot_y: int = 1000):
+
         self.name = name
         self.mag = mag
         self.z_offset = z_offset
         self.field_dimx = field_dimx
         self.field_dimy = field_dimy
+        self.laser_x = laser_x
+        self.laser_y = laser_y
+        self.laser_r = laser_r
+        self.laser_spot_x = laser_spot_x
+        self.laser_spot_y = laser_spot_y
 
     def __repr__(self):
         return f"{type(self).__name__}({self.name}, mag={self.mag}, z_offset={self.z_offset}, "\
-               f"field_dimx={self.field_dimx}, field_dimy={self.field_dimy})"
+               f"field_dimx={self.field_dimx}, field_dimy={self.field_dimy}), "\
+               f"laser_x=({self.laser_x}, laser_y={self.laser_y}, laser_r={self.laser_r}, "\
+               f"laser_spot_x={self.laser_spot_x}, laser_spot_y{self.laser_spot_y})"
 
     def __str__(self):
         return f"{self.name} Objective"
