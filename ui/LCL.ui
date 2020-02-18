@@ -551,7 +551,7 @@ Tiling:</string>
              </widget>
             </item>
             <item>
-             <widget class="QDoubleSpinBox" name="step_size_doublespin_box">
+             <widget class="QSpinBox" name="step_size_spin_box">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -565,22 +565,10 @@ Tiling:</string>
                <enum>QAbstractSpinBox::UpDownArrows</enum>
               </property>
               <property name="suffix">
-               <string> μm</string>
-              </property>
-              <property name="decimals">
-               <number>0</number>
-              </property>
-              <property name="minimum">
-               <double>1.000000000000000</double>
+               <string> µm</string>
               </property>
               <property name="maximum">
-               <double>10000.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>50.000000000000000</double>
-              </property>
-              <property name="value">
-               <double>50.000000000000000</double>
+               <number>500</number>
               </property>
              </widget>
             </item>

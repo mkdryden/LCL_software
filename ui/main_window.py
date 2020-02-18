@@ -7,6 +7,7 @@ from functools import partial
 from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import QThread
 from PyQt5.QtWidgets import QMainWindow, QInputDialog, QLineEdit, QMessageBox
+import numpy as np
 
 from ui.LCL_ui import Ui_MainWindow
 from utils import ScreenShooter, AspectRatioWidget, wait_signal
@@ -48,6 +49,7 @@ class MainWindow(QMainWindow):
     modify_preset_signal = QtCore.pyqtSignal('PyQt_PyObject')
     remove_preset_signal = QtCore.pyqtSignal(str)
     start_tiling_signal = QtCore.pyqtSignal(list, int, int)
+    stage_fast_moverel_signal = QtCore.pyqtSignal(int, int, int)
 
     def __init__(self, test_run: bool):
         super(MainWindow, self).__init__()
@@ -126,6 +128,7 @@ class MainWindow(QMainWindow):
         self.ui.user_comment_button.clicked.connect(self.send_user_comment)
 
         # Stage movement buttons
+        self.stage_fast_moverel_signal.connect(self.sequencer.move_rel_fast)
         # TODO: self.ui.step_size_doublespin_box.valueChanged.connect(self.asi_controller.set_step_size)
 
         # Settings
@@ -271,8 +274,8 @@ class MainWindow(QMainWindow):
                 if self.preset_model.item(i).checkState()]
 
     def _get_text(self, text_prompt):
-        text, okPressed = QInputDialog.getText(self, 'Experiment Input', text_prompt, QLineEdit.Normal, "")
-        if okPressed and text is not None:
+        text, ok_pressed = QInputDialog.getText(self, 'Experiment Input', text_prompt, QLineEdit.Normal, "")
+        if ok_pressed and text is not None:
             return text
 
     def get_experiment_variables(self):
@@ -332,14 +335,30 @@ class MainWindow(QMainWindow):
         self.ui.laser_groupbox.setTitle('Laser')
         self.laser_disarm_signal.emit()
 
+    def _keyboard_move(self, direction: str, mag: int):
+        dir_dict = {'left': np.array([-1, 0, 0]),
+                    'right': np.array([1, 0, 0]),
+                    'up': np.array([0, -1, 0]),
+                    'down': np.array([0, 1, 0]),
+                    'in': np.array([0, 0, -1]),
+                    'out': np.array([0, 0, 1])}
+        vector = dir_dict[direction] * mag
+        self.stage_fast_moverel_signal.emit(*vector.astype(int))
+
     def keyPressEvent(self, event):
         if not event.isAutoRepeat():
+            logger.info("key = %s", event.key())
             key_control_dict = {
-                # 87: self.asi_controller.move_up,
-                # 65: self.asi_controller.move_left,
-                # 83: self.asi_controller.move_down,
-                # 68: self.asi_controller.move_right,
-                # 66: self.asi_controller.move_last,
+                QtCore.Qt.Key_Minus: partial(self._keyboard_move, 'out', 10),
+                QtCore.Qt.Key_Equal: partial(self._keyboard_move, 'in', 10),
+                QtCore.Qt.Key_A: partial(self._keyboard_move, 'left',
+                                         self.ui.step_size_spin_box.value()*10),
+                QtCore.Qt.Key_S: partial(self._keyboard_move, 'down',
+                                         self.ui.step_size_spin_box.value()*10),
+                QtCore.Qt.Key_D: partial(self._keyboard_move, 'right',
+                                         self.ui.step_size_spin_box.value()*10),
+                QtCore.Qt.Key_W: partial(self._keyboard_move, 'up',
+                                         self.ui.step_size_spin_box.value()*10),
                 QtCore.Qt.Key_Control: self.laser_arm,
                 QtCore.Qt.Key_F: self.laser_fire,
                 # 81: laser.qswitch_auto,

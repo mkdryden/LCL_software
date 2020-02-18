@@ -209,3 +209,7 @@ class InstrumentSequencer(QtCore.QObject):
         self.tile_done_signal.emit(output_images,
                                    [(preset, self.presets.presets[preset]['emission'])
                                     for preset in preset_list])
+
+    @QtCore.pyqtSlot(int, int, int)
+    def move_rel_fast(self, x: int = None, y: int = None, z: int = None):
+        self.stage.move_rel(x, y, z, check_status=False)
