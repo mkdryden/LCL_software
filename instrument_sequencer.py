@@ -76,7 +76,13 @@ class InstrumentSequencer(QtCore.QObject):
     @QtCore.pyqtSlot(np.ndarray)
     def _vid_process_slot(self, image):
         if self.frame_count > self.frameskip:
-            self.camera.vid_process_signal.disconnect(self._vid_process_slot)
+            return
+
+        if self.frame_count == self.frameskip:   # TODO: Temporary fix for slot getting called multiple times
+            try:
+                self.camera.vid_process_signal.disconnect(self._vid_process_slot)
+            except TypeError:
+                pass
             self.image = image
             logger.info("Got new image")
             self.got_image_signal.emit()
