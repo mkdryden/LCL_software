@@ -129,7 +129,6 @@ class InstrumentSequencer(QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def laser_arm(self):
-        logger.info("laser_arm")
         if self.laser_armed:
             return
         if self.laser.connected:
@@ -142,7 +141,6 @@ class InstrumentSequencer(QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def laser_disarm(self):
-        logger.info("laser_disarm")
         if self.laser.connected:
             self.laser_stop()
             if self.laser_last_filter_cube != 0:
@@ -153,7 +151,6 @@ class InstrumentSequencer(QtCore.QObject):
     def laser_fire(self, take_image: bool, take_video: bool, z_offset: typing.SupportsInt):
         if self.laser_firing:
             return
-        logger.info("laser_fire")
         if self.laser_armed:
             self.take_laser_image = take_image
             self.take_laser_video = take_video
