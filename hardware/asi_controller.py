@@ -3,12 +3,10 @@ import typing
 import logging
 
 import serial
-import numpy as np
 from PyQt5 import QtCore
 
 from controllers import BaseController, ResponseError
 from presets import SettingValue
-from utils import comment
 
 
 class StageController(BaseController):
@@ -27,31 +25,7 @@ class StageController(BaseController):
 
         self.position = None
         self.status_timer = None
-
-        self.step_size = 500
-        self.reverse_move_vector = np.zeros(2)
-        self.return_from_dmf_vector = np.zeros(2)
-        self.microns_per_pixel = 100 / 34
-        self.calibration_factor = 1.20 * 4
-        self.steps_between_wells = 4400
-        self.down = False
-        self.objective_retracted = None
-        self.previous_z = None
-        self.current_magnification = None
-        self.previous_magnification = None
-        self.objective_slots = {
-            1: 'None',
-            2: 40,
-            3: 'None',
-            4: 60,
-            5: 'None',
-            6: 20
-        }
-        self.objective_calibration_factors = {
-            20: 1,
-            40: 0.51,
-            60: .36,
-            100: 0.205}
+        self.af_status_timer = None
 
     def setup(self):
         settings = [SettingValue("brightness", default_value=10,
@@ -163,40 +137,6 @@ class StageController(BaseController):
         self.logger.info('setting brightness to %s', value)
         self.send_receive('7LED X={}'.format(value))
 
-    @QtCore.pyqtSlot('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
-    def localizer_move_slot(self, move_vector, goto_reticle=False, move_relative=True, scale_vector=True):
-        if move_relative and scale_vector:
-            if goto_reticle:
-                center = np.array([self.center_x, self.center_y])
-                reticle = np.array([self.reticle_x, self.reticle_y])
-                center_to_reticle = center - reticle
-                move_vector += center_to_reticle
-            move_vector = self.scale_move_vector(move_vector)
-            self.move_relative(move_vector)
-        elif move_relative is False and scale_vector is False:
-            print('MOVING')
-            self.move(x=move_vector[0], y=move_vector[1])
-        elif move_relative is False and scale_vector is True:
-            move_vector = self.scale_move_vector(move_vector)
-            self.move(x=move_vector[0], y=move_vector[1])
-        elif move_relative is True and scale_vector is False:
-            self.move_relative(move_vector)
-
-    # zoom and recenter gui signals
-    @QtCore.pyqtSlot('PyQt_PyObject')
-    def zoom_and_move_slot(self, move_vector):
-        if move_vector[0] == 0 and move_vector[1] == 0:
-            return
-        pixel_move_vector = np.array([move_vector[0], move_vector[1]])
-        step_move_vector = self.scale_move_vector(pixel_move_vector)
-        self.move_relative(step_move_vector)
-
-    def move_right_one_well_slot(self):
-        self.move_relative(np.array([self.steps_between_wells, 0]))
-
-    def move_left_one_well_slot(self):
-        self.move_relative(np.array([-self.steps_between_wells, 0]))
-
     def get_cube_position(self):
         pos = self.send_receive('W S')
         pos = pos.split('A ')[1]
@@ -220,10 +160,6 @@ class StageController(BaseController):
         self.set_focus_state('dither')
         time.sleep(5)
         self.set_focus_state('ready')
-
-    def send_ttl_pulse(self):
-        comment(self.send_receive('7TTL Y=1'))
-        comment(self.send_receive('7TTL Y=0'))
 
     def set_focus_state(self, state):
         state_dict = {'idle': 79,
