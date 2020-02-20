@@ -41,7 +41,6 @@ class MainWindow(QMainWindow):
     laser_disarm_signal = QtCore.pyqtSignal()
     laser_fire_signal = QtCore.pyqtSignal(bool, bool, int)
     laser_stop_signal = QtCore.pyqtSignal()
-    start_focus_signal = QtCore.pyqtSignal()
     start_localization_signal = QtCore.pyqtSignal()
     setting_changed_signal = QtCore.pyqtSignal(str, 'PyQt_PyObject')
     nvsetting_changed_signal = QtCore.pyqtSignal(str, 'PyQt_PyObject')
@@ -132,7 +131,6 @@ class MainWindow(QMainWindow):
         # TODO: self.ui.step_size_doublespin_box.valueChanged.connect(self.asi_controller.set_step_size)
 
         # Settings
-        self.ui.autofocus_checkbox.stateChanged.connect(self.autofocus_toggle)
         self.setting_changed_signal.connect(self.sequencer.presets.change_value)
         self.nvsetting_changed_signal.connect(self.sequencer.vol_settings.change_value)
 
@@ -314,9 +312,6 @@ class MainWindow(QMainWindow):
         logger.info("Finished tiling")
         self.set_ui_enabled(True)
 
-    def autofocus_toggle(self):
-        logger.info('toggling autofocus')
-
     def send_user_comment(self):
         logger.info('user comment: %s', self.ui.comment_box.toPlainText())
         self.ui.comment_box.clear()
@@ -347,7 +342,6 @@ class MainWindow(QMainWindow):
 
     def keyPressEvent(self, event):
         if not event.isAutoRepeat():
-            logger.info("key = %s", event.key())
             key_control_dict = {
                 QtCore.Qt.Key_Minus: partial(self._keyboard_move, 'out', 10),
                 QtCore.Qt.Key_Equal: partial(self._keyboard_move, 'in', 10),
