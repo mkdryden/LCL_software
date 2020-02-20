@@ -11,6 +11,7 @@ from presets import SettingValue
 
 class StageController(BaseController):
     done_moving_signal = QtCore.pyqtSignal()
+    af_status_signal = QtCore.pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -42,8 +43,13 @@ class StageController(BaseController):
 
         self.send_receive('B X=0 Y=0')  # turn off backlash compensation on XY
         self.send_receive('7TTL Y=0')  # set TTL low
-        self.serin_logger.info(self.send_receive("AFMOVE Y=1"))  # Enable safe objective switching
+        self.serin_logger.info("\n".join(self.send_receive("N").splitlines()))
+        self.send_receive("AFMOVE Y=1")  # Enable safe objective switching
         self.get_position()
+
+        self.af_status_timer = QtCore.QTimer(self)
+        self.af_status_timer.timeout.connect(self.poll_autofocus_status)
+        self.af_status_timer.start(400)
 
     def test_connection(self, connection):
         connection.write('BU\r'.encode('utf-8'))
@@ -143,33 +149,42 @@ class StageController(BaseController):
         return int(pos) - 1
 
     def turn_on_autofocus(self):
-        self.set_focus_state('lock')
+        self.set_af_state('lock')
 
     def turn_off_autofocus(self):
-        self.set_focus_state('ready')
+        self.set_af_state('ready')
 
     def calibrate_af(self):
         # to calibrate we want to go idle->ready->log_cal->dither
         # and then we want to display the error continuously on the gui
-        self.set_focus_state('idle')
+        self.set_af_state('idle')
         time.sleep(.2)
-        self.set_focus_state('ready')
+        self.set_af_state('ready')
         time.sleep(2)
-        self.set_focus_state('log_cal')
+        self.set_af_state('log_cal')
         time.sleep(2)
-        self.set_focus_state('dither')
+        self.set_af_state('dither')
         time.sleep(5)
-        self.set_focus_state('ready')
+        self.set_af_state('ready')
 
-    def set_focus_state(self, state):
+    @QtCore.pyqtSlot(str)
+    def set_focus_state(self, state: str):
         state_dict = {'idle': 79,
                       'ready': 85,
                       'lock': 83,
                       'log_cal': 72,
+                      'gain_cal': 67,
                       'dither': 102,
                       }
-        comment('setting focus state:{}'.format(state))
-        self.send_receive('LK F={}'.format(state_dict[state]))
+        self.logger.info('AF: Setting state to %s', state)
+        self.send_receive(f'32LK F={state_dict[state]}')
+
+    @QtCore.pyqtSlot()
+    def poll_autofocus_status(self) -> str:
+        msg = " --- ".join((self.send_receive("32EXTRA X?").strip(),
+                        self.send_receive("32EXTRA Y?").strip()))
+        self.af_status_signal.emit(msg)
+        return msg
 
 
 if __name__ == '__main__':

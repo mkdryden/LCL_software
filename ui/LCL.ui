@@ -594,21 +594,51 @@ Tiling:</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout">
             <item>
-             <widget class="QPushButton" name="calibrate_af_pushbutton">
-              <property name="font">
-               <font>
-                <family>Ubuntu</family>
-               </font>
-              </property>
+             <widget class="QLabel" name="autofocus_status_label">
               <property name="text">
-               <string>Calibrate</string>
+               <string/>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QCheckBox" name="autofocus_checkbox">
+             <widget class="QPushButton" name="af_logcal_button">
+              <property name="text">
+               <string>Log Cal</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="af_idle_button">
+              <property name="text">
+               <string>Idle</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="af_ready_button">
+              <property name="text">
+               <string>Ready</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="af_lock_button">
               <property name="text">
                <string>Lock</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="af_gaincal_button">
+              <property name="text">
+               <string>Gain Cal</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="af_dither_button">
+              <property name="text">
+               <string>Dither</string>
               </property>
              </widget>
             </item>

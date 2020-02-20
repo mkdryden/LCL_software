@@ -49,6 +49,7 @@ class MainWindow(QMainWindow):
     remove_preset_signal = QtCore.pyqtSignal(str)
     start_tiling_signal = QtCore.pyqtSignal(list, int, int)
     stage_fast_moverel_signal = QtCore.pyqtSignal(int, int, int)
+    af_mode_signal = QtCore.pyqtSignal(str)
 
     def __init__(self, test_run: bool):
         super(MainWindow, self).__init__()
@@ -146,6 +147,7 @@ class MainWindow(QMainWindow):
 
         self.setup_comboboxes()
         self.setup_laser_ui()
+        self.setup_af_ui()
 
         self.show()
 
@@ -160,6 +162,16 @@ class MainWindow(QMainWindow):
         self.laser_disarm_signal.connect(self.sequencer.laser_disarm)
         self.laser_fire_signal.connect(self.sequencer.laser_fire)
         self.laser_stop_signal.connect(self.sequencer.laser_stop)
+
+    def setup_af_ui(self):
+        self.sequencer.stage.af_status_signal.connect(self.ui.autofocus_status_label.setText)
+        self.af_mode_signal.connect(self.sequencer.stage.set_focus_state)
+        self.ui.af_logcal_button.clicked.connect(partial(self.af_mode_signal.emit, 'log_cal'))
+        self.ui.af_idle_button.clicked.connect(partial(self.af_mode_signal.emit, 'idle'))
+        self.ui.af_ready_button.clicked.connect(partial(self.af_mode_signal.emit, 'ready'))
+        self.ui.af_lock_button.clicked.connect(partial(self.af_mode_signal.emit, 'lock'))
+        self.ui.af_gaincal_button.clicked.connect(partial(self.af_mode_signal.emit, 'gain_cal'))
+        self.ui.af_dither_button.clicked.connect(partial(self.af_mode_signal.emit, 'dither'))
 
     def setup_comboboxes(self):
         self.ui.excitation_lamp_on_combobox.addItems(wl_to_idx.keys())
