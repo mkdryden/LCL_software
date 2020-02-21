@@ -71,7 +71,7 @@ class StageController(BaseController):
         return self.position
 
     def is_moving(self):
-        reply = self.send_receive('/').strip()
+        reply = self.send_receive('/', log=False).strip()
         if reply == 'B':
             return True
         elif reply == 'N':
