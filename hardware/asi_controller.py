@@ -112,7 +112,7 @@ class StageController(BaseController):
         """
         cmd_string = 'R'
         for direction, var in zip(['X', 'Y', 'Z'], [x, y, z]):
-            if var is not None:
+            if var is not None and var != 0:
                 cmd_string += f' {direction}={var}'
         self.send_receive(cmd_string)
         if check_status:
