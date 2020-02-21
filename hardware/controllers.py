@@ -78,15 +78,17 @@ class BaseController(QtCore.QObject):
         except ResponseError as e:
             self.logger.warning(e.message)
 
-    def get_response(self):
+    def get_response(self, log: bool = True):
         response = ""
         for line in self.ser:
             response += line.decode("ascii")
-        self.serin_logger.debug(repr(response))
+        if log:
+            self.serin_logger.debug(repr(response))
         return response
 
-    def send_receive(self, command):
+    def send_receive(self, command, log: bool = True):
         command_string = command + self.command_delimiter
-        self.serout_logger.debug(repr(command_string))
+        if log:
+            self.serout_logger.debug(repr(command_string))
         self.ser.write(command_string.encode('utf-8'))
-        return self.get_response()
+        return self.get_response(log)
