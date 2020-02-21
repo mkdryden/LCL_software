@@ -7,6 +7,7 @@ from PyQt5 import QtCore
 
 from controllers import BaseController, ResponseError
 from presets import SettingValue
+from utils import wait_signal
 
 
 class StageController(BaseController):
@@ -43,7 +44,14 @@ class StageController(BaseController):
 
         self.send_receive('B X=0 Y=0')  # turn off backlash compensation on XY
         self.send_receive('7TTL Y=0')  # set TTL low
-        self.serin_logger.info("\n".join(self.send_receive("N").splitlines()))
+        self.serin_logger.info("\n".join(self.send_receive("N").splitlines()))  # print general info
+
+        # Home Z-axis
+        with wait_signal(self.done_moving_signal, timeout=15000):
+            self.send_receive("! Z")
+            self.status_timer.start(200)
+        self.send_receive("HERE Z")
+
         self.send_receive("AFMOVE Y=1")  # Enable safe objective switching
         self.get_position()
 
