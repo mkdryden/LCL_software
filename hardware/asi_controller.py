@@ -146,6 +146,7 @@ class StageController(BaseController):
         """
         pos = self.send_receive('W O')
         pos = pos.split('A ')[1]
+        self.logger.info("ASI objective index %s", pos)
         return int(pos) - 1
 
     def change_cube_position(self, index):
