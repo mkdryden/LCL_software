@@ -156,25 +156,6 @@ class StageController(BaseController):
         pos = pos.split('A ')[1]
         return int(pos) - 1
 
-    def turn_on_autofocus(self):
-        self.set_af_state('lock')
-
-    def turn_off_autofocus(self):
-        self.set_af_state('ready')
-
-    def calibrate_af(self):
-        # to calibrate we want to go idle->ready->log_cal->dither
-        # and then we want to display the error continuously on the gui
-        self.set_af_state('idle')
-        time.sleep(.2)
-        self.set_af_state('ready')
-        time.sleep(2)
-        self.set_af_state('log_cal')
-        time.sleep(2)
-        self.set_af_state('dither')
-        time.sleep(5)
-        self.set_af_state('ready')
-
     @QtCore.pyqtSlot(str)
     def set_focus_state(self, state: str):
         state_dict = {'idle': 79,
