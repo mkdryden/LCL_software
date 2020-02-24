@@ -208,5 +208,3 @@ if __name__ == '__main__':
     stage.init_controller()
     stage.get_position()
     stage.send_receive('HERE S=0 O=0')  # Zeros objective and filter cube to position 1
-    # stage.send_receive('P X? Y? Z?')
-    # stage.send_receive('HERE Z')
