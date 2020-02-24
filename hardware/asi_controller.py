@@ -6,11 +6,13 @@ import serial
 from PyQt5 import QtCore
 
 from controllers import BaseController, ResponseError
+from objectives import Objectives
 from presets import SettingValue
 from utils import wait_signal
 
 
 class StageController(BaseController):
+    objectives: Objectives
     done_moving_signal = QtCore.pyqtSignal()
     af_status_signal = QtCore.pyqtSignal(str)
 
@@ -28,6 +30,7 @@ class StageController(BaseController):
         self.position = None
         self.status_timer = None
         self.af_status_timer = None
+        self.objectives = None
 
     def setup(self):
         settings = [SettingValue("brightness", default_value=10,
@@ -39,6 +42,8 @@ class StageController(BaseController):
         self.settings = {i.name: i for i in settings}
 
     def start_controller(self):
+        self.objectives = Objectives(self)
+
         self.status_timer = QtCore.QTimer(self)
         self.status_timer.timeout.connect(self.is_moving)
 

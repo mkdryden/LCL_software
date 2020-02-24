@@ -6,7 +6,8 @@ import yaml
 from PyQt5 import QtCore
 
 from utils import appdirs, wait_signal
-from hardware.asi_controller import StageController
+if typing.TYPE_CHECKING:
+    from hardware.asi_controller import StageController
 
 logger = logging.getLogger(__name__)
 default_file = os.path.join(appdirs.user_config_dir, 'objectives.yaml')
@@ -46,7 +47,7 @@ class Objectives(QtCore.QObject):
     objectives_changed = QtCore.pyqtSignal(list)
     objective_changed = QtCore.pyqtSignal(str)
 
-    def __init__(self, controller: StageController = None):
+    def __init__(self, controller: 'StageController' = None):
         super(Objectives, self).__init__()
         self.controller = controller
         self.objectives = {n: Objective("Empty", 1) for n in range(6)}

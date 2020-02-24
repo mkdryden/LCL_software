@@ -49,7 +49,7 @@ class InstrumentSequencer(QtCore.QObject):
         Initialize instruments. Needs to be done in correct thread
         """
         self.stage.init_controller()
-        self.objectives = objectives.Objectives(self.stage)
+        self.objectives = self.stage.objectives
         self.objectives.load_yaml()
         self.laser.init_controller()
         self.excitation.init_controller()
