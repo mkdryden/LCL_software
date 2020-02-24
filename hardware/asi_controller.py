@@ -56,8 +56,8 @@ class StageController(BaseController):
         self.get_position()
 
         self.af_status_timer = QtCore.QTimer(self)
-        self.af_status_timer.timeout.connect(self.poll_autofocus_status)
-        self.af_status_timer.start(400)
+        self.af_status_timer.timeout.connect(self.af_poll_status)
+        self.af_status_timer.start(200)
 
     def test_connection(self, connection):
         connection.write('BU\r'.encode('utf-8'))
@@ -157,21 +157,27 @@ class StageController(BaseController):
         return int(pos) - 1
 
     @QtCore.pyqtSlot(str)
-    def set_focus_state(self, state: str):
-        state_dict = {'idle': 79,
-                      'ready': 85,
-                      'lock': 83,
-                      'log_cal': 72,
-                      'gain_cal': 67,
-                      'dither': 102,
+    def af_set_state(self, state: str):
+        state_dict = {'idle': "32LK F=79",
+                      'ready': "32LK F=85",
+                      'lock': "32LK F=83",
+                      'log_cal': "32LK F=72",
+                      'gain_cal': "32LK F=67",
+                      'dither': "32LK F=102",
                       }
         self.logger.info('AF: Setting state to %s', state)
-        self.send_receive(f'32LK F={state_dict[state]}')
+        self.send_receive(f'{state_dict[state]}')
+
+    @QtCore.pyqtSlot(int)
+    def af_set_led(self, intensity: int):
+        self.logger.info('AF: Setting LED to %s', intensity)
+        self.send_receive(f'32UL X={intensity:d}')
+        self.serin_logger.info(self.send_receive('32UL X?'))
 
     @QtCore.pyqtSlot()
-    def poll_autofocus_status(self) -> str:
-        msg = " --- ".join((self.send_receive("32EXTRA X?").strip(),
-                        self.send_receive("32EXTRA Y?").strip()))
+    def af_poll_status(self) -> str:
+        msg = " --- ".join((self.send_receive("32EXTRA X?", log=False).strip(),
+                            self.send_receive("32EXTRA Y?", log=False).strip()))
         self.af_status_signal.emit(msg)
         return msg
 
