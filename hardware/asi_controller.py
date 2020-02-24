@@ -47,7 +47,6 @@ class StageController(BaseController):
         self.status_timer = QtCore.QTimer(self)
         self.status_timer.timeout.connect(self.is_moving)
 
-        self.send_receive('B X=0 Y=0')  # turn off backlash compensation on XY
         self.send_receive('7TTL Y=0')  # set TTL low
         self.serin_logger.info("\n".join(self.send_receive("N").splitlines()))  # print general info
 
