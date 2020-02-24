@@ -105,7 +105,7 @@ class InstrumentSequencer(QtCore.QObject):
         return np.dstack(images)
 
     @QtCore.pyqtSlot(float, float)
-    def move_rel_frame(self, x: typing.SupportsFloat = None, y: typing.SupportsFloat = None) -> None:
+    def move_rel_frame(self, x: float = None, y: float = None) -> None:
         """
         Move relative to the current frame size.
         :param x: Multiple of current frame width to move
@@ -148,7 +148,7 @@ class InstrumentSequencer(QtCore.QObject):
         self.laser_armed = False
 
     @QtCore.pyqtSlot(bool, bool, int)
-    def laser_fire(self, take_image: bool, take_video: bool, z_offset: typing.SupportsInt):
+    def laser_fire(self, take_image: bool, take_video: bool, z_offset: int):
         if self.laser_firing:
             return
         if self.laser_armed:

@@ -81,6 +81,7 @@ class StageController(BaseController):
         positions = self.send_receive('W X Y Z')
         cleaned = positions.replace('\r', '').split(' ')[1:-1]
         self.position = tuple(int(x) for x in cleaned)
+        # noinspection PyTypeChecker
         return self.position
 
     def is_moving(self):
