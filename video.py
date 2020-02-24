@@ -66,7 +66,8 @@ class ImageViewer(QtWidgets.QWidget):
     @QtCore.pyqtSlot(QtGui.QPixmap)
     def set_image(self, image: QtGui.QPixmap):
         if not self.image_drawn:
-            logger.debug("Viewer Dropped frame!")
+            pass
+            # logger.debug("Viewer Dropped frame!")  # Very noisy logger
         self.image = image
         if self.image is None:
             return
