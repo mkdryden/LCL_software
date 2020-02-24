@@ -170,6 +170,9 @@ class StageController(BaseController):
                       'gain_cal': "32LK F=67",
                       'dither': "32LK F=102",
                       }
+        if state == 'gain_cal':
+            self.logger.info('AF: Setting NA to %s', self.objectives.current_objective.na)
+            self.send_receive(f"32LR Y={self.objectives.current_objective.na}")
         self.logger.info('AF: Setting state to %s', state)
         self.send_receive(f'{state_dict[state]}')
 
