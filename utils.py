@@ -192,7 +192,7 @@ class ScreenShooter(QtCore.QObject):
         :param presets: List of name, wavelength tuples with same length as 3rd dimension of imgs.
         :return:
         """
-        save_loc = os.path.join(experiment_folder_location, '{}___{}'.format('well_image', now()))
+        save_loc = os.path.join(experiment_folder_location, f'{self.image_title}_{now()}')
         im_list = []
 
         for x, i in enumerate(imgs):
