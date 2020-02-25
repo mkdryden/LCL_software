@@ -72,20 +72,24 @@ class MainWindow(QMainWindow):
         self.vid = self.sequencer.camera
 
         # 100% view widget
-        self.zoom_window = QtWidgets.QDockWidget(parent=self)
-        self.zoom_window.setMinimumSize(300, 300)
-        self.zoom_window.setSizePolicy(
+        self.zoom_dockwidget = QtWidgets.QDockWidget(parent=self)
+        self.zoom_dockwidget.setMinimumSize(300, 300)
+        self.zoom_dockwidget.setSizePolicy(
             QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed))
-        self.zoom_window.setFloating(True)
-        self.zoom_window.setFeatures(
+        self.zoom_dockwidget.setFeatures(
             QtWidgets.QDockWidget.DockWidgetFloatable | QtWidgets.QDockWidget.DockWidgetMovable)
-        self.zoom_window.setWindowTitle("100 %")
+        self.zoom_dockwidget.setWindowTitle("100 %")
         self.zoom_image_viewer = MagnifiedImageViewer()
         self.zoom_image_viewer.setMinimumSize(300, 300)
         self.zoom_image_viewer.setSizePolicy(
             QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Maximum))
-        self.zoom_window.setWidget(self.zoom_image_viewer)
-        self.addDockWidget(QtCore.Qt.DockWidgetArea(QtCore.Qt.LeftDockWidgetArea), self.zoom_window)
+        self.zoom_dockwidget.setWidget(self.zoom_image_viewer)
+
+        # Nest instrument and zoom dockwidgets, zoom at top
+        self.splitDockWidget(self.ui.instrument_dockwidget, self.zoom_dockwidget, QtCore.Qt.Vertical)
+        self.removeDockWidget(self.ui.instrument_dockwidget)
+        self.splitDockWidget(self.zoom_dockwidget, self.ui.instrument_dockwidget, QtCore.Qt.Vertical)
+        self.ui.instrument_dockwidget.show()
 
         # add the viewer to our ui and let resize with image aspect
         aspect_widget = AspectRatioWidget(self.image_viewer)
@@ -392,7 +396,7 @@ class MainWindow(QMainWindow):
                 pass
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
-        self.zoom_window.close()
+        self.zoom_dockwidget.close()
         self.screen_shooter.set_recording_state(False)
         self.screenshooter_thread.quit()
         self.sequencer_thread.quit()
