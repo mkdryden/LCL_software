@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1646</width>
-    <height>1035</height>
+    <width>1781</width>
+    <height>1060</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -514,11 +514,75 @@ Tiling:</string>
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>301</width>
-          <height>989</height>
+          <width>343</width>
+          <height>1014</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout">
+         <item row="5" column="0">
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="0" column="0">
+          <widget class="QGroupBox" name="objective_groupbox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>138</width>
+             <height>116</height>
+            </size>
+           </property>
+           <property name="title">
+            <string>Objective</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_10">
+            <item>
+             <widget class="QLabel" name="magnification_label">
+              <property name="text">
+               <string>Magnification</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="magnification_combobox">
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="editable">
+               <bool>false</bool>
+              </property>
+              <property name="currentText">
+               <string extracomment="4x"/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="retract_objective_checkbox">
+              <property name="text">
+               <string>Retract Objective</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
          <item row="1" column="0">
           <widget class="QGroupBox" name="stage_groupbox">
            <property name="sizePolicy">
@@ -569,108 +633,6 @@ Tiling:</string>
               </property>
               <property name="maximum">
                <number>500</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QGroupBox" name="autofocus_groupbox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>96</height>
-            </size>
-           </property>
-           <property name="title">
-            <string>Autofocus</string>
-           </property>
-           <layout class="QGridLayout" name="gridLayout_3">
-            <item row="0" column="0" colspan="4">
-             <widget class="QLabel" name="autofocus_status_label">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0" colspan="2">
-             <widget class="QPushButton" name="af_logcal_button">
-              <property name="text">
-               <string>Log Cal</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2" colspan="2">
-             <widget class="QPushButton" name="af_idle_button">
-              <property name="text">
-               <string>Idle</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0" colspan="4">
-             <widget class="QPushButton" name="af_ready_button">
-              <property name="text">
-               <string>Ready</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0" colspan="4">
-             <widget class="QPushButton" name="af_lock_button">
-              <property name="text">
-               <string>Lock</string>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="0">
-             <widget class="QLabel" name="af_led_label">
-              <property name="text">
-               <string>LED</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="1" colspan="3">
-             <widget class="QSlider" name="af_led_slider">
-              <property name="maximum">
-               <number>100</number>
-              </property>
-              <property name="value">
-               <number>50</number>
-              </property>
-              <property name="tracking">
-               <bool>false</bool>
-              </property>
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="tickPosition">
-               <enum>QSlider::TicksBelow</enum>
-              </property>
-              <property name="tickInterval">
-               <number>25</number>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="0" colspan="2">
-             <widget class="QPushButton" name="af_gaincal_button">
-              <property name="text">
-               <string>Gain Cal</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="2" colspan="2">
-             <widget class="QPushButton" name="af_dither_button">
-              <property name="text">
-               <string>Dither</string>
               </property>
              </widget>
             </item>
@@ -793,51 +755,131 @@ Tiling:</string>
            </layout>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="QGroupBox" name="objective_groupbox">
+         <item row="2" column="0">
+          <widget class="QGroupBox" name="autofocus_groupbox">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
            <property name="minimumSize">
             <size>
-             <width>138</width>
-             <height>116</height>
+             <width>0</width>
+             <height>96</height>
             </size>
            </property>
            <property name="title">
-            <string>Objective</string>
+            <string>Autofocus</string>
            </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_10">
-            <item>
-             <widget class="QLabel" name="magnification_label">
+           <layout class="QGridLayout" name="gridLayout_3" columnstretch="1,1,1,1">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
+            <item row="0" column="0" colspan="4">
+             <widget class="QLabel" name="autofocus_status_label">
               <property name="text">
-               <string>Magnification</string>
+               <string/>
               </property>
              </widget>
             </item>
-            <item>
-             <widget class="QComboBox" name="magnification_combobox">
-              <property name="focusPolicy">
-               <enum>Qt::NoFocus</enum>
+            <item row="1" column="0" colspan="2">
+             <widget class="QPushButton" name="af_logcal_button">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>1</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
               </property>
-              <property name="editable">
+              <property name="text">
+               <string>Log Cal</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0" colspan="2">
+             <widget class="QPushButton" name="af_ready_button">
+              <property name="text">
+               <string>Ready</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0" colspan="2">
+             <widget class="QPushButton" name="af_gaincal_button">
+              <property name="text">
+               <string>Gain Cal</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0" rowspan="2" colspan="2">
+             <widget class="QPushButton" name="af_balance_button">
+              <property name="text">
+               <string>Balance</string>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="0">
+             <widget class="QLabel" name="af_led_label">
+              <property name="text">
+               <string>LED</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="1" colspan="3">
+             <widget class="QSlider" name="af_led_slider">
+              <property name="maximum">
+               <number>100</number>
+              </property>
+              <property name="value">
+               <number>50</number>
+              </property>
+              <property name="tracking">
                <bool>false</bool>
               </property>
-              <property name="currentText">
-               <string extracomment="4x"/>
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::TicksBelow</enum>
+              </property>
+              <property name="tickInterval">
+               <number>25</number>
               </property>
              </widget>
             </item>
-            <item>
-             <widget class="QCheckBox" name="retract_objective_checkbox">
+            <item row="5" column="2" rowspan="2" colspan="2">
+             <widget class="QPushButton" name="af_fcurve_button">
               <property name="text">
-               <string>Retract Objective</string>
+               <string>Focus Curve</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="2" colspan="2">
+             <widget class="QPushButton" name="af_dither_button">
+              <property name="text">
+               <string>Dither</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="2" colspan="2">
+             <widget class="QPushButton" name="af_lock_button">
+              <property name="text">
+               <string>Lock</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2" colspan="2">
+             <widget class="QPushButton" name="af_idle_button">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>1</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Idle</string>
               </property>
              </widget>
             </item>
@@ -927,19 +969,6 @@ to Lyse</string>
             </item>
            </layout>
           </widget>
-         </item>
-         <item row="5" column="0">
-          <spacer name="verticalSpacer">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
          </item>
         </layout>
        </widget>

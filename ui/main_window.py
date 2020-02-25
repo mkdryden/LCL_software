@@ -172,6 +172,8 @@ class MainWindow(QMainWindow):
         self.ui.af_lock_button.clicked.connect(partial(self.af_mode_signal.emit, 'lock'))
         self.ui.af_gaincal_button.clicked.connect(partial(self.af_mode_signal.emit, 'gain_cal'))
         self.ui.af_dither_button.clicked.connect(partial(self.af_mode_signal.emit, 'dither'))
+        self.ui.af_balance_button.clicked.connect(partial(self.af_mode_signal.emit, 'balance'))
+        self.ui.af_fcurve_button.clicked.connect(partial(self.af_mode_signal.emit, 'focus_curve'))
         self.ui.af_led_slider.valueChanged.connect(self.sequencer.stage.af_set_led)
 
     def setup_comboboxes(self):
