@@ -244,6 +244,10 @@ class StageController(BaseController):
                        'E': "Error",
                        'G': "Log cal done",
                        'f': "Dither",
+                       'g': "Dither",
+                       'h': "Dither",
+                       'i': "Dither",
+                       'j': "Dither",
                        'c': "Collecting focus curve…",
                        'B': "PD Balance"
                        }
