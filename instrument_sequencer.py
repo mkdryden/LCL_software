@@ -78,7 +78,8 @@ class InstrumentSequencer(QtCore.QObject):
         if self.frame_count > self.frameskip:
             return
 
-        if self.frame_count == self.frameskip:   # TODO: Temporary fix for slot getting called multiple times
+        # TODO: Figure out why this slot gets called multiple times
+        if self.frame_count == self.frameskip:
             try:
                 self.camera.vid_process_signal.disconnect(self._vid_process_slot)
             except TypeError:
@@ -197,7 +198,7 @@ class InstrumentSequencer(QtCore.QObject):
 
         for n_x, x in enumerate(x_grid):
             for n_y, y in enumerate(y_grid):
-                logger.info("Target rel: %s %s", x, y)
+                logger.info("Tile coordinates: %s %s", x, y)
                 self.move_rel_frame(x - pos_x, y - pos_y)
                 pos_x = x
                 pos_y = y

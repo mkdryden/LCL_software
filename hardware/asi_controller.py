@@ -47,7 +47,7 @@ class StageController(BaseController):
         self.settings = {i.name: i for i in settings}
 
     def start_controller(self):
-        self.objectives = Objectives(self)
+        self.objectives = Objectives(self)  # Needs to be done after connection
 
         self.status_timer = QtCore.QTimer(self)
         self.status_timer.timeout.connect(self.is_moving)
