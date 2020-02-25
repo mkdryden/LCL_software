@@ -144,14 +144,7 @@ class ScreenShooter(QtCore.QObject):
             return
         im = Image.fromarray(np.left_shift(self.image, 4))  # Zero pad 12 to 16 bits
         im.save(os.path.join(experiment_folder_location,
-                             '{}_{}.tif'.format(name, now())),
-                format='tiff', compression='tiff_lzw')
-
-    @QtCore.pyqtSlot(np.ndarray, str)
-    def save_named_image(self, image: np.ndarray, name: str):
-        self.image = image
-        im = Image.fromarray(np.left_shift(self.image, 4))  # Zero pad 12 to 16 bits
-        im.save(os.path.join(experiment_folder_location, '{}_{}.tif'.format(name, now())),
+                             f'{name}_{now()}.tif'),
                 format='tiff', compression='tiff_lzw')
 
     @QtCore.pyqtSlot(bool)
@@ -165,7 +158,7 @@ class ScreenShooter(QtCore.QObject):
                 ffmpeg.input('pipe:', format='rawvideo', pix_fmt='gray12le',
                              s='{}x{}'.format(*reversed(self.image.shape)), framerate=20)
                       .output(os.path.join(experiment_folder_location,
-                                           self.image_title + "-" + now() + ".mp4"),
+                                           f"{self.image_title}-{now()}.mp4"),
                               crf=21, preset="fast", pix_fmt='yuv420p')
                       .overwrite_output()
                       .run_async(pipe_stdin=True)

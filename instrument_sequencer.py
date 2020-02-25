@@ -14,7 +14,6 @@ class InstrumentSequencer(QtCore.QObject):
     done_init_signal = QtCore.pyqtSignal()
     tile_done_signal = QtCore.pyqtSignal(list, list)
     got_image_signal = QtCore.pyqtSignal()
-    save_image_signal = QtCore.pyqtSignal(np.ndarray, str)
     set_record_signal = QtCore.pyqtSignal(bool)
 
     def __init__(self, screenshooter: ScreenShooter, frameskip: int = 2):
@@ -70,7 +69,6 @@ class InstrumentSequencer(QtCore.QObject):
 
     def setup_signals(self):
         self.tile_done_signal.connect(self.screenshooter.save_well_imgs)
-        self.save_image_signal.connect(self.screenshooter.save_named_image)
         self.set_record_signal.connect(self.screenshooter.set_recording_state)
 
     @QtCore.pyqtSlot(np.ndarray)
