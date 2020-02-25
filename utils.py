@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def now():
-    return datetime.datetime.now().strftime('%d_%m_%Y___%H.%M.%S.%f')
+    return datetime.datetime.now().strftime('%d_%m_%Y___%H.%M.%S')
 
 
 def comment(text):
