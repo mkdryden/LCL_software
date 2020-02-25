@@ -129,7 +129,6 @@ class MainWindow(QMainWindow):
 
         # Stage movement buttons
         self.stage_fast_moverel_signal.connect(self.sequencer.move_rel_fast)
-        # TODO: self.ui.step_size_doublespin_box.valueChanged.connect(self.asi_controller.set_step_size)
 
         # Settings
         self.setting_changed_signal.connect(self.sequencer.presets.change_value)
@@ -197,12 +196,6 @@ class MainWindow(QMainWindow):
         self.ui.magnification_combobox.setCurrentIndex(self.sequencer.objectives.current_index)
         self.ui.magnification_combobox.currentIndexChanged.connect(
             self.sequencer.objectives.change_objective)
-
-        self.ui.cell_type_to_lyse_comboBox.addItems(['red', 'green'])
-        # self.ui.cell_type_to_lyse_comboBox.currentIndexChanged.connect(self.localizer.change_type_to_lyse)
-
-        self.ui.lysis_mode_comboBox.addItems(['direct', 'excision'])
-        # self.ui.lysis_mode_comboBox.currentIndexChanged.connect(self.localizer.change_lysis_mode)
 
         self.ui.preset_comboBox.currentTextChanged.connect(self.preset_manager.set_preset)
         self.preset_manager.preset_loaded_signal.connect(self.update_settings)
