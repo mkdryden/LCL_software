@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1781</width>
-    <height>1035</height>
+    <width>1811</width>
+    <height>870</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -68,8 +68,8 @@
   <widget class="QDockWidget" name="acquisition_dockwidget">
    <property name="minimumSize">
     <size>
-     <width>271</width>
-     <height>1015</height>
+     <width>367</width>
+     <height>836</height>
     </size>
    </property>
    <property name="floating">
@@ -92,7 +92,7 @@
      <item>
       <widget class="QGroupBox" name="acquisition_groupbox">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -100,7 +100,7 @@
        <property name="minimumSize">
         <size>
          <width>0</width>
-         <height>479</height>
+         <height>300</height>
         </size>
        </property>
        <property name="title">
@@ -118,6 +118,12 @@
        <layout class="QGridLayout" name="gridLayout">
         <item row="5" column="0">
          <widget class="QLabel" name="intensity_label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>Intensity</string>
           </property>
@@ -125,6 +131,12 @@
         </item>
         <item row="3" column="0" colspan="2">
          <widget class="QLabel" name="cube_position_label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>Cube Position</string>
           </property>
@@ -132,6 +144,12 @@
         </item>
         <item row="4" column="0" colspan="3">
          <widget class="QComboBox" name="cube_position_combobox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
@@ -145,6 +163,12 @@
         </item>
         <item row="1" column="0">
          <widget class="QLabel" name="brightness_label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>Brightness</string>
           </property>
@@ -152,6 +176,12 @@
         </item>
         <item row="0" column="0">
          <widget class="QLabel" name="exposure_label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>Exposure</string>
           </property>
@@ -159,16 +189,35 @@
         </item>
         <item row="2" column="0">
          <widget class="QLabel" name="gain_label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>Gain</string>
           </property>
          </widget>
         </item>
         <item row="10" column="0" colspan="3">
-         <widget class="QComboBox" name="preset_comboBox"/>
+         <widget class="QComboBox" name="preset_comboBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item row="7" column="0" colspan="3">
          <widget class="QComboBox" name="excitation_lamp_on_combobox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
@@ -183,12 +232,18 @@
         <item row="9" column="0">
          <widget class="QLabel" name="acquisition_preset_label">
           <property name="text">
-           <string>Preset</string>
+           <string>Presets:</string>
           </property>
          </widget>
         </item>
         <item row="8" column="0">
          <widget class="QLabel" name="emission_label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>Emission</string>
           </property>
@@ -196,34 +251,70 @@
         </item>
         <item row="6" column="0">
          <widget class="QLabel" name="excitation_lamp_on_label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>Excitation</string>
           </property>
          </widget>
         </item>
-        <item row="11" column="0" colspan="3">
-         <widget class="QPushButton" name="save_preset_pushButton">
-          <property name="text">
-           <string>Save/Overwrite</string>
-          </property>
-         </widget>
-        </item>
-        <item row="13" column="0" colspan="3">
+        <item row="12" column="2">
          <widget class="QPushButton" name="remove_preset_pushButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
-           <string>Remove Preset</string>
+           <string>Remove</string>
           </property>
          </widget>
         </item>
-        <item row="12" column="0" colspan="3">
+        <item row="12" column="1">
          <widget class="QPushButton" name="add_preset_pushButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
-           <string>Add Preset</string>
+           <string>Add</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="2">
+        <item row="12" column="0">
+         <widget class="QPushButton" name="save_preset_pushButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Save</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" colspan="2">
          <widget class="QSpinBox" name="exposure_spin_box">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>21</height>
+           </size>
+          </property>
           <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
           </property>
@@ -247,8 +338,20 @@
           </property>
          </widget>
         </item>
-        <item row="1" column="2">
+        <item row="1" column="1" colspan="2">
          <widget class="QSpinBox" name="brightness_spin_box">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>21</height>
+           </size>
+          </property>
           <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
           </property>
@@ -263,8 +366,20 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="2">
+        <item row="2" column="1" colspan="2">
          <widget class="QSpinBox" name="gain_spin_box">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>21</height>
+           </size>
+          </property>
           <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
           </property>
@@ -276,8 +391,20 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="2">
+        <item row="5" column="1" colspan="2">
          <widget class="QSpinBox" name="intensity_spin_box">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>21</height>
+           </size>
+          </property>
           <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
           </property>
@@ -292,8 +419,20 @@
           </property>
          </widget>
         </item>
-        <item row="8" column="2">
+        <item row="8" column="1" colspan="2">
          <widget class="QSpinBox" name="emission_spin_box">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>21</height>
+           </size>
+          </property>
           <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
           </property>
@@ -319,15 +458,26 @@
      </item>
      <item>
       <widget class="QGroupBox" name="imaging_groupbox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="title">
         <string>Imaging</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="3" column="0" colspan="2">
          <widget class="QLabel" name="tile_preset_label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
-           <string>Presets to Use For
-Tiling:</string>
+           <string>Presets to Use For Tiling:</string>
           </property>
          </widget>
         </item>
@@ -336,6 +486,12 @@ Tiling:</string>
         </item>
         <item row="5" column="0">
          <widget class="QLabel" name="tile_cols_label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>Columns</string>
           </property>
@@ -346,6 +502,12 @@ Tiling:</string>
         </item>
         <item row="5" column="1">
          <widget class="QSpinBox" name="tile_cols_spinBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
           </property>
@@ -356,6 +518,12 @@ Tiling:</string>
         </item>
         <item row="5" column="2">
          <widget class="QSpinBox" name="tile_rows_spinBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
           </property>
@@ -366,6 +534,12 @@ Tiling:</string>
         </item>
         <item row="5" column="3">
          <widget class="QLabel" name="tile_rows_label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>Rows</string>
           </property>
@@ -374,30 +548,16 @@ Tiling:</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="0" colspan="4">
-         <widget class="QPushButton" name="misc_screenshot_button">
-          <property name="focusPolicy">
-           <enum>Qt::NoFocus</enum>
+        <item row="0" column="0" colspan="2">
+         <widget class="QLabel" name="imagelabel_label">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
           </property>
           <property name="text">
-           <string>Screenshot</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0" colspan="4">
-         <widget class="QPushButton" name="record_push_button">
-          <property name="text">
-           <string>Record</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="6" column="0" colspan="4">
-         <widget class="QPushButton" name="tile_and_navigate_pushbutton">
-          <property name="text">
-           <string>Tile</string>
+           <string>Image Label</string>
           </property>
          </widget>
         </item>
@@ -420,10 +580,48 @@ Tiling:</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="0" colspan="2">
-         <widget class="QLabel" name="imagelabel_label">
+        <item row="6" column="0" colspan="4">
+         <widget class="QPushButton" name="tile_and_navigate_pushbutton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
-           <string>Image Label</string>
+           <string>Tile</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="2">
+         <widget class="QPushButton" name="misc_screenshot_button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
+          <property name="text">
+           <string>Screenshot</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2" colspan="2">
+         <widget class="QPushButton" name="record_push_button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Record</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -432,6 +630,12 @@ Tiling:</string>
      </item>
      <item>
       <widget class="QGroupBox" name="comment_groupbox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="title">
         <string>Comments</string>
        </property>
@@ -445,6 +649,12 @@ Tiling:</string>
         </item>
         <item>
          <widget class="QPushButton" name="user_comment_button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="focusPolicy">
            <enum>Qt::NoFocus</enum>
           </property>
@@ -462,8 +672,8 @@ Tiling:</string>
   <widget class="QDockWidget" name="instrument_dockwidget">
    <property name="minimumSize">
     <size>
-     <width>250</width>
-     <height>123</height>
+     <width>273</width>
+     <height>150</height>
     </size>
    </property>
    <property name="floating">
@@ -518,7 +728,7 @@ Tiling:</string>
           <x>0</x>
           <y>0</y>
           <width>255</width>
-          <height>989</height>
+          <height>803</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout">
@@ -545,8 +755,8 @@ Tiling:</string>
            </property>
            <property name="minimumSize">
             <size>
-             <width>138</width>
-             <height>116</height>
+             <width>0</width>
+             <height>0</height>
             </size>
            </property>
            <property name="title">
@@ -563,19 +773,6 @@ Tiling:</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_10">
             <item>
-             <widget class="QLabel" name="magnification_label">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Magnification</string>
-              </property>
-             </widget>
-            </item>
-            <item>
              <widget class="QComboBox" name="magnification_combobox">
               <property name="focusPolicy">
                <enum>Qt::NoFocus</enum>
@@ -585,6 +782,13 @@ Tiling:</string>
               </property>
               <property name="currentText">
                <string extracomment="4x"/>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="objective_calibration_button">
+              <property name="text">
+               <string>Start Calibration</string>
               </property>
              </widget>
             </item>
@@ -658,7 +862,7 @@ Tiling:</string>
            <property name="minimumSize">
             <size>
              <width>125</width>
-             <height>213</height>
+             <height>0</height>
             </size>
            </property>
            <property name="title">
@@ -774,7 +978,7 @@ Tiling:</string>
            <property name="minimumSize">
             <size>
              <width>0</width>
-             <height>96</height>
+             <height>0</height>
             </size>
            </property>
            <property name="title">
@@ -901,6 +1105,7 @@ Tiling:</string>
     </layout>
    </widget>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <resources/>
  <connections>

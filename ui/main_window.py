@@ -49,6 +49,7 @@ class MainWindow(QMainWindow):
     remove_preset_signal = QtCore.pyqtSignal(str)
     start_tiling_signal = QtCore.pyqtSignal(list, int, int)
     stage_fast_moverel_signal = QtCore.pyqtSignal(int, int, int)
+    stage_get_pos_signal = QtCore.pyqtSignal()
     af_mode_signal = QtCore.pyqtSignal(str)
 
     def __init__(self, test_run: bool):
@@ -147,6 +148,12 @@ class MainWindow(QMainWindow):
         self.preset_model = QtGui.QStandardItemModel()
         self.ui.tile_preset_listView.setModel(self.preset_model)
         self.ui.remove_preset_pushButton.clicked.connect(self.remove_preset)
+
+        # Objective calibration
+        self.obj_cal_pix_vector = QtCore.QLine()
+        self.obj_cal_stage_vector = QtCore.QLine()
+        self.ui.objective_calibration_button.clicked.connect(self.objective_calibration_start)
+        self.stage_get_pos_signal.connect(self.sequencer.stage.get_position)
 
         self.setup_comboboxes()
         self.setup_laser_ui()
@@ -304,6 +311,57 @@ class MainWindow(QMainWindow):
                     good_entry = True
 
     @QtCore.pyqtSlot()
+    def objective_calibration_start(self):
+        self.ui.statusBar.showMessage("Move an object near one corner of the frame, then click on it. "
+                                      "ESC to cancel")
+        self.set_ui_enabled(False)
+        self.image_viewer.click_move_signal.disconnect()
+        self.image_viewer.click_move_pix_signal.connect(self.objective_calibration_p1)
+
+    @QtCore.pyqtSlot(int, int)
+    def objective_calibration_p1(self, x: int, y: int):
+        self.image_viewer.click_move_pix_signal.disconnect()
+        self.obj_cal_pix_vector.setP1(QtCore.QPoint(x, y))
+        self.sequencer.stage.position_signal.connect(self.objective_calibration_p1_stage)
+        self.stage_get_pos_signal.emit()
+
+    @QtCore.pyqtSlot(tuple)
+    def objective_calibration_p1_stage(self, position: typing.Tuple[int, int, int]):
+        self.sequencer.stage.position_signal.disconnect()
+        stage_x, stage_y, _ = position
+        self.obj_cal_stage_vector.setP1(QtCore.QPoint(stage_x, stage_y))
+        self.ui.statusBar.showMessage("Move object near opposite corner of the frame, then click on it. "
+                                      "ESC to cancel")
+        self.image_viewer.click_move_pix_signal.connect(self.objective_calibration_p2)
+
+    @QtCore.pyqtSlot(int, int)
+    def objective_calibration_p2(self, x: int, y: int):
+        self.set_ui_enabled(True)
+        self.image_viewer.click_move_pix_signal.disconnect()
+        self.obj_cal_pix_vector.setP2(QtCore.QPoint(x, y))
+        self.sequencer.stage.position_signal.connect(self.objective_calibration_p2_stage)
+        self.stage_get_pos_signal.emit()
+
+    @QtCore.pyqtSlot(tuple)
+    def objective_calibration_p2_stage(self, position: typing.Tuple[int, int, int]):
+        self.sequencer.stage.position_signal.disconnect()
+        stage_x, stage_y, _ = position
+        self.obj_cal_stage_vector.setP2(QtCore.QPoint(stage_x, stage_y))
+        angle = self.sequencer.objectives.calibrate_current_objective(
+            self.obj_cal_pix_vector, self.obj_cal_stage_vector)
+        self.ui.statusBar.showMessage(f"Estimated stage angle: {angle}°", 5000)
+        self.image_viewer.click_move_signal.connect(self.sequencer.move_rel_frame)
+
+    @QtCore.pyqtSlot()
+    def objective_calibration_cancel(self):
+        self.image_viewer.click_move_pix_signal.disconnect()
+        self.sequencer.stage.position_signal.disconnect()
+        self.image_viewer.click_move_signal.connect(self.sequencer.move_rel_frame)
+
+        self.set_ui_enabled(True)
+        self.ui.statusBar.showMessage("Objective calibration cancelled", 1500)
+
+    @QtCore.pyqtSlot()
     def take_image(self):
         self.screen_shooter.requested_frames.appendleft(self.ui.imagelabel_lineEdit.text())
 
@@ -369,6 +427,7 @@ class MainWindow(QMainWindow):
                                          self.ui.step_size_spin_box.value()*10),
                 QtCore.Qt.Key_Control: self.laser_arm,
                 QtCore.Qt.Key_F: self.laser_fire,
+                QtCore.Qt.Key_Escape: self.objective_calibration_cancel
                 # 81: laser.qswitch_auto,
                 # 73: stage.start_roll_down,
                 # 75:self.autofocuser.roll_backward,
