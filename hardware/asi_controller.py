@@ -17,6 +17,7 @@ from utils import wait_signal, now
 class StageController(BaseController):
     objectives: Objectives
     done_moving_signal = QtCore.pyqtSignal()
+    position_signal = QtCore.pyqtSignal(tuple)
     af_status_signal = QtCore.pyqtSignal(str)
     af_focus_error_signal = QtCore.pyqtSignal()
 
@@ -85,6 +86,7 @@ class StageController(BaseController):
         positions = self.send_receive('W X Y Z')
         cleaned = positions.replace('\r', '').split(' ')[1:-1]
         self.position = tuple(int(x) for x in cleaned)
+        self.position_signal.emit(self.position)
         # noinspection PyTypeChecker
         return self.position
 
