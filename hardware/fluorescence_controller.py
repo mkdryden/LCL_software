@@ -3,8 +3,8 @@ import logging
 from PyQt5 import QtCore
 import serial
 
-from controllers import ResponseError, BaseController
-from presets import SettingValue
+from .controllers import ResponseError, BaseController
+from .presets import SettingValue
 
 DEFAULT_INTENSITY = 50
 

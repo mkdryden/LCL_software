@@ -1,8 +1,8 @@
 import serial
 import logging
 
-from controllers import ResponseError, BaseController
-from presets import SettingValue
+from .controllers import ResponseError, BaseController
+from .presets import SettingValue
 
 
 class LaserController(BaseController):
