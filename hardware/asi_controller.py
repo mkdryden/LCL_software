@@ -9,7 +9,7 @@ import pandas as pd
 
 from .controllers import BaseController, ResponseError
 from .objectives import Objectives
-from .presets import SettingValue
+from .settings import SettingValue
 import utils
 from utils import wait_signal, now
 

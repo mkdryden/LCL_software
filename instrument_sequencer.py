@@ -4,7 +4,7 @@ import typing
 from PyQt5 import QtCore
 import numpy as np
 
-from hardware import objectives, asi_controller, laser_controller, fluorescence_controller, presets, camera
+from hardware import asi_controller, laser_controller, fluorescence_controller, settings, camera
 from utils import wait_signal, ScreenShooter
 
 logger = logging.getLogger(__name__)
@@ -19,8 +19,8 @@ class InstrumentSequencer(QtCore.QObject):
     def __init__(self, screenshooter: ScreenShooter, frameskip: int = 2):
         super(InstrumentSequencer, self).__init__()
         self.screenshooter = screenshooter
-        self.presets = presets.PresetManager(parent=self)
-        self.vol_settings = presets.SettingManager(parent=self)
+        self.presets = settings.PresetManager(parent=self)
+        self.vol_settings = settings.SettingManager(parent=self)
 
         self.camera = camera.ShowVideo()
         self.camera_thread = QtCore.QThread()

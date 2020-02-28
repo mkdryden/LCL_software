@@ -5,7 +5,7 @@ import numpy as np
 from PyQt5 import QtGui, QtCore
 from thorlabs_tsi_sdk.tl_camera import TLCameraSDK
 
-from hardware.presets import SettingValue
+from hardware.settings import SettingValue
 
 logger = logging.getLogger(__name__)
 

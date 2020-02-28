@@ -13,7 +13,7 @@ from ui.LCL_ui import Ui_MainWindow
 from utils import ScreenShooter, AspectRatioWidget, wait_signal
 from video import ImageViewer, MagnifiedImageViewer
 from hardware.fluorescence_controller import wl_to_idx
-from hardware.presets import SettingValue
+from hardware.settings import SettingValue
 from instrument_sequencer import InstrumentSequencer
 
 logger = logging.getLogger(__name__)
