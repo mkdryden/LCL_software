@@ -413,10 +413,10 @@ class MainWindow(QMainWindow):
     def keyPressEvent(self, event):
         if not event.isAutoRepeat():
             key_control_dict = {
-                QtCore.Qt.Key_Minus: partial(self._keyboard_move, 'out', 5),
-                QtCore.Qt.Key_Underscore: partial(self._keyboard_move, 'out', 30),
-                QtCore.Qt.Key_Equal: partial(self._keyboard_move, 'in', 5),
-                QtCore.Qt.Key_Plus: partial(self._keyboard_move, 'in', 30),
+                QtCore.Qt.Key_Minus: partial(self._keyboard_move, 'out', 50),
+                QtCore.Qt.Key_Underscore: partial(self._keyboard_move, 'out', 5000),
+                QtCore.Qt.Key_Equal: partial(self._keyboard_move, 'in', 50),
+                QtCore.Qt.Key_Plus: partial(self._keyboard_move, 'in', 5000),
                 QtCore.Qt.Key_A: partial(self._keyboard_move, 'left',
                                          self.ui.step_size_spin_box.value()*10),
                 QtCore.Qt.Key_S: partial(self._keyboard_move, 'down',
