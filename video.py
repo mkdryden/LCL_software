@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 class ImageViewer(QtWidgets.QWidget):
     click_move_signal = QtCore.pyqtSignal(float, float)
+    click_move_pix_signal = QtCore.pyqtSignal(int, int)
     aspect_changed_signal = QtCore.pyqtSignal(float)
 
     def __init__(self, parent=None, objectives: Objectives = None):
@@ -80,7 +81,8 @@ class ImageViewer(QtWidgets.QWidget):
 
     def mousePressEvent(self, event: QtGui.QMouseEvent):
         """
-        Emits click_move_signal with relative mouse position to centre of window.
+        Emits click_move_signal with relative mouse position to centre of window and
+        click_move_pix_signal with absolute mouse position in camera pixels.
         """
         self.modifiers = event.modifiers()
         click_x, click_y = event.pos().x(), event.pos().y()
@@ -93,6 +95,8 @@ class ImageViewer(QtWidgets.QWidget):
             self.objective.laser_spot_y = click_y / self.scale
         else:
             self.click_move_signal.emit(click_x/self.width() - 0.5, click_y/self.height() - 0.5)
+            self.click_move_pix_signal.emit(click_x // self.scale,
+                                            click_y // self.scale)
 
         self.update()
 
