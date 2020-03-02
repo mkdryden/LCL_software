@@ -58,7 +58,7 @@ class InstrumentSequencer(QtCore.QObject):
             for d in i.settings:
                 self.presets.add_setting(i.settings[d])
 
-        self.presets.load_presets()
+        self.presets.load_yaml()
 
         for i in [self.laser]:
             for j in i.vol_settings.values():

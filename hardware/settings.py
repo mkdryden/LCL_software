@@ -99,11 +99,11 @@ class PresetManager(SettingManager):
             self.preset_loaded_signal.emit(self.get_values())
 
     @QtCore.pyqtSlot(str)
-    def load_presets(self, preset_file=None):
+    def load_yaml(self, path=None):
         try:
-            if preset_file is None:
-                preset_file = preset_loc
-            with open(preset_file) as f:
+            if path is None:
+                path = preset_loc
+            with open(path) as f:
                 self.presets = yaml.load(f, Loader=yaml.SafeLoader)
         except FileNotFoundError:
             logger.warning("Presets file not found, populating with default.")
@@ -116,10 +116,10 @@ class PresetManager(SettingManager):
             self.set_preset(next(iter(self.presets)))
         self.presets_changed_signal.emit(list(self.presets.keys()))
 
-    def save_presets(self, preset_file=None):
-        if preset_file is None:
-            preset_file = preset_loc
-        with open(preset_file, 'w') as f:
+    def save_yaml(self, path=None):
+        if path is None:
+            path = preset_loc
+        with open(path, 'w') as f:
             yaml.dump(self.presets, f)
 
     @QtCore.pyqtSlot('PyQt_PyObject')
@@ -132,7 +132,7 @@ class PresetManager(SettingManager):
             self.preset = name
         self.presets[self.preset] = self.get_values()
         logger.info("Preset %s saved", self.preset)
-        self.save_presets()
+        self.save_yaml()
 
         if name is not None:
             self.set_preset(name)
@@ -152,4 +152,4 @@ class PresetManager(SettingManager):
         except KeyError:
             logger.error("Tried to delete non-existent preset %s", name)
             return
-        self.save_presets()
+        self.save_yaml()
