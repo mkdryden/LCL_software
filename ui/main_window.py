@@ -74,12 +74,13 @@ class MainWindow(QMainWindow):
 
         # 100% view widget
         self.zoom_dockwidget = QtWidgets.QDockWidget(parent=self)
+        self.zoom_dockwidget.setObjectName("zoom_dockwidget")
+        self.zoom_dockwidget.setWindowTitle('100 %')
         self.zoom_dockwidget.setMinimumSize(300, 300)
         self.zoom_dockwidget.setSizePolicy(
             QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed))
         self.zoom_dockwidget.setFeatures(
             QtWidgets.QDockWidget.DockWidgetFloatable | QtWidgets.QDockWidget.DockWidgetMovable)
-        self.zoom_dockwidget.setWindowTitle("100 %")
         self.zoom_image_viewer = MagnifiedImageViewer()
         self.zoom_image_viewer.setMinimumSize(300, 300)
         self.zoom_image_viewer.setSizePolicy(
@@ -158,6 +159,15 @@ class MainWindow(QMainWindow):
         self.setup_comboboxes()
         self.setup_laser_ui()
         self.setup_af_ui()
+
+        # Restore last window state
+        settings = QtCore.QSettings("Wheeler Lab", "LCL Software")
+        try:
+            self.restoreGeometry(settings.value("MainWindow/geometry"))
+            self.restoreState(settings.value("MainWindow/windowState"))
+        except TypeError:  # If no previous settings
+            logger.info("No saved window state")
+            pass
 
         self.show()
 
@@ -455,7 +465,13 @@ class MainWindow(QMainWindow):
                 pass
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        logger.info("Closed MainWindow")
+        self.sequencer.settings.save_yaml()
+        settings = QtCore.QSettings("Wheeler Lab", "LCL Software")
+        settings.setValue("MainWindow/geometry", self.saveGeometry())
+        settings.setValue("MainWindow/windowState", self.saveState())
         self.zoom_dockwidget.close()
         self.screen_shooter.set_recording_state(False)
         self.screenshooter_thread.quit()
         self.sequencer_thread.quit()
+        super(MainWindow, self).closeEvent(a0)
