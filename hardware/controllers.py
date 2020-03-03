@@ -78,7 +78,7 @@ class BaseController(QtCore.QObject):
         except ResponseError as e:
             self.logger.warning(e.message)
 
-    def get_response(self, log: bool = True):
+    def get_response(self, log: bool = True) -> str:
         response = ""
         for line in self.ser:
             response += line.decode("ascii")
@@ -86,9 +86,13 @@ class BaseController(QtCore.QObject):
             self.serin_logger.debug(repr(response))
         return response
 
-    def send_receive(self, command, log: bool = True):
-        command_string = command + self.command_delimiter
-        if log:
-            self.serout_logger.debug(repr(command_string))
-        self.ser.write(command_string.encode('utf-8'))
-        return self.get_response(log)
+    def send_receive(self, command, log: bool = True) -> str:
+        if self.connected:
+            command_string = command + self.command_delimiter
+            if log:
+                self.serout_logger.debug(repr(command_string))
+            self.ser.write(command_string.encode('utf-8'))
+            return self.get_response(log)
+        else:
+            self.logger.info("Tried to send command to disconnected instrument")
+            return ""
