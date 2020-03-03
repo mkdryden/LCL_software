@@ -143,7 +143,7 @@ class ScreenShooter(QtCore.QObject):
         except IndexError:
             return
         im = Image.fromarray(np.left_shift(self.image, 4))  # Zero pad 12 to 16 bits
-        im.save_yaml(os.path.join(experiment_folder_location,
+        im.save(os.path.join(experiment_folder_location,
                              f'{name}_{now()}.tif'),
                      format='tiff', compression='tiff_lzw')
 
@@ -197,7 +197,7 @@ class ScreenShooter(QtCore.QObject):
 
                 for n, preset in enumerate(presets):
                     fs_im = Image.fromarray(np.left_shift(img[..., n], 4))
-                    fs_im.save_yaml(save_loc + f"-{x}_{y}-" + preset[0] + ".tif",
+                    fs_im.save(save_loc + f"-{x}_{y}-" + preset[0] + ".tif",
                                     format='tiff', compression='tiff_lzw')
 
         im_width, im_height = im_list[0][0].size
@@ -207,7 +207,7 @@ class ScreenShooter(QtCore.QObject):
             for y, img in enumerate(i):
                 stitched_im.paste(img, box=(x * im_width, y * im_height))
 
-        stitched_im.save_yaml(save_loc + "-stitched-c.jpg", format='jpeg')
+        stitched_im.save(save_loc + "-stitched-c.jpg", format='jpeg')
 
 
 class MeanIoU(object):
