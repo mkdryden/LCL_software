@@ -55,8 +55,6 @@ class MainWindow(QMainWindow):
 
     def __init__(self, test_run: bool):
         super(MainWindow, self).__init__()
-
-        self.laser_enable = False
         # get our experiment variables
         if test_run is not True:
             self.get_experiment_variables()
