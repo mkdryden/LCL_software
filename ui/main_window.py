@@ -44,6 +44,7 @@ class MainWindow(QMainWindow):
     start_localization_signal = QtCore.pyqtSignal()
     setting_changed_signal = QtCore.pyqtSignal(str, 'PyQt_PyObject')
     nvsetting_changed_signal = QtCore.pyqtSignal(str, 'PyQt_PyObject')
+    settings_save_signal = QtCore.pyqtSignal(str)
     add_preset_signal = QtCore.pyqtSignal('PyQt_PyObject')
     modify_preset_signal = QtCore.pyqtSignal('PyQt_PyObject')
     remove_preset_signal = QtCore.pyqtSignal(str)
@@ -68,6 +69,9 @@ class MainWindow(QMainWindow):
         self.screen_shooter = ScreenShooter()
 
         self.sequencer = InstrumentSequencer(screenshooter=self.screen_shooter)
+        # Add ui-only settings
+        self.sequencer.settings.add_setting(SettingValue('stage_step_um',
+                                                         default_value=30))
         self.image_viewer = ImageViewer()
         self.preset_manager = self.sequencer.presets
         self.vid = self.sequencer.camera
@@ -138,7 +142,8 @@ class MainWindow(QMainWindow):
 
         # Settings
         self.setting_changed_signal.connect(self.sequencer.presets.change_value)
-        self.nvsetting_changed_signal.connect(self.sequencer.vol_settings.change_value)
+        self.nvsetting_changed_signal.connect(self.sequencer.settings.change_value)
+        self.settings_save_signal.connect(self.sequencer.settings.save_yaml)
 
         # Preset Manager
         self.ui.save_preset_pushButton.clicked.connect(self.modify_preset)
@@ -175,9 +180,9 @@ class MainWindow(QMainWindow):
 
     def setup_laser_ui(self):
         self.ui.repetition_rate_double_spin_box.valueChanged.connect(
-            partial(self.change_nv_setting, "laser_rep"))
+            partial(self.nonpreset_setting_change, "laser_rep"))
         self.ui.burst_count_double_spin_box.valueChanged.connect(
-            partial(self.change_nv_setting, "laser_burst"))
+            partial(self.nonpreset_setting_change, "laser_burst"))
         self.laser_arm_signal.connect(self.sequencer.laser_arm)
         self.laser_disarm_signal.connect(self.sequencer.laser_disarm)
         self.laser_fire_signal.connect(self.sequencer.laser_fire)
@@ -216,25 +221,31 @@ class MainWindow(QMainWindow):
             [f"{n}: {str(i)}" for n, i in self.sequencer.objectives.objectives.items()])
         self.ui.magnification_combobox.setCurrentIndex(self.sequencer.objectives.current_index)
         self.ui.magnification_combobox.currentIndexChanged.connect(
-            self.sequencer.objectives.change_objective)
+            partial(self.nonpreset_setting_change, 'objective_index'))
 
-        self.ui.preset_comboBox.currentTextChanged.connect(self.preset_manager.set_preset)
-        self.preset_manager.preset_loaded_signal.connect(self.update_settings)
-        self.preset_manager.presets_changed_signal.connect(self.update_presets)
+        self.ui.preset_comboBox.currentTextChanged.connect(
+            partial(self.nonpreset_setting_change, 'preset'))
+        self.preset_manager.settings_changed_signal.connect(self.preset_settings_update)
+        self.sequencer.settings.settings_changed_signal.connect(self.nonpreset_setting_update)
+        self.preset_manager.presets_changed_signal.connect(self.presets_update)
 
         self.ui.exposure_spin_box.valueChanged.connect(partial(self.change_setting, 'exposure'))
         self.ui.gain_spin_box.valueChanged.connect(partial(self.change_setting, 'gain'))
         self.ui.brightness_spin_box.valueChanged.connect(
             partial(self.change_setting, 'brightness'))
 
+        self.ui.step_size_spin_box.valueChanged.connect(
+            partial(self.nonpreset_setting_change, 'stage_step_um'))
+
         # Fetch initial values
-        self.update_settings(self.preset_manager.get_values())
-        self.update_presets(list(self.preset_manager.presets.keys()))
+        self.preset_settings_update(self.preset_manager.get_values())
+        self.nonpreset_setting_update(self.sequencer.settings.get_values())
+        self.presets_update(list(self.preset_manager.presets.keys()))
 
     def change_setting(self, key: str, value):
         self.setting_changed_signal.emit(key, value)
 
-    def change_nv_setting(self, key: str, value):
+    def nonpreset_setting_change(self, key: str, value):
         self.nvsetting_changed_signal.emit(key, value)
 
     def set_ui_enabled(self, activate: bool):
@@ -242,7 +253,7 @@ class MainWindow(QMainWindow):
         self.ui.instrument_dockwidget.setEnabled(activate)
 
     @QtCore.pyqtSlot(dict)
-    def update_settings(self, settings: typing.Mapping[str, SettingValue]) -> None:
+    def preset_settings_update(self, settings: typing.Mapping[str, SettingValue]) -> None:
         self.ui.exposure_spin_box.setValue(settings['exposure'])
         self.ui.brightness_spin_box.setValue(settings['brightness'])
         self.ui.gain_spin_box.setValue(settings['gain'])
@@ -251,13 +262,21 @@ class MainWindow(QMainWindow):
         self.ui.excitation_lamp_on_combobox.setCurrentIndex(settings['excitation'])
         self.ui.emission_spin_box.setValue(strip_letters(settings['emission']))
 
+    @QtCore.pyqtSlot(dict)
+    def nonpreset_setting_update(self, settings: typing.Mapping[str, SettingValue]) -> None:
+        self.ui.magnification_combobox.setCurrentIndex(settings['objective_index'])
+        self.ui.repetition_rate_double_spin_box.setValue(settings['laser_rep'])
+        self.ui.burst_count_double_spin_box.setValue(settings['laser_burst'])
+        self.ui.step_size_spin_box.setValue(settings['stage_step_um'])
+
     @QtCore.pyqtSlot(list)
-    def update_presets(self, presets: typing.Sequence):
+    def presets_update(self, presets: typing.Sequence):
         # Need to disconnect TextChanged signal to prevent accidentally changing preset
-        self.ui.preset_comboBox.currentTextChanged.disconnect(self.preset_manager.set_preset)
+        self.ui.preset_comboBox.currentTextChanged.disconnect()
         self.ui.preset_comboBox.clear()
         self.ui.preset_comboBox.addItems(presets)
-        self.ui.preset_comboBox.currentTextChanged.connect(self.preset_manager.set_preset)
+        self.ui.preset_comboBox.currentTextChanged.connect(
+            partial(self.nonpreset_setting_change, 'preset'))
         self.ui.preset_comboBox.setCurrentText(self.sequencer.presets.preset)
         self.preset_model.clear()
         for name in presets:
@@ -360,6 +379,7 @@ class MainWindow(QMainWindow):
         angle = self.sequencer.objectives.calibrate_current_objective(
             self.obj_cal_pix_vector, self.obj_cal_stage_vector)
         self.ui.statusBar.showMessage(f"Estimated stage angle: {angle}°", 5000)
+        self.sequencer.settings.change_value('angle')
         self.image_viewer.click_move_signal.connect(self.sequencer.move_rel_frame)
 
     @QtCore.pyqtSlot()
@@ -428,13 +448,13 @@ class MainWindow(QMainWindow):
                 QtCore.Qt.Key_Equal: partial(self._keyboard_move, 'in', 50),
                 QtCore.Qt.Key_Plus: partial(self._keyboard_move, 'in', 5000),
                 QtCore.Qt.Key_A: partial(self._keyboard_move, 'left',
-                                         self.ui.step_size_spin_box.value()*10),
+                                         self.ui.step_size_spin_box.value() * 10),
                 QtCore.Qt.Key_S: partial(self._keyboard_move, 'down',
-                                         self.ui.step_size_spin_box.value()*10),
+                                         self.ui.step_size_spin_box.value() * 10),
                 QtCore.Qt.Key_D: partial(self._keyboard_move, 'right',
-                                         self.ui.step_size_spin_box.value()*10),
+                                         self.ui.step_size_spin_box.value() * 10),
                 QtCore.Qt.Key_W: partial(self._keyboard_move, 'up',
-                                         self.ui.step_size_spin_box.value()*10),
+                                         self.ui.step_size_spin_box.value() * 10),
                 QtCore.Qt.Key_Control: self.laser_arm,
                 QtCore.Qt.Key_F: self.laser_fire,
                 QtCore.Qt.Key_Escape: self.objective_calibration_cancel

@@ -24,7 +24,7 @@ class LaserController(BaseController):
                     SettingValue("laser_burst", default_value=1,
                                  changed_call=self.set_burst_counter)
                     ]
-        self.vol_settings = {i.name: i for i in settings}
+        self.nonpreset_settings = {i.name: i for i in settings}
 
     def start_controller(self):
         self.ser.flushInput()

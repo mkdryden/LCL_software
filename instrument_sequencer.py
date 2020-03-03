@@ -20,7 +20,7 @@ class InstrumentSequencer(QtCore.QObject):
         super(InstrumentSequencer, self).__init__()
         self.screenshooter = screenshooter
         self.presets = settings.PresetManager(parent=self)
-        self.vol_settings = settings.SettingManager(parent=self)
+        self.settings = settings.SettingManager(parent=self)
 
         self.camera = camera.ShowVideo()
         self.camera_thread = QtCore.QThread()
@@ -60,9 +60,16 @@ class InstrumentSequencer(QtCore.QObject):
 
         self.presets.load_yaml()
 
-        for i in [self.laser]:
-            for j in i.vol_settings.values():
-                self.vol_settings.add_setting(j)
+        self.settings.add_setting(
+            settings.SettingValue("preset",
+                                  default_value="",
+                                  changed_call=self.presets.set_preset))
+
+        for i in self.laser, self.camera, self.objectives:
+            for j in i.nonpreset_settings.values():
+                self.settings.add_setting(j)
+
+        self.settings.load_yaml()
 
         self.setup_signals()
         self.done_init_signal.emit()

@@ -1,6 +1,7 @@
 import logging
 import typing
 import os
+from typing import Dict, Any
 
 from PyQt5 import QtCore
 import yaml
@@ -9,6 +10,7 @@ from utils import appdirs, wait_signal
 
 logger = logging.getLogger(__name__)
 preset_loc = os.path.join(appdirs.user_config_dir, 'presets.yaml')
+settings_loc = os.path.join(appdirs.user_config_dir, 'settings.yaml')
 
 
 class SettingValue(object):
@@ -55,6 +57,9 @@ class SettingValue(object):
 
 
 class SettingManager(QtCore.QObject):
+    _settings: Dict[str, SettingValue]
+    settings_changed_signal = QtCore.pyqtSignal(dict)
+
     def __init__(self, parent=None):
         super(SettingManager, self).__init__(parent)
         self._settings = {}
@@ -73,13 +78,41 @@ class SettingManager(QtCore.QObject):
         for key, value in values.items():
             self.change_value(key, value)
 
-    def get_values(self):
+    def get_values(self) -> dict:
+        """
+        Fetch dict of name: values.
+        :return: dict of setting.name: setting.value for all settings
+        """
         return {setting.name: setting.value for setting in self._settings.values()}
+
+    def load_yaml(self, path=None):
+        try:
+            if path is None:
+                path = settings_loc
+            with open(path) as f:
+                settings = yaml.load(f, Loader=yaml.SafeLoader)
+            self.change_values(settings)
+        except (FileNotFoundError, AttributeError):
+            logger.warning("Settings file not found, populating with default.")
+
+        # Set missing values to default
+        for i in self._settings.values():
+            if i.value is None:
+                i.set_default()
+        self.settings_changed_signal.emit(self.get_values())
+
+    @QtCore.pyqtSlot()
+    @QtCore.pyqtSlot(str)
+    def save_yaml(self, path=None):
+        if not path:
+            path = settings_loc
+        with open(path, 'w') as f:
+            yaml.dump(self.get_values(), f)
+        logger.info("Saved settings to: %s", path)
 
 
 class PresetManager(SettingManager):
     number_of_checked_presets_signal = QtCore.pyqtSignal('PyQt_PyObject')
-    preset_loaded_signal = QtCore.pyqtSignal(dict)
     presets_changed_signal = QtCore.pyqtSignal(list)
 
     def __init__(self, parent=None):
@@ -96,7 +129,7 @@ class PresetManager(SettingManager):
                 logger.error("Preset not found: %s", preset)
                 return
             self.preset = preset
-            self.preset_loaded_signal.emit(self.get_values())
+            self.settings_changed_signal.emit(self.get_values())
 
     @QtCore.pyqtSlot(str)
     def load_yaml(self, path=None):
@@ -148,7 +181,7 @@ class PresetManager(SettingManager):
             logger.error("Cannot delete current preset.")
             return
         try:
-            del(self.presets[name])
+            del (self.presets[name])
         except KeyError:
             logger.error("Tried to delete non-existent preset %s", name)
             return

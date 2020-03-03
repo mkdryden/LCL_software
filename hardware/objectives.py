@@ -8,6 +8,7 @@ import numpy as np
 from PyQt5 import QtCore
 
 from utils import appdirs, wait_signal
+from .settings import SettingValue
 
 if typing.TYPE_CHECKING:
     from hardware.asi_controller import StageController
@@ -53,6 +54,11 @@ class Objectives(QtCore.QObject):
         super(Objectives, self).__init__()
         self.controller = controller
         self.objectives = {n: Objective("Empty", 1) for n in range(6)}
+        self.nonpreset_settings = {
+            'objective_index': SettingValue('objective_index',
+                                            default_value=0,
+                                            changed_call=self.change_objective)}
+
         if self.controller is not None:
             if self.controller.connected:
                 self.current_index = self.controller.get_objective_position()

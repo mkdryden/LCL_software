@@ -26,6 +26,7 @@ class ShowVideo(QtCore.QObject):
                                  changed_call=self.change_exposure_ms)
                     ]
         self.settings = {i.name: i for i in settings}
+        self.nonpreset_settings = {'camera_angle': SettingValue('camera_angle', default_value=0.)}
 
     @QtCore.pyqtSlot()
     def start_video(self):
