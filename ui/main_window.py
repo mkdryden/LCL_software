@@ -158,6 +158,7 @@ class MainWindow(QMainWindow):
         self.obj_cal_stage_vector = QtCore.QLine()
         self.ui.objective_calibration_button.clicked.connect(self.objective_calibration_start)
         self.stage_get_pos_signal.connect(self.sequencer.stage.get_position)
+        self.objective_calibrating = False
 
         self.setup_comboboxes()
         self.setup_laser_ui()
@@ -339,6 +340,7 @@ class MainWindow(QMainWindow):
 
     @QtCore.pyqtSlot()
     def objective_calibration_start(self):
+        self.objective_calibrating = True
         self.ui.statusBar.showMessage("Move an object near one corner of the frame, then click on it. "
                                       "ESC to cancel")
         self.set_ui_enabled(False)
@@ -394,12 +396,16 @@ class MainWindow(QMainWindow):
 
     @QtCore.pyqtSlot()
     def objective_calibration_cancel(self):
-        self.image_viewer.click_move_pix_signal.disconnect()
-        self.sequencer.stage.position_signal.disconnect()
-        self.image_viewer.click_move_signal.connect(self.sequencer.move_rel_frame)
+        if self.objective_calibrating:
+            try:
+                self.image_viewer.click_move_pix_signal.disconnect()
+            except TypeError:
+                pass
+            self.image_viewer.click_move_signal.connect(self.sequencer.move_rel_frame)
 
-        self.set_ui_enabled(True)
-        self.ui.statusBar.showMessage("Objective calibration cancelled", 1500)
+            self.set_ui_enabled(True)
+            self.ui.statusBar.showMessage("Objective calibration cancelled", 1500)
+            self.objective_calibrating = False
 
     @QtCore.pyqtSlot()
     def take_image(self):
