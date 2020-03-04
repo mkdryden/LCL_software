@@ -45,7 +45,8 @@ def wait_signal(signal: QtCore.pyqtSignal = None, timeout=10000):
     timer.setSingleShot(True)
 
     def timed_out():
-        logger.warning("Timed out while waiting for %s", signal)
+        if signal:
+            logger.warning("Timed out while waiting for %s", signal)
         loop.quit()
 
     if signal is None and timeout is None:
