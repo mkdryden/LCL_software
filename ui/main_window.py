@@ -417,11 +417,15 @@ class MainWindow(QMainWindow):
 
     @QtCore.pyqtSlot()
     def start_tiling(self):
+        presets = self._get_checked_presets()
+        if len(presets) == 0:
+            self.ui.statusBar.showMessage("Select at least one preset to tile.", 5000)
+            return
         cols = self.ui.tile_cols_spinBox.value()
         rows = self.ui.tile_rows_spinBox.value()
         self.set_ui_enabled(False)
         logger.info("Starting tiling")
-        self.start_tiling_signal.emit(self._get_checked_presets(), cols, rows)
+        self.start_tiling_signal.emit(presets, cols, rows)
 
     @QtCore.pyqtSlot(list, list)
     def stop_tiling(self, *args):
