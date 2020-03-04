@@ -124,7 +124,7 @@ class Objectives(QtCore.QObject):
         :param vector_pix: vector as QLine in camera pixels
         :param vector_dum: vector as QLine in stage coordinates
 
-        :return: estimate of camera angle in degrees
+        :return: estimate of camera angle in degrees (right handed from camera to stage vectors)
         """
         v1 = np.array((vector_pix.dx(), vector_pix.dy(), 0))
         v2 = np.array((-vector_dum.dx(), -vector_dum.dy(), 0))  # Stage coordinates reverse of cam
@@ -137,7 +137,7 @@ class Objectives(QtCore.QObject):
         logger.info("Set %s scale to %s", self.current_objective, self.current_objective.scale)
         self.save_yaml()
 
-        return vg.angle(v1, v2)
+        return float(vg.angle(v1, v2))
 
 
 if __name__ == "__main__":
