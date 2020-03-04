@@ -377,7 +377,19 @@ class MainWindow(QMainWindow):
         angle = self.sequencer.objectives.calibrate_current_objective(
             self.obj_cal_pix_vector, self.obj_cal_stage_vector)
         self.ui.statusBar.showMessage(f"Estimated stage angle: {angle}°", 5000)
-        self.sequencer.settings.change_value('angle')
+        messagebox = QMessageBox(QMessageBox.Question,  # icon
+                                 "Set camera angle?",  # title
+                                 f"Set camera angle to {angle:.3f}°?",  # text
+                                 QMessageBox.Ok | QMessageBox.Cancel,  # buttons
+                                 self  # parent
+                                 )
+        messagebox.setDefaultButton(QMessageBox.Ok)
+        messagebox.setModal(True)
+        response = messagebox.exec()
+
+        if response == QMessageBox.Ok:
+            self.sequencer.settings.change_value('camera_angle', angle)
+
         self.image_viewer.click_move_signal.connect(self.sequencer.move_rel_frame)
 
     @QtCore.pyqtSlot()

@@ -3,6 +3,7 @@ import typing
 
 from PyQt5 import QtCore
 import numpy as np
+import vg
 
 from hardware import asi_controller, laser_controller, fluorescence_controller, settings, camera
 from utils import wait_signal, ScreenShooter
@@ -110,14 +111,25 @@ class InstrumentSequencer(QtCore.QObject):
             images.append(self._get_next_image())
         return np.dstack(images)
 
+    @QtCore.pyqtSlot(float, float, bool)
     @QtCore.pyqtSlot(float, float)
-    def move_rel_frame(self, x: float = None, y: float = None) -> None:
+    def move_rel_frame(self, x: float = None, y: float = None, rotate: bool = True) -> None:
         """
         Move relative to the current frame size.
         :param x: Multiple of current frame width to move
         :param y: Multiple of current frame height to move
+        :param rotate: If true, rotate move vector to account for camera angle
         """
         logger.info("Relative move frames: %s %s", x, y)
+
+        if rotate:
+            if x is None:
+                x = 0.
+            if y is None:
+                y = 0.
+            x, y, _ = vg.rotate(np.array((x, y, 0)),
+                                around_axis=vg.basis.z,
+                                angle=self.settings.get_values()['camera_angle'])
 
         if x is not None:
             x_rel = round(x * self.camera.camera.image_width_pixels *
@@ -132,7 +144,7 @@ class InstrumentSequencer(QtCore.QObject):
             y_rel = None
 
         with wait_signal(self.stage.done_moving_signal):
-            logger.info("Relative move µm: %s %s", x_rel/10, y_rel/10)
+            logger.info("Relative move µm: %s %s", x_rel / 10, y_rel / 10)
             self.stage.move_rel(x=x_rel, y=y_rel)
 
     @QtCore.pyqtSlot()
@@ -192,11 +204,13 @@ class InstrumentSequencer(QtCore.QObject):
 
     @QtCore.pyqtSlot(list, int, int)
     def tile(self, preset_list: typing.Sequence, columns: int = 3, rows: int = 3):
+        if len(preset_list) == 0:
+            logger.warning("Cannot tile with no presets selected.")
         start_preset = self.presets.preset
         start_x, start_y, _ = self.stage.get_position()
 
-        x_grid = [x - (columns-1)/2. for x in range(columns)]
-        y_grid = [y - (rows-1)/2. for y in range(rows)]
+        x_grid = [x - (columns - 1) / 2. for x in range(columns)]
+        y_grid = [y - (rows - 1) / 2. for y in range(rows)]
 
         pos_x = 0
         pos_y = 0
