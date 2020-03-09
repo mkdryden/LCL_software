@@ -580,7 +580,7 @@
           </property>
          </widget>
         </item>
-        <item row="6" column="0" colspan="4">
+        <item row="7" column="0" colspan="4">
          <widget class="QPushButton" name="tile_and_navigate_pushbutton">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -622,6 +622,20 @@
           </property>
           <property name="checkable">
            <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="2" colspan="2">
+         <widget class="QSpinBox" name="tile_overlap_spinBox">
+          <property name="maximum">
+           <number>50</number>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0" colspan="2">
+         <widget class="QLabel" name="tile_overlap_label">
+          <property name="text">
+           <string>Overlap %</string>
           </property>
          </widget>
         </item>
