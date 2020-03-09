@@ -728,7 +728,7 @@
           <x>0</x>
           <y>0</y>
           <width>255</width>
-          <height>803</height>
+          <height>829</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout">
@@ -877,21 +877,15 @@
              </widget>
             </item>
             <item>
-             <widget class="QDoubleSpinBox" name="burst_count_double_spin_box">
+             <widget class="QSpinBox" name="burst_count_double_spin_box">
               <property name="focusPolicy">
                <enum>Qt::ClickFocus</enum>
               </property>
-              <property name="decimals">
-               <number>0</number>
-              </property>
               <property name="maximum">
-               <double>10000000.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>1.000000000000000</double>
+               <number>10000</number>
               </property>
               <property name="value">
-               <double>1.000000000000000</double>
+               <number>1</number>
               </property>
              </widget>
             </item>
