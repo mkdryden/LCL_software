@@ -49,7 +49,7 @@ class MainWindow(QMainWindow):
     add_preset_signal = QtCore.pyqtSignal('PyQt_PyObject')
     modify_preset_signal = QtCore.pyqtSignal('PyQt_PyObject')
     remove_preset_signal = QtCore.pyqtSignal(str)
-    start_tiling_signal = QtCore.pyqtSignal(list, int, int)
+    start_tiling_signal = QtCore.pyqtSignal(list, int, int, float)
     stage_fast_moverel_signal = QtCore.pyqtSignal(int, int, int)
     stage_get_pos_signal = QtCore.pyqtSignal()
     af_mode_signal = QtCore.pyqtSignal(str)
@@ -438,7 +438,8 @@ class MainWindow(QMainWindow):
         rows = self.ui.tile_rows_spinBox.value()
         self.set_ui_enabled(False)
         logger.info("Starting tiling")
-        self.start_tiling_signal.emit(presets, cols, rows)
+        self.start_tiling_signal.emit(presets, cols, rows,
+                                      self.ui.tile_overlap_spinBox.value()/100.)
 
     @QtCore.pyqtSlot(list, list)
     def stop_tiling(self, *args):

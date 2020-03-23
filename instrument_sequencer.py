@@ -202,15 +202,16 @@ class InstrumentSequencer(QtCore.QObject):
                 self.take_laser_video = False
             self.laser_firing = False
 
-    @QtCore.pyqtSlot(list, int, int)
-    def tile(self, preset_list: typing.Sequence, columns: int = 3, rows: int = 3):
+    @QtCore.pyqtSlot(list, int, int, float)
+    def tile(self, preset_list: typing.Sequence, columns: int = 3, rows: int = 3,
+             overlap: float = 0.):
         if len(preset_list) == 0:
             logger.warning("Cannot tile with no presets selected.")
         start_preset = self.presets.preset
         start_x, start_y, _ = self.stage.get_position()
 
-        x_grid = [x - (columns - 1) / 2. for x in range(columns)]
-        y_grid = [y - (rows - 1) / 2. for y in range(rows)]
+        x_grid = [(x - (columns - 1) / 2.) * (1-overlap) for x in range(columns)]
+        y_grid = [(y - (rows - 1) / 2.) * (1-overlap) for y in range(rows)]
 
         pos_x = 0
         pos_y = 0
@@ -221,6 +222,9 @@ class InstrumentSequencer(QtCore.QObject):
             for n_y, y in enumerate(y_grid):
                 logger.info("Tile coordinates: %s %s", x, y)
                 self.move_rel_frame(x - pos_x, y - pos_y)
+                with wait_signal(timeout=300):
+                    pass
+
                 pos_x = x
                 pos_y = y
                 output_images[n_x][n_y] = self.gather_all_channel_images(preset_list)
