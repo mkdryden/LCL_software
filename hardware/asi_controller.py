@@ -7,9 +7,9 @@ from PyQt5 import QtCore
 import numpy as np
 import pandas as pd
 
-from .controllers import BaseController, ResponseError
-from .objectives import Objectives
-from .settings import SettingValue
+from hardware.controllers import BaseController, ResponseError
+from hardware.objectives import Objectives
+from hardware.settings import SettingValue
 import utils
 from utils import wait_signal, now
 
@@ -20,6 +20,7 @@ class StageController(BaseController):
     position_signal = QtCore.pyqtSignal(tuple)
     af_status_signal = QtCore.pyqtSignal(str)
     af_focus_error_signal = QtCore.pyqtSignal()
+    turret_position_signal = QtCore.pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -36,6 +37,7 @@ class StageController(BaseController):
         self.status_timer = None
         self.af_status_timer = None
         self.af_focus_error = 0
+        self.turret_status_timer = None
         self.objectives = None
 
     def setup(self):
@@ -68,6 +70,9 @@ class StageController(BaseController):
         self.af_status_timer = QtCore.QTimer(self)
         self.af_status_timer.timeout.connect(self.af_poll_status)
         self.af_status_timer.start(200)
+
+        self.turret_status_timer = QtCore.QTimer(self)
+        self.turret_status_timer.timeout.connect(self.get_objective_position)
 
     def test_connection(self, connection):
         connection.write('BU\r'.encode('utf-8'))
@@ -146,15 +151,56 @@ class StageController(BaseController):
         self.send_receive('M O={}'.format(index + 1))
         self.status_timer.start(100)
 
-    def get_objective_position(self) -> int:
+    @QtCore.pyqtSlot(int)
+    def turret_move_position_abs(self, pos: int):
         """
-        Returns 0-indexed objective position
-        :return: 0-indexed objective position
+        Move to absolute objective turret position (by index or mm, depending on current mode)
+        :param pos: position
+        """
+        self.send_receive(f'M O={pos}')
+        self.status_timer.start(100)
+
+    @QtCore.pyqtSlot(int)
+    def turret_set_index(self, index: int):
+        """
+        Set current position to index.
+        :param index: index to assign
+        """
+        self.send_receive(f'H O={index}')
+
+    @QtCore.pyqtSlot()
+    def get_objective_position(self, zero_indexed: bool = False) -> int:
+        """
+        Returns objective position. Emits turret_position_signal if zero_indexed is False.
+        :param zero_indexed: If True, output index from zero, otherwise use raw value.
+        :return: Objective position
         """
         pos = self.send_receive('W O')
         pos = pos.split('A ')[1]
-        self.logger.info("ASI objective index %s", pos)
-        return int(pos) - 1
+
+        if zero_indexed:
+            return int(pos) - 1
+        else:
+            self.turret_position_signal.emit(int(pos))
+            return int(pos)
+
+    @QtCore.pyqtSlot(bool)
+    def objective_set_mm_mode(self, mode: bool):
+        """
+        Enable or disable objective turret linear units mode. Starts/stops turret_status_timer.
+        Connects/disconnects left side command wheel to turret.
+        :param mode: if True, enables mm mode, otherwise restores indexed operation
+        """
+        if mode:
+            self.send_receive('J O=23')  # enable command wheel
+            self.send_receive('UM O=1')
+            self.turret_status_timer.start(400)
+        else:
+            self.send_receive('J O=0')  # disable command wheel
+            self.send_receive('UM O=0')
+            self.turret_status_timer.stop()
+
+        self.logger.info("Objective turret mm mode: %s", mode)
 
     def change_cube_position(self, index):
         self.send_receive('MOVE S={}'.format(index + 1))

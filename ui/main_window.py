@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QMainWindow, QInputDialog, QLineEdit, QMessageBox
 import numpy as np
 
 from ui.LCL_ui import Ui_MainWindow
+from ui.turret_diagnostics import TurretCal
 from utils import ScreenShooter, AspectRatioWidget, wait_signal
 from video import ImageViewer, MagnifiedImageViewer
 from hardware.fluorescence_controller import wl_to_idx
@@ -160,9 +161,17 @@ class MainWindow(QMainWindow):
         self.stage_get_pos_signal.connect(self.sequencer.stage.get_position)
         self.objective_calibrating = False
 
+        # Setup TurretCal
+        self.turretcal = TurretCal(parent=self)
+        self.turretcal.setup_signals(mm_mode=self.sequencer.stage.objective_set_mm_mode,
+                                     goto_position=self.sequencer.stage.turret_move_position_abs,
+                                     set_index=self.sequencer.stage.turret_set_index,
+                                     status_out=self.sequencer.stage.turret_position_signal)
+
         self.setup_comboboxes()
         self.setup_laser_ui()
         self.setup_af_ui()
+        self.setup_menus_ui()
 
         # Restore last window state
         settings = QtCore.QSettings("Wheeler Lab", "LCL Software")
@@ -174,6 +183,7 @@ class MainWindow(QMainWindow):
             pass
 
         self.show()
+        self.turretcal.widget.hide()
 
         logger.info('finished gui init')
 
@@ -240,6 +250,9 @@ class MainWindow(QMainWindow):
         self.preset_settings_update(self.preset_manager.get_values())
         self.nonpreset_setting_update(self.sequencer.settings.get_values())
         self.presets_update(list(self.preset_manager.presets.keys()))
+
+    def setup_menus_ui(self):
+        self.ui.actionTurret_Diagnostics.triggered.connect(self.turretcal.widget.show)
 
     def change_setting(self, key: str, value):
         self.setting_changed_signal.emit(key, value)

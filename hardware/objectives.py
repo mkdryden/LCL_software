@@ -61,7 +61,7 @@ class Objectives(QtCore.QObject):
 
         if self.controller is not None:
             if self.controller.connected:
-                self.current_index = self.controller.get_objective_position()
+                self.current_index = self.controller.get_objective_position(zero_indexed=True)
                 logger.info("Current objective position: %s", self.current_index)
             else:
                 self.current_index = None

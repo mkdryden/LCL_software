@@ -8,11 +8,10 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1811, 870)
+        MainWindow.resize(1790, 918)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -580,6 +579,16 @@ class Ui_MainWindow(object):
         self.statusBar = QtWidgets.QStatusBar(MainWindow)
         self.statusBar.setObjectName("statusBar")
         MainWindow.setStatusBar(self.statusBar)
+        self.menuBar = QtWidgets.QMenuBar(MainWindow)
+        self.menuBar.setGeometry(QtCore.QRect(0, 0, 1790, 22))
+        self.menuBar.setObjectName("menuBar")
+        self.menuDebug = QtWidgets.QMenu(self.menuBar)
+        self.menuDebug.setObjectName("menuDebug")
+        MainWindow.setMenuBar(self.menuBar)
+        self.actionTurret_Diagnostics = QtWidgets.QAction(MainWindow)
+        self.actionTurret_Diagnostics.setObjectName("actionTurret_Diagnostics")
+        self.menuDebug.addAction(self.actionTurret_Diagnostics)
+        self.menuBar.addAction(self.menuDebug.menuAction())
 
         self.retranslateUi(MainWindow)
         MainWindow.destroyed.connect(self.acquisition_dockwidget.close)
@@ -640,6 +649,8 @@ class Ui_MainWindow(object):
         self.af_dither_button.setText(_translate("MainWindow", "Dither"))
         self.af_lock_button.setText(_translate("MainWindow", "Lock"))
         self.af_idle_button.setText(_translate("MainWindow", "Idle"))
+        self.menuDebug.setTitle(_translate("MainWindow", "Debug"))
+        self.actionTurret_Diagnostics.setText(_translate("MainWindow", "Turret Diagnostics…"))
 
 
 if __name__ == "__main__":

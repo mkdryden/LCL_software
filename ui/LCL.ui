@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1811</width>
-    <height>870</height>
+    <width>1790</width>
+    <height>918</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1114,6 +1114,28 @@
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1790</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuDebug">
+    <property name="title">
+     <string>Debug</string>
+    </property>
+    <addaction name="actionTurret_Diagnostics"/>
+   </widget>
+   <addaction name="menuDebug"/>
+  </widget>
+  <action name="actionTurret_Diagnostics">
+   <property name="text">
+    <string>Turret Diagnostics…</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
