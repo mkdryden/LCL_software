@@ -17,3 +17,8 @@ Experiments/
 
 *.pyc
 anaconda/
+/.idea/deployment.xml
+/.idea/misc.xml
+/.idea/deployment.xml
+/.idea/LCL_software.iml
+/.idea/misc.xml
