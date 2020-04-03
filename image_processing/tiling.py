@@ -350,8 +350,8 @@ if __name__ == "__main__":
     matrix.register()
     matrix.estimate_camera_angle()
     matrix.fit_positions()
-    canvas = matrix.assemble_angled()
+    tiled = matrix.assemble_angled()
 
     os.makedirs(os.path.realpath(args.output), exist_ok=True)
-    canvas.save(os.path.join(os.path.realpath(args.output),
-                             os.path.split(f"{matches[0].group('prefix')}-stitched.tif")[-1]))
+    Image.fromarray(tiled).save(os.path.join(os.path.realpath(args.output),
+                                             os.path.split(f"{matches[0].group('prefix')}-stitched.tif")[-1]))
