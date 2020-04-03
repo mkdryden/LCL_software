@@ -205,6 +205,10 @@ class ShiftMatrix(object):
         self.y_pos_pix_shifted = (y_matrix * self.im_shape[0]).astype(int).T
 
     def register(self, parallel: bool = True):
+        """
+        Registers all ShiftPairs
+        :param parallel: if True, executes in parallel with multiprocessing.Pool
+        """
         shiftpairs = [pair for pair in self.shiftpairs if pair is not None]
         shiftindex = [n for n, pair in enumerate(self.shiftpairs) if pair is not None]
         if parallel:
@@ -284,9 +288,9 @@ class ShiftMatrix(object):
         out_s = out_s.astype(int).tolist()
 
         if full_depth:
-            canvas = np.zeros(out_s, dtype=np.uint16) #Image.new('I;16', out_s)
+            canvas = np.zeros(out_s, dtype=np.uint16)
         else:
-            canvas = np.zeros(out_s, dtype=np.uint8) #Image.new('L', out_s)
+            canvas = np.zeros(out_s, dtype=np.uint8)
 
         x_corners = self.x_pos_pix_shifted.astype(np.float64)
         x_corners += (np.sin(self.angle) * self.y_pos_pix)
@@ -306,19 +310,19 @@ class ShiftMatrix(object):
                 image = np.right_shift(im, 8).astype(np.uint8)
             mask = np.ones(self.im_shape, dtype=float)
             if x > 0:  # left edge
-                overlap_width = int(im.shape[1] * self.overlap/2)
+                overlap_width = int(im.shape[1] * self.overlap / 2)
                 mask[:, 0:overlap_width] = np.broadcast_to(
                     np.linspace(0., 1., overlap_width), (im.shape[0], overlap_width))
 
             if y > 0:  # Top edge
-                overlap_height = int(im.shape[0] * self.overlap/2)
+                overlap_height = int(im.shape[0] * self.overlap / 2)
                 mask[0:overlap_height, :] = np.broadcast_to(
                     np.linspace(0., 1., overlap_height), (im.shape[1], overlap_height)).T
 
-            canvas[top:top+im.shape[0],
-                   left:left+im.shape[1]] = np.round(image * mask +
-                                                     canvas[top:top+im.shape[0], left:left+im.shape[1]] *
-                                                     (1. - mask)).astype(np.uint16)
+            canvas[top:top + im.shape[0],
+            left:left + im.shape[1]] = np.round(image * mask +
+                                                canvas[top:top + im.shape[0], left:left + im.shape[1]] *
+                                                (1. - mask)).astype(np.uint16)
 
         return Image.fromarray(canvas)
 
@@ -338,7 +342,7 @@ if __name__ == "__main__":
     image_coords = np.array([(int(match.group('x')), int(match.group('y'))) for match in matches])
     y_max, x_max = np.sort(image_coords)[-1]
 
-    matrix = ShiftMatrix(columns=x_max+1, rows=y_max+1,
+    matrix = ShiftMatrix(columns=x_max + 1, rows=y_max + 1,
                          images=images,
                          coords=image_coords,
                          overlap=args.overlap)
