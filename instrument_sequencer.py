@@ -221,7 +221,7 @@ class InstrumentSequencer(QtCore.QObject):
         for n_x, x in enumerate(x_grid):
             for n_y, y in enumerate(y_grid):
                 logger.info("Tile coordinates: %s %s", x, y)
-                self.move_rel_frame(x - pos_x, y - pos_y)
+                self.move_rel_frame(x - pos_x, y - pos_y, rotate=False)
                 with wait_signal(timeout=300):
                     pass
 
