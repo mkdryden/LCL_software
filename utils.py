@@ -11,30 +11,16 @@ from PyQt5.QtWidgets import QBoxLayout, QSpacerItem, QWidget
 import cv2
 from PIL import Image
 import numpy as np
-import tensorflow as tf
 import ffmpeg
 from appdirs import AppDirs
+
+from image_processing import tiling
 
 logger = logging.getLogger(__name__)
 
 
 def now():
     return datetime.datetime.now().strftime('%d_%m_%Y___%H.%M.%S')
-
-
-def comment(text):
-    '''
-    prints to screen and logs simultaneously
-    '''
-    splits = text.split()
-    text = ''
-    for split in splits:
-        text += split + ' '
-    now_time = now()
-    logging.info('{0}{1}{2}'.format(text,
-                                    '.' * (80 - (len(text) + len(now_time))),
-                                    now_time))
-    print(text, threading.current_thread())
 
 
 @contextmanager
@@ -99,7 +85,6 @@ class AspectRatioWidget(QWidget):
     def resizeEvent(self, e):
         w = e.size().width()
         h = e.size().height()
-        self.aspect
 
         if w / h > self.aspect:  # too wide
             self.layout().setDirection(QBoxLayout.LeftToRight)
@@ -146,7 +131,7 @@ class ScreenShooter(QtCore.QObject):
         im = Image.fromarray(np.left_shift(self.image, 4))  # Zero pad 12 to 16 bits
         im.save(os.path.join(experiment_folder_location,
                              f'{name}_{now()}.tif'),
-                     format='tiff', compression='tiff_lzw')
+                format='tiff', compression='tiff_lzw')
 
     @QtCore.pyqtSlot(bool)
     def set_recording_state(self, state: bool):
@@ -158,11 +143,11 @@ class ScreenShooter(QtCore.QObject):
             self.ffmpeg = (
                 ffmpeg.input('pipe:', format='rawvideo', pix_fmt='gray12le',
                              s='{}x{}'.format(*reversed(self.image.shape)), framerate=20)
-                      .output(os.path.join(experiment_folder_location,
-                                           f"{self.image_title}-{now()}.mp4"),
-                              crf=21, preset="fast", pix_fmt='yuv420p')
-                      .overwrite_output()
-                      .run_async(pipe_stdin=True)
+                    .output(os.path.join(experiment_folder_location,
+                                         f"{self.image_title}-{now()}.mp4"),
+                            crf=21, preset="fast", pix_fmt='yuv420p')
+                    .overwrite_output()
+                    .run_async(pipe_stdin=True)
             )
             self.recording = True
             return
@@ -199,7 +184,7 @@ class ScreenShooter(QtCore.QObject):
                 for n, preset in enumerate(presets):
                     fs_im = Image.fromarray(np.left_shift(img[..., n], 4))
                     fs_im.save(save_loc + f"-{x}_{y}-" + preset[0] + ".tif",
-                                    format='tiff', compression='tiff_lzw')
+                               format='tiff', compression='tiff_lzw')
 
         im_width, im_height = im_list[0][0].size
         stitched_im = Image.new('RGB', (im_width * len(im_list), im_height * len(im_list[0])))
@@ -209,45 +194,6 @@ class ScreenShooter(QtCore.QObject):
                 stitched_im.paste(img, box=(x * im_width, y * im_height))
 
         stitched_im.save(save_loc + "-stitched-c.jpg", format='jpeg')
-
-
-class MeanIoU(object):
-    # taken from http://www.davidtvs.com/keras-custom-metrics/
-    def __init__(self, num_classes):
-        super().__init__()
-        self.num_classes = num_classes
-
-    def mean_iou(self, y_true, y_pred):
-        # Wraps np_mean_iou method and uses it as a TensorFlow op.
-        # Takes numpy arrays as its arguments and returns numpy arrays as
-        # its outputs.
-        return tf.py_func(self.np_mean_iou, [y_true, y_pred], tf.float32)
-
-    def np_mean_iou(self, y_true, y_pred):
-        # Compute the confusion matrix to get the number of true positives,
-        # false positives, and false negatives
-        # Convert predictions and target from categorical to integer format
-        target = np.argmax(y_true, axis=-1).ravel()
-        predicted = np.argmax(y_pred, axis=-1).ravel()
-
-        # Trick from torchnet for bincounting 2 arrays together
-        # https://github.com/pytorch/tnt/blob/master/torchnet/meter/confusionmeter.py
-        x = predicted + self.num_classes * target
-        bincount_2d = np.bincount(x.astype(np.int32), minlength=self.num_classes ** 2)
-        assert bincount_2d.size == self.num_classes ** 2
-        conf = bincount_2d.reshape((self.num_classes, self.num_classes))
-
-        # Compute the IoU and mean IoU from the confusion matrix
-        true_positive = np.diag(conf)
-        false_positive = np.sum(conf, 0) - true_positive
-        false_negative = np.sum(conf, 1) - true_positive
-
-        # Just in case we get a division by 0, ignore/hide the error and set the value to 0
-        with np.errstate(divide='ignore', invalid='ignore'):
-            iou = true_positive / (true_positive + false_positive + false_negative)
-        iou[np.isnan(iou)] = 0
-
-        return np.mean(iou).astype(np.float32)
 
 
 def channels_to_rgb_img(img: np.ndarray, wavelengths: typing.Sequence[int]):
