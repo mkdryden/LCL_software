@@ -1,6 +1,5 @@
 import os
 import datetime
-import threading
 import typing
 import logging
 from collections import deque
@@ -8,11 +7,12 @@ from contextlib import contextmanager
 
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QBoxLayout, QSpacerItem, QWidget
-import cv2
+import skimage
 from PIL import Image
 import numpy as np
 import ffmpeg
 from appdirs import AppDirs
+from nptyping import Array
 
 from image_processing import tiling
 
@@ -196,10 +196,10 @@ class ScreenShooter(QtCore.QObject):
         stitched_im.save(save_loc + "-stitched-c.jpg", format='jpeg')
 
 
-def channels_to_rgb_img(img: np.ndarray, wavelengths: typing.Sequence[int]):
-    img = np.right_shift(img, 4).astype(np.uint8)  # Convert to 8-bit
+def channels_to_rgb_img(img: np.ndarray, wavelengths: typing.Sequence[int]) -> np.ndarray:
+    source_img = skimage.img_as_float32(np.left_shift(img, 4))  # Right pad 12 to 16, then convert to float
     new_shape = img.shape[:-1] + (3,)
-    new_img = np.zeros(new_shape).astype(np.uint8)
+    new_img = np.zeros(new_shape, dtype=np.float32)
 
     channels = {wl: n for n, wl in enumerate(wavelengths)}
 
@@ -207,19 +207,21 @@ def channels_to_rgb_img(img: np.ndarray, wavelengths: typing.Sequence[int]):
         if int(wl) == 0:
             # this is a BF channel
             for i in range(3):
-                new_img[:, :, i] = img[:, :, channels[wl]]
+                new_img[:, :, i] = source_img[:, :, channels[wl]]
+            new_img *= 0.5
         else:
             # now add proper fluorescence on top
             rgb_val = wl_to_rbg(wl)
-            new_overlay = np.zeros(new_shape).astype(np.uint8)
-            for j in range(3):
-                new_overlay[:, :, j] = rgb_val[j] / 255 * img[:, :, channels[wl]]
-            new_img = cv2.addWeighted(new_img, .5, new_overlay, 1, .6)
-    return new_img
+            # new_overlay = np.zeros(new_shape).astype(np.uint16)
+            # for j in range(3):
+            #     new_overlay[:, :, j] = rgb_val[j] * img[:, :, channels[wl]]
+            im_channel = source_img[:, :, channels[wl]]
+            new_img += rgb_val[np.newaxis, np.newaxis, :] * im_channel[:, :, np.newaxis]
+    return skimage.img_as_ubyte(np.clip(new_img, 0., 1.))
 
 
 # stolen from: http://codingmess.blogspot.com/2009/05/conversion-of-wavelength-in-nanometers.html
-def wl_to_rbg(wavelength: typing.SupportsInt) -> typing.Tuple[int, int, int]:
+def wl_to_rbg(wavelength: typing.SupportsInt) -> Array[float, 3]:
     w = int(wavelength)
 
     # colour
@@ -261,9 +263,9 @@ def wl_to_rbg(wavelength: typing.SupportsInt) -> typing.Tuple[int, int, int]:
         SSS = 0.3 + 0.7 * (780 - w) / (780 - 700)
     else:
         SSS = 0.0
-    SSS *= 255
+    # SSS *= 255
 
-    return int(SSS * R), int(SSS * G), int(SSS * B)
+    return np.array((SSS * R, SSS * G, SSS * B))
 
 
 appdirs = AppDirs("LCL-interface", "Wheeler Lab")
