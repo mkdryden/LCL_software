@@ -319,10 +319,9 @@ class ShiftMatrix(object):
                 mask[0:overlap_height, :] = np.broadcast_to(
                     np.linspace(0., 1., overlap_height), (im.shape[1], overlap_height)).T
 
-            canvas[top:top + im.shape[0],
-            left:left + im.shape[1]] = np.round(image * mask +
-                                                canvas[top:top + im.shape[0], left:left + im.shape[1]] *
-                                                (1. - mask)).astype(np.uint16)
+            canvas[top:top + im.shape[0], left:left + im.shape[1]] = \
+                np.round(image * mask + canvas[top:top + im.shape[0], left:left + im.shape[1]] *
+                         (1. - mask)).astype(np.uint16)
 
         return Image.fromarray(canvas)
 
