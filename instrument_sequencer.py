@@ -16,6 +16,8 @@ class InstrumentSequencer(QtCore.QObject):
     tile_done_signal = QtCore.pyqtSignal(list, list)
     got_image_signal = QtCore.pyqtSignal()
     set_record_signal = QtCore.pyqtSignal(bool)
+    camera_singleshot_signal = QtCore.pyqtSignal()
+    camera_trigger_signal = QtCore.pyqtSignal()
 
     def __init__(self, screenshooter: ScreenShooter, frameskip: int = 2):
         super(InstrumentSequencer, self).__init__()
@@ -78,26 +80,21 @@ class InstrumentSequencer(QtCore.QObject):
     def setup_signals(self):
         self.tile_done_signal.connect(self.screenshooter.save_well_imgs)
         self.set_record_signal.connect(self.screenshooter.set_recording_state)
+        self.camera_trigger_signal.connect(self.camera.trigger)
+        self.camera_singleshot_signal.connect(self.camera.ready_singleshot)
 
     @QtCore.pyqtSlot(np.ndarray)
     def _vid_process_slot(self, image):
-        if self.frame_count > self.frameskip:
-            return
-
-        # TODO: Figure out why this slot gets called multiple times
-        if self.frame_count == self.frameskip:
-            try:
-                self.camera.vid_process_signal.disconnect(self._vid_process_slot)
-            except TypeError:
-                pass
-            self.image = image
-            logger.info("Got new image")
-            self.got_image_signal.emit()
-            self.frame_count = 0
-        else:
-            self.frame_count += 1
+        try:
+            self.camera.vid_process_signal.disconnect(self._vid_process_slot)
+        except TypeError:
+            pass
+        self.image = image
+        logger.info("Got new image")
+        self.got_image_signal.emit()
 
     def _get_next_image(self) -> np.ndarray:
+        self.camera_trigger_signal.emit()
         with wait_signal(self.got_image_signal):
             self.camera.vid_process_signal.connect(self._vid_process_slot)
         return self.image
