@@ -78,6 +78,24 @@ class ShowVideo(QtCore.QObject):
         self.camera.exposure_time_us = int(ms * 1000)
 
     @QtCore.pyqtSlot()
+    def ready_singleshot(self):
+        self.camera.disarm()
+        self.camera.frames_per_trigger_zero_for_unlimited = 1
+        self.camera.arm(1)
+
+    @QtCore.pyqtSlot()
+    @QtCore.pyqtSlot(list, float, tuple, list)
+    def start_continuous(self):
+        self.camera.disarm()
+        self.camera.frames_per_trigger_zero_for_unlimited = 0
+        self.camera.arm(2)
+        self.camera.issue_software_trigger()
+
+    @QtCore.pyqtSlot()
+    def trigger(self):
+        self.camera.issue_software_trigger()
+
+    @QtCore.pyqtSlot()
     def change_gain(self, gain: typing.SupportsInt):
         """
         Sets camera gain.
